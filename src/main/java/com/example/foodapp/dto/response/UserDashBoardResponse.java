@@ -9,11 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Data
-public class BusinessRegistrationResponse {
+public class UserDashBoardResponse {
     private String id;
-    private String email;
-    private String businessName;
-    private String domainName;
-    private String businessAddress;
-    private String imageUrl;
+    private String vendorBusinessName;
+    private String vendorImageUrl;
 }

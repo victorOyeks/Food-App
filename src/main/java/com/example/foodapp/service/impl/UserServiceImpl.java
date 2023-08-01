@@ -1,7 +1,9 @@
 package com.example.foodapp.service.impl;
 
 import com.example.foodapp.dto.request.*;
+import com.example.foodapp.dto.response.DetailsResponse;
 import com.example.foodapp.dto.response.LoginResponse;
+import com.example.foodapp.dto.response.UserDashBoardResponse;
 import com.example.foodapp.dto.response.UserResponse;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
@@ -20,6 +22,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -187,6 +191,22 @@ public class UserServiceImpl implements UserService {
         else {
             throw new CustomException("Invalid password reset token.");
         }
+    }
+
+    @Override
+    public List<UserDashBoardResponse> getUserDashBoard() {
+        List<UserDashBoardResponse> detailsResponses = new ArrayList<>();
+        List<Vendor> vendors = vendorRepository.findAll();
+
+        for (Vendor vendor : vendors) {
+            UserDashBoardResponse userDashBoardResponse = new UserDashBoardResponse();
+            userDashBoardResponse.setId(vendor.getId());
+            userDashBoardResponse.setVendorBusinessName(vendor.getBusinessName());
+            userDashBoardResponse.setVendorImageUrl(vendor.getImageUrl());
+
+            detailsResponses.add(userDashBoardResponse);
+        }
+        return detailsResponses;
     }
 
     private void sendVerificationEmail(String recipient, String verificationToken) throws IOException {

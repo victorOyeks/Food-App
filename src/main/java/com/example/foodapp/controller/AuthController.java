@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -62,8 +63,12 @@ public class AuthController {
     }
 
     @PostMapping("vendor-signup")
-    public ResponseEntity<ApiResponse<BusinessRegistrationResponse>> vendorSignup(@RequestBody VendorRegistrationRequest request) throws IOException {
-        ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(vendorService.vendorSignup(request));
+    public ResponseEntity<ApiResponse<BusinessRegistrationResponse>> vendorSignup(@RequestParam String email, @RequestParam String firstName, @RequestParam String lastName,
+                                                                                  @RequestParam String phone, @RequestParam String password, @RequestParam String confirmPassword,
+                                                                                  @RequestParam String businessName, @RequestParam String domainName, @RequestParam String businessAddress,
+                                                                                  MultipartFile file) throws IOException {
+        ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(vendorService.vendorSignup(email, firstName, lastName, phone, password,
+                confirmPassword, businessName, businessAddress, domainName, file));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -128,49 +133,4 @@ public class AuthController {
             return new ResponseEntity<>(apiResponse, HttpStatus.UNAUTHORIZED);
         }
     }
-//    @PostMapping("forgot-password")
-//    public ResponseEntity<ApiResponse<String>> forgotPassword(@RequestParam String email) throws IOException {
-//        ApiResponse<String> apiResponse;
-//
-//        try {
-//            String userForgotPasswordResponse = userService.forgotPassword(email);
-//            apiResponse = new ApiResponse<>(userForgotPasswordResponse);
-//            return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-//        } catch (UsernameNotFoundException | ResourceNotFoundException userException) {
-//            try {
-//                String vendorForgotPassword = vendorService.forgotPassword(email);
-//                apiResponse = new ApiResponse<>(vendorForgotPassword);
-//                return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-//            } catch (UsernameNotFoundException | ResourceNotFoundException vendorException) {
-//                try {
-//                    String companyForgotPassword = companyService.forgotPassword(email);
-//                    apiResponse = new ApiResponse<>(companyForgotPassword);
-//                    return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-//                } catch (UsernameNotFoundException | ResourceNotFoundException companyException) {
-//                    apiResponse = new ApiResponse<>("Invalid email");
-//                    return new ResponseEntity<>(apiResponse, HttpStatus.UNAUTHORIZED);
-//                }
-//            }
-//        }
-//    }
-//
-//    @GetMapping("reset-password")
-//    public ResponseEntity<?> showResetPasswordPage(@RequestParam("token") String token) {
-//        ApiResponse<String> apiResponse = new ApiResponse<>("Render password reset page");
-//        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-//    }
-//
-//    @PostMapping("reset-password")
-//    public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) {
-//        ApiResponse<String> apiResponse;
-//
-//        try {
-//            String resetPasswordResponse = userService.resetPassword(resetPasswordRequest);
-//            apiResponse = new ApiResponse<>(resetPasswordResponse);
-//            return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-//        } catch (CustomException exception) {
-//            apiResponse = new ApiResponse<>(exception.getMessage());
-//            return new ResponseEntity<>(apiResponse, HttpStatus.UNAUTHORIZED);
-//        }
-//    }
 }

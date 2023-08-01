@@ -1,5 +1,7 @@
 package com.example.foodapp.service.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.example.foodapp.dto.request.EmailDetails;
 import com.example.foodapp.dto.request.VendorRegistrationRequest;
 import com.example.foodapp.dto.response.BusinessRegistrationResponse;
@@ -23,13 +25,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -41,29 +41,33 @@ public class VendorServiceImpl implements VendorService {
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
     private final OrderRepository orderRepository;
+    private final Cloudinary cloudinary;
 
     @Override
-    public BusinessRegistrationResponse vendorSignup(VendorRegistrationRequest request) throws IOException {
-        boolean isExistingVendor = vendorRepository.existsByEmail(request.getEmail());
+    public BusinessRegistrationResponse vendorSignup(String email, String firstName, String lastName,
+                                                     String phone, String password, String confirmPassword,
+                                                     String businessName, String domainName, String businessAddress,
+                                                     MultipartFile file) throws IOException {
+        boolean isExistingVendor = vendorRepository.existsByEmail(email);
         if (!isExistingVendor) {
             throw new CustomException("Invalid Vendor. Contact Admin!");
         }
 
-        boolean isExistingUser = userRepository.existsByEmail(request.getEmail());
+        boolean isExistingUser = userRepository.existsByEmail(email);
         if(isExistingUser) {
-            throw new CustomException("User with " + request.getEmail() + " already exist!");
+            throw new CustomException("User with " + email + " already exist!");
         }
 
-        boolean isExistingCompany = companyRepository.existsByCompanyEmail(request.getEmail());
+        boolean isExistingCompany = companyRepository.existsByCompanyEmail(email);
         if (isExistingCompany) {
             throw new CustomException("Company with email already exist!");
         }
 
-        if (!request.getPassword().equals(request.getConfirmPassword())) {
+        if (!password.equals(confirmPassword)) {
             throw new CustomException("Password does not match");
         }
 
-        Vendor existingVendor = vendorRepository.findByEmail(request.getEmail());
+        Vendor existingVendor = vendorRepository.findByEmail(email);
 
         if (!existingVendor.getEnabled()) {
             throw new CustomException("Invalid Vendor. Contact Admin");
@@ -73,15 +77,25 @@ public class VendorServiceImpl implements VendorService {
         }
 
 //        String verificationToken = generateToken();
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        String encodedPassword = passwordEncoder.encode(password);
 
-        existingVendor.setFirstName(request.getFirstName());
-        existingVendor.setLastName(request.getLastName());
-        existingVendor.setPhone(request.getPhone());
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                ObjectUtils.asMap(
+                        "public_id", businessName,
+                        "folder", "images",
+                        "overwrite", true,
+                        "resource_type", "auto"
+                ));
+        String imageUrl = uploadResult.get("secure_url").toString();
+
+        existingVendor.setFirstName(firstName);
+        existingVendor.setLastName(lastName);
+        existingVendor.setPhone(phone);
         existingVendor.setPassword(encodedPassword);
-        existingVendor.setBusinessName(request.getBusinessName());
-        existingVendor.setBusinessAddress(request.getBusinessAddress());
-        existingVendor.setDomainName(request.getDomainName());
+        existingVendor.setBusinessName(businessName);
+        existingVendor.setBusinessAddress(businessAddress);
+        existingVendor.setDomainName(domainName);
+        existingVendor.setImageUrl(imageUrl);
         existingVendor.setDeactivated(false);
         existingVendor.setEnabled(true);
 
@@ -95,6 +109,7 @@ public class VendorServiceImpl implements VendorService {
                 .businessName(existingVendor.getBusinessName())
                 .domainName(existingVendor.getDomainName())
                 .businessAddress(existingVendor.getBusinessAddress())
+                .imageUrl(imageUrl)
                 .build();
     }
 

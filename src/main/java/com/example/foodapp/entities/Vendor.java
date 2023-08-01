@@ -30,6 +30,7 @@ public class Vendor{
     private String businessName;
     private String domainName;
     private String businessAddress;
+    private String imageUrl;
     private Boolean deactivated;
     private String signupToken;
     @JsonIgnoreProperties("vendor")
