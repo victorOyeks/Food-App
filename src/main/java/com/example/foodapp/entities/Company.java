@@ -18,7 +18,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table
-public class Company {
+public class Company  {
     @Id
     @GeneratedValue (strategy = GenerationType.UUID)
     private String id;

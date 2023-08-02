@@ -1,15 +1,11 @@
 package com.example.foodapp.controller;
 
-import com.example.foodapp.dto.request.BulkItemOrderRequest;
-import com.example.foodapp.dto.request.ItemOrderRequest;
 import com.example.foodapp.dto.response.*;
 import com.example.foodapp.exception.CustomException;
-import com.example.foodapp.service.CompanyService;
 import com.example.foodapp.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,18 +24,24 @@ public class OrderController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PostMapping("/vendors/{vendorId}/select-item")
-    public ResponseEntity<ApiResponse<String>> selectItems(@PathVariable String vendorId, @RequestParam String menuId) {
-        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectItem(vendorId, menuId));
+    @PostMapping("/vendors/{vendorId}/select-item-individual")
+    public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId, @RequestParam String menuId) {
+        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectItemForIndividual(vendorId, menuId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PostMapping("/vendors/{vendorId}/make-bulk-order")
-    public ResponseEntity<ApiResponse<String>> makeBulkOrderForStaff(@PathVariable String vendorId, @RequestParam List<String> itemMenuIds) {
-        String response = orderService.createBulkOrder(vendorId, itemMenuIds);
-        ApiResponse<String> apiResponse = new ApiResponse<>(response);
+    @PostMapping("/vendors/{vendorId}/select-item-company")
+    public ResponseEntity<ApiResponse<String>> selectItemsForCompanies(@PathVariable String vendorId, @RequestParam String menuId) {
+        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectItemForCompany(vendorId, menuId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
+//    @PostMapping("/vendors/{vendorId}/make-bulk-order")
+//    public ResponseEntity<ApiResponse<String>> makeBulkOrderForStaff(@PathVariable String vendorId, @RequestParam List<String> itemMenuIds) {
+//        String response = orderService.createBulkOrder(vendorId, itemMenuIds);
+//        ApiResponse<String> apiResponse = new ApiResponse<>(response);
+//        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+//    }
 
     @GetMapping()
     public ResponseEntity<ApiResponse<OrderViewResponse>> viewAllOrders() {

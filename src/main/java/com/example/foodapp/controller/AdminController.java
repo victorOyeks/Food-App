@@ -1,5 +1,6 @@
 package com.example.foodapp.controller;
 
+import com.cloudinary.Api;
 import com.example.foodapp.dto.request.CompanyInvitation;
 import com.example.foodapp.dto.request.VendorInvitation;
 import com.example.foodapp.dto.response.*;
@@ -107,17 +108,18 @@ public class AdminController {
     }
 
     @GetMapping("/breakfast-item-menus")
-    public ResponseEntity<List<ItemMenuResponse>> getAllBreakfastItemMenus() {
+    public ResponseEntity<ApiResponse<List<ItemMenuResponse>>> getAllBreakfastItemMenus() {
         List<ItemMenuResponse> breakfastItemMenus = adminService.getAllBreakfastItemMenus();
-        return ResponseEntity.ok(breakfastItemMenus);
+        ApiResponse<List<ItemMenuResponse>> apiResponseList = new ApiResponse<>(breakfastItemMenus);
+        return new ResponseEntity<>(apiResponseList, HttpStatus.OK);
     }
 
     @GetMapping("/all-orders")
-    public ResponseEntity<List<OrderDetailsResponse>> viewAllOrders() {
+    public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllOrders() {
         List<OrderDetailsResponse> orderDetailsResponses = adminService.viewAllOrders();
-        return ResponseEntity.ok(orderDetailsResponses);
+        ApiResponse<List<OrderDetailsResponse>> apiResponse = new ApiResponse<>(orderDetailsResponses);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
 
     @GetMapping("/user/{id}/orders")
     public ResponseEntity<ApiResponse<List<AdminOrderResponse>>> viewAllOrdersByCompany(@PathVariable String id) {

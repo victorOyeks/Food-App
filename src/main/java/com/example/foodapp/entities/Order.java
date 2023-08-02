@@ -1,7 +1,6 @@
 package com.example.foodapp.entities;
 
 import com.example.foodapp.constant.DeliveryStatus;
-import com.example.foodapp.constant.OrderType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
