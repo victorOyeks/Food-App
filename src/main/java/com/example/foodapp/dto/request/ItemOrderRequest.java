@@ -13,7 +13,6 @@ import java.util.List;
 @Builder
 public class ItemOrderRequest {
     private String userEmail;
-//    private String id;
     private List<String> itemMenuId;
 }
 

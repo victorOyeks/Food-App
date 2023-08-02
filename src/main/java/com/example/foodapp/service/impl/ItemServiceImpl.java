@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -47,7 +46,9 @@ public class ItemServiceImpl implements ItemService {
                 .itemMenus(itemCategory.getItemMenus())
                 .build();
     }
-    public ItemMenuResponse addItemMenu(String itemName, BigDecimal itemPrice, String categoryId, MultipartFile file) throws IOException {
+    public ItemMenuResponse addItemMenu(String itemName, BigDecimal itemPrice, String categoryId,
+                                        Boolean breakfast, Boolean lunch, Boolean dinner,
+                                        MultipartFile file) throws IOException {
 
         Vendor vendor = getAuthenticatedVendor();
         ItemCategory itemCategory = itemCategoryRepository.findByVendorIdAndCategoryId(vendor.getId(), categoryId)
@@ -65,6 +66,9 @@ public class ItemServiceImpl implements ItemService {
 
         itemMenu.setItemName(itemName);
         itemMenu.setItemPrice(itemPrice);
+        itemMenu.setBreakfast(breakfast);
+        itemMenu.setLunch(lunch);
+        itemMenu.setDinner(dinner);
         itemMenu.setImageUrl(imageUrl);
         itemMenu.setItemCategory(itemCategory);
 
@@ -74,12 +78,15 @@ public class ItemServiceImpl implements ItemService {
         return ItemMenuResponse.builder()
                 .itemName(itemMenu.getItemName())
                 .itemPrice(itemMenu.getItemPrice())
+                .breakfast(itemMenu.getBreakfast())
+                .lunch(itemMenu.getLunch())
+                .dinner(itemMenu.getDinner())
                 .imageUrl(imageUrl)
                 .categoryName(itemCategory.getCategoryName())
                 .build();
     }
 
-    public ItemMenuResponse editItemMenu(String itemId, String itemName, BigDecimal itemPrice, String categoryId, MultipartFile file) throws IOException {
+    public ItemMenuResponse editItemMenu(String itemId, String itemName, BigDecimal itemPrice, Boolean breakfast, Boolean lunch, Boolean dinner, String categoryId, MultipartFile file) throws IOException {
 
         Vendor vendor = getAuthenticatedVendor();
 
@@ -91,6 +98,9 @@ public class ItemServiceImpl implements ItemService {
 
         itemMenu.setItemName(itemName);
         itemMenu.setItemPrice(itemPrice);
+        itemMenu.setBreakfast(breakfast);
+        itemMenu.setLunch(lunch);
+        itemMenu.setDinner(dinner);
 
         if (file != null && !file.isEmpty()) {
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
@@ -111,6 +121,9 @@ public class ItemServiceImpl implements ItemService {
         return ItemMenuResponse.builder()
                 .itemName(itemMenu.getItemName())
                 .itemPrice(itemMenu.getItemPrice())
+                .breakfast(itemMenu.getBreakfast())
+                .lunch(itemMenu.getLunch())
+                .dinner(itemMenu.getDinner())
                 .imageUrl(itemMenu.getImageUrl())
                 .categoryName(itemCategory.getCategoryName())
                 .build();

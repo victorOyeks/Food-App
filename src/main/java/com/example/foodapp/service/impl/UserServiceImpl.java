@@ -1,7 +1,6 @@
 package com.example.foodapp.service.impl;
 
 import com.example.foodapp.dto.request.*;
-import com.example.foodapp.dto.response.DetailsResponse;
 import com.example.foodapp.dto.response.LoginResponse;
 import com.example.foodapp.dto.response.UserDashBoardResponse;
 import com.example.foodapp.dto.response.UserResponse;
@@ -117,7 +116,7 @@ public class UserServiceImpl implements UserService {
             throw new CustomException("User with " + email + " is not enabled");
         }
 
-        if(user.getLocked()) {
+        if(user.getActive()) {
             throw new CustomException("Account has been locked! Contact support");
         }
 

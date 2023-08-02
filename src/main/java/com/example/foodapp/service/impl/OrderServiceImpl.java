@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,15 +62,11 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        // Create order
         Order order = new Order();
-        // Set user in the order
-        order.setUser(user); // Assuming the user object is accessible
+        order.setUser(user);
 
-        // Set food items
         order.setItemMenu(selectedItemMenus);
 
-        // Calculate total amount
         BigDecimal totalAmount = BigDecimal.ZERO;
         for (ItemMenu itemMenu : selectedItemMenus) {
             totalAmount = totalAmount.add(itemMenu.getItemPrice());
@@ -78,7 +75,6 @@ public class OrderServiceImpl implements OrderService {
 
         orderRepository.save(order);
 
-        // Add order to the user's order list
         if (user.getOrderList() == null) {
             user.setOrderList(new ArrayList<>());
         }
@@ -110,15 +106,11 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
 
-            // Create order
             Order order = new Order();
-//            order.setUser(user);
             order.setCompany(company);
 
-            // Set food items
             order.setItemMenu(selectedItemMenus);
 
-            // Calculate total amount
             BigDecimal totalAmount = BigDecimal.ZERO;
             for (ItemMenu itemMenu : selectedItemMenus) {
                 totalAmount = totalAmount.add(itemMenu.getItemPrice());
@@ -127,7 +119,6 @@ public class OrderServiceImpl implements OrderService {
 
             orderRepository.save(order);
 
-            // Add order to the user's order list
             if (user.getOrderList() == null) {
                 user.setOrderList(new ArrayList<>());
             }
@@ -245,5 +236,4 @@ public class OrderServiceImpl implements OrderService {
         }
         return company;
     }
-
 }

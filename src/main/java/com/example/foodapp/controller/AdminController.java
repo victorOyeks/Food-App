@@ -2,9 +2,7 @@ package com.example.foodapp.controller;
 
 import com.example.foodapp.dto.request.CompanyInvitation;
 import com.example.foodapp.dto.request.VendorInvitation;
-import com.example.foodapp.dto.response.ApiResponse;
-import com.example.foodapp.dto.response.UserResponse;
-import com.example.foodapp.dto.response.DetailsResponse;
+import com.example.foodapp.dto.response.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.exception.UserAlreadyExistException;
 import com.example.foodapp.service.AdminService;
@@ -87,5 +85,24 @@ public class AdminController {
         List<UserResponse> users = adminService.getAllOnboardedUsers();
         ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>(users);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/all-categories")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
+        ApiResponse<List<CategoryResponse>> apiResponse = new ApiResponse<>(adminService.getAllItemCategory());
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/all-customers")
+    public ResponseEntity<ApiResponse<List<CustomerResponse>>> getAllCustomers() {
+        List<CustomerResponse> customers = adminService.getAllCustomers();
+        ApiResponse<List<CustomerResponse>> apiResponse = new ApiResponse<>(customers);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/all-items")
+    public ResponseEntity<List<ItemMenuInfoResponse>> getAllItemMenus() {
+        List<ItemMenuInfoResponse> itemMenus = adminService.getAllItemMenus();
+        return ResponseEntity.ok(itemMenus);
     }
 }

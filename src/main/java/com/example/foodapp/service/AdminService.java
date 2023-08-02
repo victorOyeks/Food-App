@@ -2,8 +2,7 @@ package com.example.foodapp.service;
 
 import com.example.foodapp.dto.request.CompanyInvitation;
 import com.example.foodapp.dto.request.VendorInvitation;
-import com.example.foodapp.dto.response.UserResponse;
-import com.example.foodapp.dto.response.DetailsResponse;
+import com.example.foodapp.dto.response.*;
 import com.example.foodapp.exception.UserAlreadyExistException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
@@ -21,4 +20,7 @@ public interface AdminService {
     List<DetailsResponse> getAllVendorDetails();
     List<DetailsResponse> getAllCompanyDetails();
     List<UserResponse> getAllOnboardedUsers();
+    List<CategoryResponse> getAllItemCategory();
+    List<CustomerResponse> getAllCustomers();
+    List<ItemMenuInfoResponse> getAllItemMenus();
 }

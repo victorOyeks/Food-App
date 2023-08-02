@@ -3,10 +3,13 @@ package com.example.foodapp.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,7 +24,15 @@ public class ItemMenu implements Serializable {
     private String itemId;
     private String itemName;
     private BigDecimal itemPrice;
+    private Boolean breakfast;
+    private Boolean lunch;
+    private Boolean dinner;
+    private Boolean others;
     private String imageUrl;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_category_id")

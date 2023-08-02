@@ -34,8 +34,11 @@ public class FoodController {
     public ResponseEntity<ApiResponse<ItemMenuResponse>> addFoodMenu(@RequestParam String itemName,
                                                                      @RequestParam BigDecimal itemPrice,
                                                                      @RequestParam MultipartFile file,
+                                                                     @RequestParam Boolean breakfast,
+                                                                     @RequestParam Boolean lunch,
+                                                                     @RequestParam Boolean dinner,
                                                                      @PathVariable String categoryId) throws IOException {
-        ApiResponse<ItemMenuResponse> apiResponse = new ApiResponse<>(itemService.addItemMenu(itemName, itemPrice, categoryId, file));
+        ApiResponse<ItemMenuResponse> apiResponse = new ApiResponse<>(itemService.addItemMenu(itemName, itemPrice, categoryId, breakfast, lunch, dinner, file));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -43,9 +46,12 @@ public class FoodController {
     public ResponseEntity<ApiResponse<ItemMenuResponse>> editFoodMenu(@RequestParam String itemId,
                                                                       @RequestParam String itemName,
                                                                       @RequestParam BigDecimal itemPrice,
+                                                                      @RequestParam Boolean breakfast,
+                                                                      @RequestParam Boolean lunch,
+                                                                      @RequestParam Boolean dinner,
                                                                       @RequestParam String categoryId,
                                                                       @RequestParam(required = false) MultipartFile file) throws IOException {
-        ApiResponse<ItemMenuResponse> apiResponse = new ApiResponse<>(itemService.editItemMenu(itemId, itemName, itemPrice, categoryId, file));
+        ApiResponse<ItemMenuResponse> apiResponse = new ApiResponse<>(itemService.editItemMenu(itemId, itemName, itemPrice, breakfast, lunch, dinner, categoryId, file));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -80,13 +86,4 @@ public class FoodController {
         ApiResponse<String> apiResponse = new ApiResponse<>("Food category deleted successfully");
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-//
-//    @GetMapping("/files/{id}")
-//    public ResponseEntity<byte[]> getFile(@PathVariable String id) {
-//        ItemMenu fileDB = itemService.getFile(id);
-//
-//        return ResponseEntity.ok()
-//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileDB.getImageName() + "\"")
-//                .body(fileDB.getData());
-//    }
 }

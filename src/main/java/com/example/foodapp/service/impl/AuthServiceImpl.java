@@ -103,7 +103,7 @@ public class AuthServiceImpl implements AuthService {
             if(!user.getEnabled()) {
                 throw new CustomException("Your account has not been enabled");
             }
-            if(user.getLocked()) {
+            if(user.getActive()) {
                 throw new CustomException("Your account has been locked. Contact Admin for support!");
             }
             // User authentication logic

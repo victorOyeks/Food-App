@@ -5,7 +5,6 @@ import com.example.foodapp.dto.request.ResetEmail;
 import com.example.foodapp.dto.response.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.exception.ResourceNotFoundException;
-
 import com.example.foodapp.service.CompanyService;
 import com.example.foodapp.service.UserService;
 import com.example.foodapp.service.VendorService;
@@ -28,7 +27,6 @@ public class AuthController {
     private final VendorService vendorService;
     private final AuthService authService;
     private final CompanyService companyService;
-
 
     @GetMapping("verify")
     public ResponseEntity<ApiResponse<String>> verifyAccount(@RequestParam("token") String verificationToken) {
@@ -65,7 +63,7 @@ public class AuthController {
     @PostMapping("vendor-signup")
     public ResponseEntity<ApiResponse<BusinessRegistrationResponse>> vendorSignup(@RequestParam String email, @RequestParam String firstName, @RequestParam String lastName,
                                                                                   @RequestParam String phone, @RequestParam String password, @RequestParam String confirmPassword,
-                                                                                  @RequestParam String businessName, @RequestParam String domainName, @RequestParam String businessAddress,
+                                                                                  @RequestParam String businessName, @RequestParam String businessAddress, @RequestParam String domainName,
                                                                                   MultipartFile file) throws IOException {
         ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(vendorService.vendorSignup(email, firstName, lastName, phone, password,
                 confirmPassword, businessName, businessAddress, domainName, file));

@@ -7,9 +7,7 @@ import com.example.foodapp.dto.request.StaffInvitation;
 import com.example.foodapp.dto.response.BusinessRegistrationResponse;
 import com.example.foodapp.entities.Company;
 import com.example.foodapp.entities.User;
-import com.example.foodapp.entities.Vendor;
 import com.example.foodapp.exception.CustomException;
-import com.example.foodapp.exception.ResourceNotFoundException;
 import com.example.foodapp.repository.AdminRepository;
 import com.example.foodapp.repository.CompanyRepository;
 import com.example.foodapp.repository.UserRepository;
@@ -144,7 +142,7 @@ public class CompanyServiceImpl implements CompanyService {
         staffUser.setEmail(staffEmail);
         staffUser.setRole(ROLE.COMPANY_STAFF);
         staffUser.setEnabled(true);
-        staffUser.setLocked(false);
+        staffUser.setActive(false);
         staffUser.setCompany(company);
         staffUser.setVerificationToken(signupToken);
 
