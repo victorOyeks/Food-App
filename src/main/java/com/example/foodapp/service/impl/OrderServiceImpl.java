@@ -1,5 +1,6 @@
 package com.example.foodapp.service.impl;
 
+import com.example.foodapp.constant.DeliveryStatus;
 import com.example.foodapp.dto.request.BulkItemOrderRequest;
 import com.example.foodapp.dto.request.ItemOrderRequest;
 import com.example.foodapp.dto.response.*;
@@ -50,21 +51,76 @@ public class OrderServiceImpl implements OrderService {
         return foodDataResponse;
     }
 
-    public String selectItem(String vendorId, ItemOrderRequest orderRequest) {
-        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(()-> new CustomException("Vendor not found!!!"));
+    public String selectItem(String vendorId, String menuId) {
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found!!!"));
         User user = getAuthenticatedUser();
+        ItemMenu itemMenu = findFoodMenuById(vendor.getId(), menuId);
+
+        if (itemMenu != null) {
+            Order existingOpenOrder = orderRepository.findOpenOrderByUser(user.getId());
+
+            if (existingOpenOrder != null) {
+                List<ItemMenu> selectedItemMenus = existingOpenOrder.getItemMenu();
+                selectedItemMenus.add(itemMenu);
+                existingOpenOrder.setItemMenu(selectedItemMenus);
+
+                BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(itemMenu.getItemPrice());
+                existingOpenOrder.setTotalAmount(totalAmount);
+
+                orderRepository.save(existingOpenOrder);
+            } else {
+                Order newOrder = new Order();
+                newOrder.setUser(user);
+
+                List<ItemMenu> selectedItemMenus = new ArrayList<>();
+                selectedItemMenus.add(itemMenu);
+                newOrder.setItemMenu(selectedItemMenus);
+
+                BigDecimal totalAmount = itemMenu.getItemPrice();
+                newOrder.setTotalAmount(totalAmount);
+                newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
+
+                orderRepository.save(newOrder);
+            }
+
+            if (user.getOrderList() == null) {
+                user.setOrderList(new ArrayList<>());
+            }
+
+            return "Food selected successfully!!!";
+        } else {
+            throw new CustomException("Item menu not found!!!");
+        }
+    }
+
+
+    public String createBulkOrder(String vendorId, List<String> itemMenuIds) {
+        Company company = getAuthenticatedCompany();
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found!!!"));
+
+        String userEmail = getAuthenticatedUser().getEmail();
+        User user = userRepository.findByEmail(userEmail);
+
+        if (user == null) {
+            throw new CustomException("User with email " + userEmail + " not found.");
+        }
+
         List<ItemMenu> selectedItemMenus = new ArrayList<>();
 
-        for (String itemMenuId : orderRequest.getItemMenuId()) {
+        for (String itemMenuId : itemMenuIds) {
             ItemMenu itemMenu = findFoodMenuById(vendor.getId(), itemMenuId);
             if (itemMenu != null) {
                 selectedItemMenus.add(itemMenu);
+            } else {
+                throw new CustomException("Item menu with id " + itemMenuId + " not found for vendor " + vendorId);
             }
         }
 
         Order order = new Order();
+        order.setCompany(company);
         order.setUser(user);
-
         order.setItemMenu(selectedItemMenus);
 
         BigDecimal totalAmount = BigDecimal.ZERO;
@@ -72,6 +128,7 @@ public class OrderServiceImpl implements OrderService {
             totalAmount = totalAmount.add(itemMenu.getItemPrice());
         }
         order.setTotalAmount(totalAmount);
+        order.setDeliveryStatus(DeliveryStatus.ON_DELIVERY);
 
         orderRepository.save(order);
 
@@ -81,54 +138,8 @@ public class OrderServiceImpl implements OrderService {
         user.getOrderList().add(order);
         userRepository.save(user);
 
-        return "Food selected successfully!!!";
-    }
-
-    public String createBulkOrder(String vendorId, List<BulkItemOrderRequest> bulkOrders) {
-        Company company = getAuthenticatedCompany();
-        Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new CustomException("Vendor not found!!!"));
-
-        for (BulkItemOrderRequest bulkOrder : bulkOrders) {
-            String userEmail = bulkOrder.getUserEmail();
-            User user = userRepository.findByEmail(userEmail);
-
-            if (user == null) {
-                throw new CustomException("User with email " + userEmail + " not found.");
-            }
-
-            List<ItemMenu> selectedItemMenus = new ArrayList<>();
-
-            for (String itemMenuId : bulkOrder.getItemMenuIds()) {
-                ItemMenu itemMenu = findFoodMenuById(vendor.getId(), itemMenuId);
-                if (itemMenu != null) {
-                    selectedItemMenus.add(itemMenu);
-                }
-            }
-
-            Order order = new Order();
-            order.setCompany(company);
-
-            order.setItemMenu(selectedItemMenus);
-
-            BigDecimal totalAmount = BigDecimal.ZERO;
-            for (ItemMenu itemMenu : selectedItemMenus) {
-                totalAmount = totalAmount.add(itemMenu.getItemPrice());
-            }
-            order.setTotalAmount(totalAmount);
-
-            orderRepository.save(order);
-
-            if (user.getOrderList() == null) {
-                user.setOrderList(new ArrayList<>());
-            }
-            user.getOrderList().add(order);
-            userRepository.save(user);
-        }
-
         return "Bulk order created successfully.";
     }
-
 
     private ItemMenu findFoodMenuById(String vendorId, String foodMenuId) {
         Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(()-> new CustomException("Vendor nor found!!!"));
@@ -167,6 +178,7 @@ public class OrderServiceImpl implements OrderService {
 //                        .recipient(order.getUser().getFirstName())
                         .itemName(itemMenu.getItemName())
                         .price(itemMenu.getItemPrice())
+                                .imageUri(itemMenu.getImageUrl())
                         .vendorName(vendor.getBusinessName())
                         .build());
                 totalFoodItems++;
@@ -189,7 +201,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     public String deleteItem(String orderId, String foodItemId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new CustomException("Order not found!!!"));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException("Order not found!!!"));
         List<ItemMenu> foodItems = order.getItemMenu();
         for (ItemMenu itemMenu : foodItems) {
             if (itemMenu.getItemId().equals(foodItemId)) {
@@ -204,7 +217,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     public String deleteOrder(String orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new CustomException("Order not found!!!"));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException("Order not found!!!"));
         orderRepository.delete(order);
         return "Order deleted successfully!!!";
     }

@@ -105,4 +105,24 @@ public class AdminController {
         List<ItemMenuInfoResponse> itemMenus = adminService.getAllItemMenus();
         return ResponseEntity.ok(itemMenus);
     }
+
+    @GetMapping("/breakfast-item-menus")
+    public ResponseEntity<List<ItemMenuResponse>> getAllBreakfastItemMenus() {
+        List<ItemMenuResponse> breakfastItemMenus = adminService.getAllBreakfastItemMenus();
+        return ResponseEntity.ok(breakfastItemMenus);
+    }
+
+    @GetMapping("/all-orders")
+    public ResponseEntity<List<OrderDetailsResponse>> viewAllOrders() {
+        List<OrderDetailsResponse> orderDetailsResponses = adminService.viewAllOrders();
+        return ResponseEntity.ok(orderDetailsResponses);
+    }
+
+
+    @GetMapping("/user/{id}/orders")
+    public ResponseEntity<ApiResponse<List<AdminOrderResponse>>> viewAllOrdersByCompany(@PathVariable String id) {
+        List<AdminOrderResponse> orders = adminService.viewAllOrdersByUserOrCompany(id);
+        ApiResponse<List<AdminOrderResponse>> apiResponse = new ApiResponse<>(orders);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
 }

@@ -10,8 +10,9 @@ import java.util.List;
 
 public interface OrderService {
     List<FoodDataResponse> viewAllItemMenus();
-    String selectItem(String vendorId, ItemOrderRequest orderRequest);
-    String createBulkOrder(String vendorId, List<BulkItemOrderRequest> bulkOrders);
+    String selectItem(String vendorId, String menuId);
+    public String createBulkOrder(String vendorId, List<String> itemMenuIds);
+//    String createBulkOrder(String vendorId, List<BulkItemOrderRequest> bulkOrders);
     OrderViewResponse viewAllOrdersByCompany();
     OrderViewResponse viewAllOrdersByUser();
     String deleteItem(String orderId, String foodItemId);

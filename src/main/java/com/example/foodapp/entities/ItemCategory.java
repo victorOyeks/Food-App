@@ -20,11 +20,12 @@ public class ItemCategory {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String categoryId;
     private String categoryName;
+    @JsonIgnore
     @JsonIgnoreProperties("itemCategory")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id")
     private Vendor vendor;
-    @JsonIgnore
+//    @JsonIgnore
     @OneToMany(mappedBy = "itemCategory", cascade = CascadeType.ALL)
     private List<ItemMenu> itemMenus = new ArrayList<>();
 }

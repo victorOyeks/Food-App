@@ -1,5 +1,6 @@
 package com.example.foodapp.service.impl;
 
+import com.example.foodapp.constant.OrderType;
 import com.example.foodapp.constant.ROLE;
 import com.example.foodapp.dto.request.CompanyInvitation;
 import com.example.foodapp.dto.request.EmailDetails;
@@ -19,10 +20,7 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +33,7 @@ public class AdminServiceImpl implements AdminService {
     private final CompanyRepository companyRepository;
     private final ItemCategoryRepository itemCategoryRepository;
     private final OrderRepository orderRepository;
+    private final ItemMenuRepository itemMenuRepository;
 
     @Override
     public String inviteVendor(VendorInvitation vendorInvitation) throws UserAlreadyExistException, IOException {
@@ -194,6 +193,7 @@ public class AdminServiceImpl implements AdminService {
             detailsResponse.setBusinessName(vendor.getBusinessName());
             detailsResponse.setAddress(vendor.getBusinessAddress());
             detailsResponse.setContactNumber(vendor.getPhone());
+            detailsResponse.setItemCategories(vendor.getItemCategory());
 
             detailsResponses.add(detailsResponse);
         }
@@ -248,8 +248,6 @@ public class AdminServiceImpl implements AdminService {
                 .collect(Collectors.toList());
     }
 
-
-
     public List<CustomerResponse> getAllCustomers() {
         List<CustomerResponse> customerResponses = new ArrayList<>();
 
@@ -293,16 +291,10 @@ public class AdminServiceImpl implements AdminService {
     }
 
     public List<ItemMenuInfoResponse> getAllItemMenus() {
-        List<ItemMenu> allItemMenus = new ArrayList<>();
-        List<Order> allOrders = orderRepository.findAll();
-
-        for (Order order : allOrders) {
-            allItemMenus.addAll(order.getItemMenu());
-        }
+        List<ItemMenu> allItemMenus = itemMenuRepository.findAll();
 
         // Group itemMenus by name and count the orders for each itemMenu
-        Map<String, Long> itemMenuOrdersCountMap = allItemMenus.stream()
-                .collect(Collectors.groupingBy(ItemMenu::getItemName, Collectors.counting()));
+        Map<String, Long> itemMenuOrdersCountMap = getOrderCountByItemMenuName();
 
         List<ItemMenuInfoResponse> itemMenuInfoResponses = allItemMenus.stream()
                 .map(itemMenu -> {
@@ -310,11 +302,12 @@ public class AdminServiceImpl implements AdminService {
                     if (itemMenu.getBreakfast()) mealCategories.add("Breakfast");
                     if (itemMenu.getLunch()) mealCategories.add("Lunch");
                     if (itemMenu.getDinner()) mealCategories.add("Dinner");
-                    if(itemMenu.getOthers()) mealCategories.add("Others");
+
+                    Long orderCount = itemMenuOrdersCountMap.getOrDefault(itemMenu.getItemName(), 0L);
 
                     return ItemMenuInfoResponse.builder()
                             .itemName(itemMenu.getItemName())
-                            .orderCount(itemMenuOrdersCountMap.getOrDefault(itemMenu.getItemName(), 0L))
+                            .orderCount(orderCount)
                             .updatedDate(itemMenu.getUpdatedAt())
                             .mealCategories(mealCategories)
                             .build();
@@ -322,6 +315,124 @@ public class AdminServiceImpl implements AdminService {
                 .collect(Collectors.toList());
 
         return itemMenuInfoResponses;
+    }
+
+
+    public List<ItemMenuResponse> getAllBreakfastItemMenus() {
+        List<ItemMenu> allItemMenus = itemMenuRepository.findAll();
+
+        List<ItemMenuResponse> breakfastItemMenus = allItemMenus.stream()
+                .filter(ItemMenu::getBreakfast) // Filter the items having breakfast true
+                .map(itemMenu -> ItemMenuResponse.builder()
+                        .itemName(itemMenu.getItemName())
+                        .itemPrice(itemMenu.getItemPrice())
+                        .breakfast(itemMenu.getBreakfast())
+                        .lunch(itemMenu.getLunch())
+                        .dinner(itemMenu.getDinner())
+                        .imageUrl(itemMenu.getImageUrl())
+
+                        .build())
+                .collect(Collectors.toList());
+
+        return breakfastItemMenus;
+    }
+
+    public List<OrderDetailsResponse> viewAllOrders() {
+        List<Order> allOrders = orderRepository.findAll();
+        List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
+
+        for (Order order : allOrders) {
+            OrderDetailsResponse orderDetails = new OrderDetailsResponse();
+            orderDetails.setOrderId(order.getOrderId());
+            orderDetails.setOrderDate(order.getCreatedAt());
+            orderDetails.setCustomerName(getCustomerName(order));
+            orderDetails.setOrderType(getOrderType(order));
+            orderDetails.setAmount(order.getTotalAmount());
+            orderDetails.setDeliveryStatus(order.getDeliveryStatus());
+            orderDetailsResponses.add(orderDetails);
+        }
+
+        return orderDetailsResponses;
+    }
+
+    public List<AdminOrderResponse> viewAllOrdersByUserOrCompany(String userIdOrCompanyId) {
+        List<Order> orderList;
+        List<AdminOrderResponse> orderResponses = new ArrayList<>();
+
+        // Check if the provided ID belongs to a User or a Company
+        User user = userRepository.findById(userIdOrCompanyId).orElse(null);
+        Company company = companyRepository.findById(userIdOrCompanyId).orElse(null);
+
+        if (user != null) {
+            orderList = orderRepository.findOrdersByUserId(userIdOrCompanyId);
+            addOrdersToResponse(orderList, orderResponses, OrderType.INDIVIDUAL, user.getFirstName() + " " + user.getLastName());
+        } else if (company != null) {
+            orderList = orderRepository.findOrdersByCompanyId(userIdOrCompanyId);
+            addOrdersToResponse(orderList, orderResponses, OrderType.COMPANY, company.getCompanyName());
+        } else {
+            throw new CustomException("User or Company not found with ID: " + userIdOrCompanyId);
+        }
+
+        return orderResponses;
+    }
+
+    private void addOrdersToResponse(List<Order> orderList, List<AdminOrderResponse> orderResponses, OrderType orderType, String customerName) {
+        for (Order order : orderList) {
+            List<FoodDataResponse> foodDataResponses = new ArrayList<>();
+            for (ItemMenu itemMenu : order.getItemMenu()) {
+                Vendor vendor = itemMenu.getItemCategory().getVendor();
+                foodDataResponses.add(FoodDataResponse.builder()
+                        .itemId(itemMenu.getItemId())
+                        .itemName(itemMenu.getItemName())
+                        .price(itemMenu.getItemPrice())
+                        .vendorName(vendor.getBusinessName())
+                        .build());
+            }
+
+            orderResponses.add(AdminOrderResponse.builder()
+                    .orderId(order.getOrderId())
+                    .items(foodDataResponses)
+                    .orderType(orderType)
+                    .customerName(customerName)
+                    .totalAmount(order.getTotalAmount())
+                    .deliveryStatus(order.getDeliveryStatus())
+                    .createdAt(order.getCreatedAt())
+                    .build());
+        }
+    }
+
+
+    private String getCustomerName(Order order) {
+        if (order.getUser() != null) {
+            return order.getUser().getFirstName() + " " + order.getUser().getLastName();
+        } else if (order.getCompany() != null) {
+            return order.getCompany().getCompanyName();
+        } else {
+            return "Unknown Customer";
+        }
+    }
+
+    private OrderType getOrderType(Order order) {
+        if (order.getUser() != null) {
+            return OrderType.INDIVIDUAL;
+        } else if (order.getCompany() != null) {
+            return OrderType.COMPANY;
+        } else {
+            return OrderType.UNKNOWN;
+        }
+    }
+
+    private Map<String, Long> getOrderCountByItemMenuName() {
+        List<Order> allOrders = orderRepository.findAll();
+        Map<String, Long> itemMenuOrdersCountMap = new HashMap<>();
+
+        for (Order order : allOrders) {
+            for (ItemMenu itemMenu : order.getItemMenu()) {
+                String itemName = itemMenu.getItemName();
+                itemMenuOrdersCountMap.put(itemName, itemMenuOrdersCountMap.getOrDefault(itemName, 0L) + 1);
+            }
+        }
+        return itemMenuOrdersCountMap;
     }
 
 
@@ -360,7 +471,6 @@ public class AdminServiceImpl implements AdminService {
     }
 
     private String generateSignupToken() {
-        // Generate a unique signup token for vendor
         UUID signupToken = UUID.randomUUID();
         return signupToken.toString();
     }

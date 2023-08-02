@@ -28,15 +28,15 @@ public class OrderController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PostMapping("/select-item")
-    public ResponseEntity<ApiResponse<String>> selectItems(@RequestBody ItemOrderRequest orderRequest, @RequestParam String vendorId) {
-        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectItem(vendorId, orderRequest));
+    @PostMapping("/vendors/{vendorId}/select-item")
+    public ResponseEntity<ApiResponse<String>> selectItems(@PathVariable String vendorId, @RequestParam String menuId) {
+        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectItem(vendorId, menuId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PostMapping("/make-bulk-order")
-    public ResponseEntity<ApiResponse<String>> makeBulkOrderForStaff(@RequestParam String vendorId, @RequestBody List<BulkItemOrderRequest> staffOrders) {
-        String response = orderService.createBulkOrder(vendorId, staffOrders);
+    @PostMapping("/vendors/{vendorId}/make-bulk-order")
+    public ResponseEntity<ApiResponse<String>> makeBulkOrderForStaff(@PathVariable String vendorId, @RequestParam List<String> itemMenuIds) {
+        String response = orderService.createBulkOrder(vendorId, itemMenuIds);
         ApiResponse<String> apiResponse = new ApiResponse<>(response);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

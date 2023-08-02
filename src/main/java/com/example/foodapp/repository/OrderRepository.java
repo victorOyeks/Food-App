@@ -15,4 +15,7 @@ public interface OrderRepository extends JpaRepository <Order, String> {
 
     @Query("SELECT o FROM Order o JOIN o.itemMenu i JOIN i.itemCategory c WHERE c.vendor = ?1")
     List<Order> findOrdersByVendor (Vendor vendor);
+
+    @Query("SELECT o FROM Order o WHERE o.user.id = :userId AND o.deliveryStatus = com.example.foodapp.constant.DeliveryStatus.PENDING")
+    Order findOpenOrderByUser(String userId);
 }

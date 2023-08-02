@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 @Data
 public class FoodDataResponse {
     private String itemId;
-//    private String recipient;
     private String itemName;
     private BigDecimal price;
     private String imageUri;
