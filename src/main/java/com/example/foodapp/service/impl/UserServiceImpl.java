@@ -1,5 +1,7 @@
 package com.example.foodapp.service.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.example.foodapp.dto.request.*;
 import com.example.foodapp.dto.response.LoginResponse;
 import com.example.foodapp.dto.response.UserDashBoardResponse;
@@ -19,12 +21,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +37,7 @@ public class UserServiceImpl implements UserService {
     private final VendorRepository vendorRepository;
     private final AdminRepository adminRepository;
     private final CompanyRepository companyRepository;
+    private final Cloudinary cloudinary;
 
     @Override
     public UserResponse signup(RegistrationRequest request) {
@@ -91,6 +92,58 @@ public class UserServiceImpl implements UserService {
                 .build();
         }
 
+    public UserResponse updateUserProfile(String firstName, String lastName, String phone, MultipartFile profilePhoto) throws IOException {
+
+        User existingUser = getAuthenticatedUser();
+
+        String publicId = "user_profile_" + existingUser.getId();
+
+        Map uploadResult = cloudinary.uploader().upload(profilePhoto.getBytes(),
+                ObjectUtils.asMap(
+                        "public_id", publicId,
+                        "folder", "images",
+                        "overwrite", true,
+                        "resource_type", "auto"
+                ));
+        String imageUrl = uploadResult.get("secure_url").toString();
+
+        existingUser.setFirstName(firstName);
+        existingUser.setLastName(lastName);
+        existingUser.setPhone(phone);
+        existingUser.setProfilePictureUrl(imageUrl);
+
+        userRepository.save(existingUser);
+
+        return UserResponse.builder()
+                .userId(existingUser.getId())
+                .firstName(existingUser.getFirstName())
+                .lastName(existingUser.getLastName())
+                .email(existingUser.getEmail())
+                .profilePictureUrl(imageUrl)
+                .build();
+    }
+
+    public String changePassword(ChangePasswordRequest request) {
+        User existingUser = getAuthenticatedUser();
+
+        if (!passwordEncoder.matches(request.getOldPassword(), existingUser.getPassword())) {
+            throw new CustomException("Incorrect old password");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            System.out.println("New password: " + request.getNewPassword());
+            System.out.println("Confirm password: " + request.getConfirmNewPassword());
+            throw new CustomException("New password and confirm password do not match");
+        }
+
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+        existingUser.setPassword(encodedPassword);
+
+        userRepository.save(existingUser);
+
+        return "Password changed successfully!!!";
+    }
+
     @Override
     public String verifyAccount(String verificationToken) {
         User user = userRepository.findByVerificationToken(verificationToken);
@@ -143,55 +196,14 @@ public class UserServiceImpl implements UserService {
             throw new CustomException("User with " + email + " does not exist");
         }
 
-        // Generate and save the password reset token
         String resetToken = generateResetToken();
         user.setVerificationToken(resetToken);
         userRepository.save(user);
 
-        // Send password reset email
         sendPasswordResetEmail(email, resetToken);
 
         return "Password reset link has been sent to your email address!!!.";
     }
-
-    @Override
-    public String resetPassword(ResetPasswordRequest resetPasswordRequest) {
-        String resetToken = resetPasswordRequest.getResetToken();
-        String newPassword = resetPasswordRequest.getNewPassword();
-
-        User user = userRepository.findByVerificationToken(resetToken);
-        Vendor vendor = vendorRepository.findByVerificationToken(resetToken);
-        Company company = companyRepository.findByVerificationToken(resetToken);
-        Admin admin = adminRepository.findByEmail(resetToken);
-
-        if (user != null) {
-            String encodedPassword = passwordEncoder.encode(newPassword);
-            user.setPassword(encodedPassword);
-            user.setVerificationToken(null);
-            userRepository.save(user);
-            return "User password reset successful.";
-        } else if (vendor != null) {
-            String encodedPassword = passwordEncoder.encode(newPassword);
-            vendor.setPassword(encodedPassword);
-            vendor.setVerificationToken(null);
-            vendorRepository.save(vendor);
-            return "Vendor password reset successful.";
-        } else if (company != null) {
-            String encodedPassword = passwordEncoder.encode(newPassword);
-            company.setPassword(encodedPassword);
-            companyRepository.save(company);
-            return "Company password reset successfully.";
-        } else if (admin != null) {
-            String encodedPassword = passwordEncoder.encode(newPassword);
-            admin.setPassword(encodedPassword);
-            adminRepository.save(admin);
-            return "Admin password reset successfully";
-        }
-        else {
-            throw new CustomException("Invalid password reset token.");
-        }
-    }
-
     @Override
     public List<UserDashBoardResponse> getUserDashBoard() {
         List<UserDashBoardResponse> detailsResponses = new ArrayList<>();
@@ -236,4 +248,15 @@ public class UserServiceImpl implements UserService {
     private Authentication createAuthentication(String username, String password) {
         return new UsernamePasswordAuthenticationToken(username, password);
     }
+
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) {
+            throw new CustomException("User not found");
+        }
+        return user;
+    }
+
 }

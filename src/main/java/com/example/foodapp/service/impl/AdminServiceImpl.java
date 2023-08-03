@@ -298,18 +298,12 @@ public class AdminServiceImpl implements AdminService {
 
         List<ItemMenuInfoResponse> itemMenuInfoResponses = allItemMenus.stream()
                 .map(itemMenu -> {
-                    List<String> mealCategories = new ArrayList<>();
-                    if (itemMenu.getBreakfast()) mealCategories.add("Breakfast");
-                    if (itemMenu.getLunch()) mealCategories.add("Lunch");
-                    if (itemMenu.getDinner()) mealCategories.add("Dinner");
-
                     Long orderCount = itemMenuOrdersCountMap.getOrDefault(itemMenu.getItemName(), 0L);
 
                     return ItemMenuInfoResponse.builder()
                             .itemName(itemMenu.getItemName())
                             .orderCount(orderCount)
                             .updatedDate(itemMenu.getUpdatedAt())
-                            .mealCategories(mealCategories)
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -318,24 +312,20 @@ public class AdminServiceImpl implements AdminService {
     }
 
 
-    public List<ItemMenuResponse> getAllBreakfastItemMenus() {
-        List<ItemMenu> allItemMenus = itemMenuRepository.findAll();
-
-        List<ItemMenuResponse> breakfastItemMenus = allItemMenus.stream()
-                .filter(ItemMenu::getBreakfast) // Filter the items having breakfast true
-                .map(itemMenu -> ItemMenuResponse.builder()
-                        .itemName(itemMenu.getItemName())
-                        .itemPrice(itemMenu.getItemPrice())
-                        .breakfast(itemMenu.getBreakfast())
-                        .lunch(itemMenu.getLunch())
-                        .dinner(itemMenu.getDinner())
-                        .imageUrl(itemMenu.getImageUrl())
-
-                        .build())
-                .collect(Collectors.toList());
-
-        return breakfastItemMenus;
-    }
+//    public List<ItemMenuResponse> getAllBreakfastItemMenus() {
+//        List<ItemMenu> allItemMenus = itemMenuRepository.findAll();
+//
+//        List<ItemMenuResponse> breakfastItemMenus = allItemMenus.stream()
+//                .map(itemMenu -> ItemMenuResponse.builder()
+//                        .itemName(itemMenu.getItemName())
+//                        .itemPrice(itemMenu.getItemPrice())
+//                        .imageUrl(itemMenu.getImageUrl())
+//
+//                        .build())
+//                .collect(Collectors.toList());
+//
+//        return breakfastItemMenus;
+//    }
 
     public List<OrderDetailsResponse> viewAllOrders() {
         List<Order> allOrders = orderRepository.findAll();

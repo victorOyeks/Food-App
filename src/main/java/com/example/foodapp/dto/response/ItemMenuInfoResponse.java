@@ -13,5 +13,4 @@ public class ItemMenuInfoResponse {
     private String itemName;
     private Long orderCount;
     private LocalDateTime updatedDate;
-    private List<String> mealCategories;
 }

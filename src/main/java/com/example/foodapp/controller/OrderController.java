@@ -36,13 +36,6 @@ public class OrderController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-//    @PostMapping("/vendors/{vendorId}/make-bulk-order")
-//    public ResponseEntity<ApiResponse<String>> makeBulkOrderForStaff(@PathVariable String vendorId, @RequestParam List<String> itemMenuIds) {
-//        String response = orderService.createBulkOrder(vendorId, itemMenuIds);
-//        ApiResponse<String> apiResponse = new ApiResponse<>(response);
-//        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-//    }
-
     @GetMapping()
     public ResponseEntity<ApiResponse<OrderViewResponse>> viewAllOrders() {
         OrderViewResponse orders;

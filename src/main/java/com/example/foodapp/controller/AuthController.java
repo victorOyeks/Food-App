@@ -36,16 +36,8 @@ public class AuthController {
 
     @PostMapping("authenticate")
     public ResponseEntity<ApiResponse<LoginResponse>> loginUser(@RequestBody LoginRequest loginRequest) {
-        ApiResponse<LoginResponse> apiResponse;
-
-        try {
-            LoginResponse authenticationResponse = authService.authenticate(loginRequest);
-            apiResponse = new ApiResponse<>(authenticationResponse);
-            return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-        } catch (UsernameNotFoundException | ResourceNotFoundException exception) {
-            apiResponse = new ApiResponse<>(null, "Invalid username or password", null);
-            return new ResponseEntity<>(apiResponse, HttpStatus.UNAUTHORIZED);
-        }
+        ApiResponse<LoginResponse> apiResponse = new ApiResponse<>(authService.authenticate(loginRequest));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @GetMapping("vendor-signup")

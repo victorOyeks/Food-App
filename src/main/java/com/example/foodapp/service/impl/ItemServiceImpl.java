@@ -66,9 +66,6 @@ public class ItemServiceImpl implements ItemService {
 
         itemMenu.setItemName(itemName);
         itemMenu.setItemPrice(itemPrice);
-        itemMenu.setBreakfast(breakfast);
-        itemMenu.setLunch(lunch);
-        itemMenu.setDinner(dinner);
         itemMenu.setImageUrl(imageUrl);
         itemMenu.setItemCategory(itemCategory);
 
@@ -78,9 +75,6 @@ public class ItemServiceImpl implements ItemService {
         return ItemMenuResponse.builder()
                 .itemName(itemMenu.getItemName())
                 .itemPrice(itemMenu.getItemPrice())
-                .breakfast(itemMenu.getBreakfast())
-                .lunch(itemMenu.getLunch())
-                .dinner(itemMenu.getDinner())
                 .imageUrl(imageUrl)
                 .categoryName(itemCategory.getCategoryName())
                 .build();
@@ -98,9 +92,6 @@ public class ItemServiceImpl implements ItemService {
 
         itemMenu.setItemName(itemName);
         itemMenu.setItemPrice(itemPrice);
-        itemMenu.setBreakfast(breakfast);
-        itemMenu.setLunch(lunch);
-        itemMenu.setDinner(dinner);
 
         if (file != null && !file.isEmpty()) {
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
@@ -121,9 +112,6 @@ public class ItemServiceImpl implements ItemService {
         return ItemMenuResponse.builder()
                 .itemName(itemMenu.getItemName())
                 .itemPrice(itemMenu.getItemPrice())
-                .breakfast(itemMenu.getBreakfast())
-                .lunch(itemMenu.getLunch())
-                .dinner(itemMenu.getDinner())
                 .imageUrl(itemMenu.getImageUrl())
                 .categoryName(itemCategory.getCategoryName())
                 .build();

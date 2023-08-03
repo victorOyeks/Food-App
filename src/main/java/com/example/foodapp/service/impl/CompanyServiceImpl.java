@@ -142,7 +142,7 @@ public class CompanyServiceImpl implements CompanyService {
         staffUser.setEmail(staffEmail);
         staffUser.setRole(ROLE.COMPANY_STAFF);
         staffUser.setEnabled(true);
-        staffUser.setActive(false);
+        staffUser.setActive(true);
         staffUser.setCompany(company);
         staffUser.setVerificationToken(signupToken);
 
@@ -177,7 +177,6 @@ public class CompanyServiceImpl implements CompanyService {
             throw new CustomException("Company with " + email + " does not exist");
         }
 
-        // Generate and save the password reset token
         String resetToken = generateResetToken();
         company.setVerificationToken(resetToken);
         companyRepository.save(company);

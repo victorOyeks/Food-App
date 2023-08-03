@@ -2,8 +2,10 @@ package com.example.foodapp.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @AllArgsConstructor
@@ -19,5 +21,6 @@ public class Payment {
     @OneToOne
     private Order order;
     private BigDecimal amount;
-    private Date paymentDate;
+    @CreationTimestamp
+    private LocalDateTime paymentDate;
 }

@@ -102,17 +102,18 @@ public class AdminController {
     }
 
     @GetMapping("/all-items")
-    public ResponseEntity<List<ItemMenuInfoResponse>> getAllItemMenus() {
+    public ResponseEntity<ApiResponse<List<ItemMenuInfoResponse>>> getAllItemMenus() {
         List<ItemMenuInfoResponse> itemMenus = adminService.getAllItemMenus();
-        return ResponseEntity.ok(itemMenus);
-    }
-
-    @GetMapping("/breakfast-item-menus")
-    public ResponseEntity<ApiResponse<List<ItemMenuResponse>>> getAllBreakfastItemMenus() {
-        List<ItemMenuResponse> breakfastItemMenus = adminService.getAllBreakfastItemMenus();
-        ApiResponse<List<ItemMenuResponse>> apiResponseList = new ApiResponse<>(breakfastItemMenus);
+        ApiResponse<List<ItemMenuInfoResponse>> apiResponseList = new ApiResponse<>(itemMenus);
         return new ResponseEntity<>(apiResponseList, HttpStatus.OK);
     }
+
+//    @GetMapping("/breakfast-item-menus")
+//    public ResponseEntity<ApiResponse<List<ItemMenuResponse>>> getAllBreakfastItemMenus() {
+//        List<ItemMenuResponse> breakfastItemMenus = adminService.getAllBreakfastItemMenus();
+//        ApiResponse<List<ItemMenuResponse>> apiResponseList = new ApiResponse<>(breakfastItemMenus);
+//        return new ResponseEntity<>(apiResponseList, HttpStatus.OK);
+//    }
 
     @GetMapping("/all-orders")
     public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllOrders() {

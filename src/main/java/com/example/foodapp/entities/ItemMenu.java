@@ -24,10 +24,6 @@ public class ItemMenu implements Serializable {
     private String itemId;
     private String itemName;
     private BigDecimal itemPrice;
-    private Boolean breakfast;
-    private Boolean lunch;
-    private Boolean dinner;
-    private Boolean others;
     private String imageUrl;
     @CreationTimestamp
     private LocalDateTime createdAt;

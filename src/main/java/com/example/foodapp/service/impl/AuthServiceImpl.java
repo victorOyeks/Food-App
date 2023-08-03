@@ -103,8 +103,8 @@ public class AuthServiceImpl implements AuthService {
             if(!user.getEnabled()) {
                 throw new CustomException("Your account has not been enabled");
             }
-            if(user.getActive()) {
-                throw new CustomException("Your account has been locked. Contact Admin for support!");
+            if(!user.getActive()) {
+                throw new CustomException("Your account has deactivated. Contact Admin for support!");
             }
             // User authentication logic
             if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
@@ -129,8 +129,7 @@ public class AuthServiceImpl implements AuthService {
                 return performLogin(loginRequest, ROLE.SUPER_ADMIN);
             }
         }
-
-        throw new UsernameNotFoundException("Invalid username or password");
+        throw new CustomException("Incorrect Credentials!!!");
     }
 
     private LoginResponse performLogin(LoginRequest loginRequest, ROLE role) {
@@ -183,24 +182,34 @@ public class AuthServiceImpl implements AuthService {
     public String resetPassword(ResetPasswordRequest resetPasswordRequest) {
         String resetToken = resetPasswordRequest.getResetToken();
         String newPassword = resetPasswordRequest.getNewPassword();
+        String confirmNewPassword = resetPasswordRequest.getConfirmPassword();
 
         User user = userRepository.findByVerificationToken(resetToken);
         Vendor vendor = vendorRepository.findByVerificationToken(resetToken);
         Company company = companyRepository.findByVerificationToken(resetToken);
 
         if (user != null) {
+            if(!newPassword.equals(confirmNewPassword)) {
+                throw new CustomException("Password does not match");
+            }
             String encodedPassword = passwordEncoder.encode(newPassword);
             user.setPassword(encodedPassword);
             user.setVerificationToken(null);
             userRepository.save(user);
             return "User password reset successful.";
         } else if (vendor != null) {
+            if(!newPassword.equals(confirmNewPassword)) {
+                throw new CustomException("Password does not match");
+            }
             String encodedPassword = passwordEncoder.encode(newPassword);
             vendor.setPassword(encodedPassword);
             vendor.setVerificationToken(null);
             vendorRepository.save(vendor);
             return "Vendor password reset successful.";
         } else if (company != null) {
+            if(!newPassword.equals(confirmNewPassword)) {
+                throw new CustomException("Password does not match");
+            }
             String encodedPassword = passwordEncoder.encode(newPassword);
             company.setPassword(encodedPassword);
             company.setVerificationToken(null);

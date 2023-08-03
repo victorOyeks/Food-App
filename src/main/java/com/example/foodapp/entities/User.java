@@ -29,6 +29,7 @@ public class User {
     private String signupId;
     private String password;
     private ROLE role;
+    private String profilePictureUrl;
     private String verificationToken;
     private Boolean enabled;
     private Boolean active;

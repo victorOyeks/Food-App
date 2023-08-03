@@ -1,6 +1,7 @@
 package com.example.foodapp.entities;
 
 import com.example.foodapp.constant.DeliveryStatus;
+import com.example.foodapp.constant.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -29,9 +30,8 @@ public class Order {
     @ManyToMany
     private List<ItemMenu> itemMenu;
     private BigDecimal totalAmount;
-    private Boolean paymentStatus;
+    private PaymentStatus paymentStatus;
     private DeliveryStatus deliveryStatus;
-//    private OrderType orderType;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp

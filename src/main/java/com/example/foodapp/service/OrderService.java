@@ -8,7 +8,6 @@ import java.util.List;
 public interface OrderService {
     List<FoodDataResponse> viewAllItemMenus();
     String selectItemForIndividual (String vendorId, String menuId);
-//    public String createBulkOrder(String vendorId, List<String> itemMenuIds);
     String selectItemForCompany(String vendorId, String menuId);
     OrderViewResponse viewAllOrdersByCompany();
     OrderViewResponse viewAllOrdersByUser();

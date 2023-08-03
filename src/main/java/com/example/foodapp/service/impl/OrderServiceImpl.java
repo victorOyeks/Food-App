@@ -1,6 +1,7 @@
 package com.example.foodapp.service.impl;
 
 import com.example.foodapp.constant.DeliveryStatus;
+import com.example.foodapp.constant.PaymentStatus;
 import com.example.foodapp.dto.request.BulkItemOrderRequest;
 import com.example.foodapp.dto.request.ItemOrderRequest;
 import com.example.foodapp.dto.response.*;
@@ -80,6 +81,7 @@ public class OrderServiceImpl implements OrderService {
                 BigDecimal totalAmount = itemMenu.getItemPrice();
                 newOrder.setTotalAmount(totalAmount);
                 newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
+                newOrder.setPaymentStatus(PaymentStatus.PENDING);
 
                 orderRepository.save(newOrder);
             }
@@ -123,6 +125,7 @@ public class OrderServiceImpl implements OrderService {
                 BigDecimal totalAmount = itemMenu.getItemPrice();
                 newOrder.setTotalAmount(totalAmount);
                 newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
+                newOrder.setPaymentStatus(PaymentStatus.PENDING);
 
                 orderRepository.save(newOrder);
             }
