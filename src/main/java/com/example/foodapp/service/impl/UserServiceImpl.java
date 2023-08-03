@@ -220,6 +220,20 @@ public class UserServiceImpl implements UserService {
         return detailsResponses;
     }
 
+    public UserResponse viewUserProfile() {
+        User existingUser = getAuthenticatedUser();
+
+        return UserResponse.builder()
+                .userId(existingUser.getId())
+                .firstName(existingUser.getFirstName())
+                .lastName(existingUser.getLastName())
+                .email(existingUser.getEmail())
+                .phone(existingUser.getPhone())
+                .profilePictureUrl(existingUser.getProfilePictureUrl())
+                .build();
+    }
+
+
     private void sendVerificationEmail(String recipient, String verificationToken) throws IOException {
         String verificationLink = "http://localhost:9191/api/auth/verify?token=" + verificationToken;
         String subject = "Account Verification";

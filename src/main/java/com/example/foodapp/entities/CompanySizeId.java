@@ -1,5 +1,6 @@
 package com.example.foodapp.entities;
 
+import com.example.foodapp.constant.CompanySize;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package com.example.foodapp.entities;
+package com.example.foodapp.constant;
 
 public enum CompanySize {
     SIZE_1_TO_50,

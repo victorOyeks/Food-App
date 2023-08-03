@@ -53,14 +53,11 @@ public class AuthController {
     }
 
     @PostMapping("vendor-signup")
-    public ResponseEntity<ApiResponse<BusinessRegistrationResponse>> vendorSignup(@RequestParam String email, @RequestParam String firstName, @RequestParam String lastName,
-                                                                                  @RequestParam String phone, @RequestParam String password, @RequestParam String confirmPassword,
-                                                                                  @RequestParam String businessName, @RequestParam String businessAddress, @RequestParam String domainName,
-                                                                                  MultipartFile file) throws IOException {
-        ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(vendorService.vendorSignup(email, firstName, lastName, phone, password,
-                confirmPassword, businessName, businessAddress, domainName, file));
+    public ResponseEntity<ApiResponse<BusinessRegistrationResponse>> vendorSignup(@RequestBody VendorRegistrationRequest request) {
+        ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(vendorService.vendorSignup(request));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
 
     @GetMapping("company-signup")
     public ResponseEntity<?> companySignup (@RequestParam("email") String email, @RequestParam("token") String token) {

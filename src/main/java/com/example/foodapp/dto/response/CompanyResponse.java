@@ -1,4 +1,4 @@
-package com.example.foodapp.dto.request;
+package com.example.foodapp.dto.response;
 
 import com.example.foodapp.constant.CompanySize;
 import lombok.AllArgsConstructor;
@@ -10,12 +10,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Data
-public class CompanyRegistrationRequest {
+public class CompanyResponse {
+    private String id;
     private String companyEmail;
     private String phoneNumber;
     private String companyName;
-    private String password;
-    private String confirmPassword;
     private String companyAddress;
     private CompanySize companySize;
+    private String imageUrl;
 }

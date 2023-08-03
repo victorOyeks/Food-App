@@ -1,5 +1,6 @@
 package com.example.foodapp.entities;
 
+import com.example.foodapp.constant.CompanySize;
 import com.example.foodapp.constant.ROLE;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -28,6 +29,7 @@ public class Company  {
     private String password;
     private String companyAddress;
     private CompanySize companySize;
+    private String imageUrl;
     private ROLE role;
     private Boolean enabled;
     private Boolean deactivated;

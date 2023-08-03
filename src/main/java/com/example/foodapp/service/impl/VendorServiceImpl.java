@@ -44,10 +44,12 @@ public class VendorServiceImpl implements VendorService {
     private final Cloudinary cloudinary;
 
     @Override
-    public BusinessRegistrationResponse vendorSignup(String email, String firstName, String lastName,
-                                                     String phone, String password, String confirmPassword,
-                                                     String businessName, String domainName, String businessAddress,
-                                                     MultipartFile file) throws IOException {
+    public BusinessRegistrationResponse vendorSignup(VendorRegistrationRequest request) {
+
+        String email = request.getEmail();
+        String password = request.getPassword();
+        String confirmPassword = request.getConfirmPassword();
+
         boolean isExistingVendor = vendorRepository.existsByEmail(email);
         if (!isExistingVendor) {
             throw new CustomException("Invalid Vendor. Contact Admin!");
@@ -79,23 +81,14 @@ public class VendorServiceImpl implements VendorService {
 //        String verificationToken = generateToken();
         String encodedPassword = passwordEncoder.encode(password);
 
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                ObjectUtils.asMap(
-                        "public_id", businessName,
-                        "folder", "images",
-                        "overwrite", true,
-                        "resource_type", "auto"
-                ));
-        String imageUrl = uploadResult.get("secure_url").toString();
 
-        existingVendor.setFirstName(firstName);
-        existingVendor.setLastName(lastName);
-        existingVendor.setPhone(phone);
+        existingVendor.setFirstName(request.getFirstName());
+        existingVendor.setLastName(request.getLastName());
+        existingVendor.setPhone(request.getPhone());
         existingVendor.setPassword(encodedPassword);
-        existingVendor.setBusinessName(businessName);
-        existingVendor.setBusinessAddress(businessAddress);
-        existingVendor.setDomainName(domainName);
-        existingVendor.setImageUrl(imageUrl);
+        existingVendor.setBusinessName(request.getBusinessName());
+        existingVendor.setBusinessAddress(request.getBusinessAddress());
+        existingVendor.setDomainName(request.getDomainName());
         existingVendor.setDeactivated(false);
         existingVendor.setEnabled(true);
 
@@ -109,9 +102,48 @@ public class VendorServiceImpl implements VendorService {
                 .businessName(existingVendor.getBusinessName())
                 .domainName(existingVendor.getDomainName())
                 .businessAddress(existingVendor.getBusinessAddress())
-                .imageUrl(imageUrl)
                 .build();
     }
+
+    public BusinessRegistrationResponse updateVendorProfile(String firstName, String lastName,
+                                                            String phone, String businessName, String domainName,
+                                                            String businessAddress, MultipartFile file) throws IOException {
+        Vendor existingVendor = getAuthenticatedVendor();
+
+        String imageUrl = existingVendor.getImageUrl(); // Save the current image URL before updating
+
+        // Check if the profile photo is being updated
+        if (file != null && !file.isEmpty()) {
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                    ObjectUtils.asMap(
+                            "public_id", businessName,
+                            "folder", "images",
+                            "overwrite", true,
+                            "resource_type", "auto"
+                    ));
+            imageUrl = uploadResult.get("secure_url").toString();
+        }
+
+        existingVendor.setFirstName(firstName);
+        existingVendor.setLastName(lastName);
+        existingVendor.setPhone(phone);
+        existingVendor.setBusinessName(businessName);
+        existingVendor.setBusinessAddress(businessAddress);
+        existingVendor.setDomainName(domainName);
+        existingVendor.setImageUrl(imageUrl);
+
+        vendorRepository.save(existingVendor);
+
+        return BusinessRegistrationResponse.builder()
+                .id(existingVendor.getId())
+                .email(existingVendor.getEmail())
+                .businessName(existingVendor.getBusinessName())
+                .domainName(existingVendor.getDomainName())
+                .businessAddress(existingVendor.getBusinessAddress())
+                .imageUrl(existingVendor.getImageUrl())
+                .build();
+    }
+
 
     public List<OrderResponse> viewAllOrdersToVendor() {
         Vendor vendor = getAuthenticatedVendor();
@@ -145,6 +177,20 @@ public class VendorServiceImpl implements VendorService {
 
         return orderResponses;
     }
+
+    public BusinessRegistrationResponse viewVendorProfile() {
+        Vendor existingVendor = getAuthenticatedVendor();
+
+        return BusinessRegistrationResponse.builder()
+                .id(existingVendor.getId())
+                .email(existingVendor.getEmail())
+                .businessName(existingVendor.getBusinessName())
+                .domainName(existingVendor.getDomainName())
+                .businessAddress(existingVendor.getBusinessAddress())
+                .imageUrl(existingVendor.getImageUrl())
+                .build();
+    }
+
 
     private void sendVerificationEmail(String recipient, String verificationToken) throws IOException {
         String verificationLink = "http://localhost:9191/api/auth/verify?token=" + verificationToken;

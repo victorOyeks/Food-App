@@ -1,10 +1,14 @@
 package com.example.foodapp.service.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.example.foodapp.constant.CompanySize;
 import com.example.foodapp.constant.ROLE;
 import com.example.foodapp.dto.request.CompanyRegistrationRequest;
 import com.example.foodapp.dto.request.EmailDetails;
 import com.example.foodapp.dto.request.StaffInvitation;
 import com.example.foodapp.dto.response.BusinessRegistrationResponse;
+import com.example.foodapp.dto.response.CompanyResponse;
 import com.example.foodapp.entities.Company;
 import com.example.foodapp.entities.User;
 import com.example.foodapp.exception.CustomException;
@@ -20,10 +24,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -38,6 +44,7 @@ public class CompanyServiceImpl implements CompanyService {
     private final CompanyRepository companyRepository;
     private final PasswordEncoder passwordEncoder;
     private final AdminRepository adminRepository;
+    private final Cloudinary cloudinary;
 
     @Override
     public BusinessRegistrationResponse companySignup(CompanyRegistrationRequest request) throws IOException {
@@ -186,6 +193,57 @@ public class CompanyServiceImpl implements CompanyService {
 
         return "Password reset code has been sent to your email address!!!.";
     }
+
+
+    public BusinessRegistrationResponse updateCompanyProfile(String companyName, String companyAddress,
+                                                             String phoneNumber, CompanySize companySize, MultipartFile file) throws IOException {
+        Company existingCompany = getAuthenticatedCompany();
+
+        String imageUrl = existingCompany.getImageUrl();
+
+        if (file != null && !file.isEmpty()) {
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                    ObjectUtils.asMap(
+                            "public_id", companyName,
+                            "folder", "images",
+                            "overwrite", true,
+                            "resource_type", "auto"
+                    ));
+            imageUrl = uploadResult.get("secure_url").toString();
+        }
+
+        existingCompany.setCompanyName(companyName);
+        existingCompany.setCompanyAddress(companyAddress);
+        existingCompany.setPhoneNumber(phoneNumber);
+        existingCompany.setCompanySize(companySize);
+        existingCompany.setImageUrl(imageUrl);
+
+        companyRepository.save(existingCompany);
+
+        return BusinessRegistrationResponse.builder()
+                .id(existingCompany.getId())
+                .email(existingCompany.getCompanyEmail())
+                .businessName(existingCompany.getCompanyName())
+                .domainName("Not Applicable")
+                .businessAddress(existingCompany.getCompanyAddress())
+                .imageUrl(existingCompany.getImageUrl())
+                .build();
+    }
+
+
+    public CompanyResponse viewCompanyProfile() {
+        Company existingCompany = getAuthenticatedCompany();
+
+        return CompanyResponse.builder()
+                .id(existingCompany.getId())
+                .companyEmail(existingCompany.getCompanyEmail())
+                .companyName(existingCompany.getCompanyName())
+                .companyAddress(existingCompany.getCompanyAddress())
+                .imageUrl(existingCompany.getImageUrl())
+                .companySize(existingCompany.getCompanySize())
+                .build();
+    }
+
 
     private String generateResetToken() {
         Random random = new Random();

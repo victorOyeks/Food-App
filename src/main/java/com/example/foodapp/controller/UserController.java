@@ -25,6 +25,11 @@ public class UserController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
+    @GetMapping("profile")
+    public ResponseEntity<ApiResponse<UserResponse>> profile() {
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>(userService.viewUserProfile());
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
     @PutMapping("update-profile")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@RequestParam String firstName,
                                                                    @RequestParam String lastName,
@@ -33,6 +38,7 @@ public class UserController {
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>(userService.updateUserProfile(firstName, lastName, phone, profilePhoto));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
     @PutMapping("change-password")
     public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
         ApiResponse<String> apiResponse = new ApiResponse<>(userService.changePassword(changePasswordRequest));

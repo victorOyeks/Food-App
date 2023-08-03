@@ -10,10 +10,11 @@ import java.io.IOException;
 import java.util.List;
 
 public interface VendorService {
-    BusinessRegistrationResponse vendorSignup(String email, String firstName, String lastName,
-                                              String phone, String password, String confirmPassword,
-                                              String businessName, String domainName, String businessAddress,
-                                              MultipartFile file) throws IOException;
+    BusinessRegistrationResponse vendorSignup(VendorRegistrationRequest request);
+    BusinessRegistrationResponse updateVendorProfile(String firstName, String lastName,
+                                                     String phone, String businessName, String domainName,
+                                                     String businessAddress, MultipartFile file) throws IOException;
     List<OrderResponse> viewAllOrdersToVendor();
+    BusinessRegistrationResponse viewVendorProfile();
     OrderSummary calculateOrderSummary(List<OrderResponse> orders);
 }

@@ -17,5 +17,6 @@ public interface UserService {
     String verifyAccount(String verificationToken);
     LoginResponse authenticate(LoginRequest loginRequest);
     List<UserDashBoardResponse> getUserDashBoard();
+    UserResponse viewUserProfile();
     String forgotPassword(String email) throws IOException;
 }
