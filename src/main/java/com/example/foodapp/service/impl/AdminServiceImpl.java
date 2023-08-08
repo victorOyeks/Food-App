@@ -190,6 +190,7 @@ public class AdminServiceImpl implements AdminService {
         for (Vendor vendor : vendors) {
             DetailsResponse detailsResponse = new DetailsResponse();
             detailsResponse.setId(vendor.getId());
+            detailsResponse.setVendorEmail(vendor.getEmail());
             detailsResponse.setBusinessName(vendor.getBusinessName());
             detailsResponse.setAddress(vendor.getBusinessAddress());
             detailsResponse.setContactNumber(vendor.getPhone());

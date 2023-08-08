@@ -12,9 +12,7 @@ import com.example.foodapp.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -57,7 +55,6 @@ public class AuthController {
         ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(vendorService.vendorSignup(request));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
 
     @GetMapping("company-signup")
     public ResponseEntity<?> companySignup (@RequestParam("email") String email, @RequestParam("token") String token) {

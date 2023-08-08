@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface ItemService {
     CategoryResponse addItemCategory(CategoryRequest request);
-    ItemMenuResponse addItemMenu(String itemName, BigDecimal itemPrice, String categoryId, Boolean breakfast, Boolean lunch, Boolean dinner, MultipartFile file) throws IOException;
+    ItemMenuResponse addItemMenu(String itemName, BigDecimal itemPrice, String categoryId, MultipartFile file) throws IOException;
     ItemMenuResponse editItemMenu(String itemId, String itemName, BigDecimal itemPrice, Boolean breakfast, Boolean lunch, Boolean dinner, String categoryId, MultipartFile file) throws IOException;
     CategoryResponse editItemCategory(String categoryId, CategoryRequest request);
     CategoryResponse getItemCategory(String categoryId);

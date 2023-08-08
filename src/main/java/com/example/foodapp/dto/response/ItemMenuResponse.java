@@ -18,9 +18,5 @@ public class ItemMenuResponse {
     private String itemName;
     private BigDecimal itemPrice;
     private String imageUrl;
-    private Boolean breakfast;
-    private Boolean lunch;
-    private Boolean dinner;
-    private LocalDateTime updatedAt;
     private String categoryName;
 }

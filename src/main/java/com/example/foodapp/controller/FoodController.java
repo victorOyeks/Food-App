@@ -34,11 +34,8 @@ public class FoodController {
     public ResponseEntity<ApiResponse<ItemMenuResponse>> addFoodMenu(@RequestParam String itemName,
                                                                      @RequestParam BigDecimal itemPrice,
                                                                      @RequestParam MultipartFile file,
-                                                                     @RequestParam Boolean breakfast,
-                                                                     @RequestParam Boolean lunch,
-                                                                     @RequestParam Boolean dinner,
-                                                                     @PathVariable String categoryId) throws IOException {
-        ApiResponse<ItemMenuResponse> apiResponse = new ApiResponse<>(itemService.addItemMenu(itemName, itemPrice, categoryId, breakfast, lunch, dinner, file));
+                                                                     @PathVariable  String categoryId) throws IOException {
+        ApiResponse<ItemMenuResponse> apiResponse = new ApiResponse<>(itemService.addItemMenu(itemName, itemPrice, categoryId, file));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

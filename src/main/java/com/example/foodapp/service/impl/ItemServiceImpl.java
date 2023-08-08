@@ -47,7 +47,6 @@ public class ItemServiceImpl implements ItemService {
                 .build();
     }
     public ItemMenuResponse addItemMenu(String itemName, BigDecimal itemPrice, String categoryId,
-                                        Boolean breakfast, Boolean lunch, Boolean dinner,
                                         MultipartFile file) throws IOException {
 
         Vendor vendor = getAuthenticatedVendor();

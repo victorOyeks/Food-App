@@ -14,6 +14,7 @@ import java.util.List;
 @Data
 public class DetailsResponse {
     private String id;
+    private String vendorEmail;
     private String businessName;
     private String address;
     private String contactNumber;

@@ -204,6 +204,7 @@ public class UserServiceImpl implements UserService {
 
         return "Password reset link has been sent to your email address!!!.";
     }
+
     @Override
     public List<UserDashBoardResponse> getUserDashBoard() {
         List<UserDashBoardResponse> detailsResponses = new ArrayList<>();
