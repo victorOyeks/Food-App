@@ -311,22 +311,6 @@ public class AdminServiceImpl implements AdminService {
         return itemMenuInfoResponses;
     }
 
-
-//    public List<ItemMenuResponse> getAllBreakfastItemMenus() {
-//        List<ItemMenu> allItemMenus = itemMenuRepository.findAll();
-//
-//        List<ItemMenuResponse> breakfastItemMenus = allItemMenus.stream()
-//                .map(itemMenu -> ItemMenuResponse.builder()
-//                        .itemName(itemMenu.getItemName())
-//                        .itemPrice(itemMenu.getItemPrice())
-//                        .imageUrl(itemMenu.getImageUrl())
-//
-//                        .build())
-//                .collect(Collectors.toList());
-//
-//        return breakfastItemMenus;
-//    }
-
     public List<OrderDetailsResponse> viewAllOrders() {
         List<Order> allOrders = orderRepository.findAll();
         List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
