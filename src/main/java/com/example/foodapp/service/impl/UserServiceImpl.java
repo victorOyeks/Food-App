@@ -2,7 +2,9 @@ package com.example.foodapp.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.example.foodapp.CustomFileHandler;
 import com.example.foodapp.dto.request.*;
+import com.example.foodapp.dto.response.DetailsResponse;
 import com.example.foodapp.dto.response.LoginResponse;
 import com.example.foodapp.dto.response.UserDashBoardResponse;
 import com.example.foodapp.dto.response.UserResponse;
@@ -231,6 +233,21 @@ public class UserServiceImpl implements UserService {
                 .email(existingUser.getEmail())
                 .phone(existingUser.getPhone())
                 .profilePictureUrl(existingUser.getProfilePictureUrl())
+                .build();
+    }
+
+    @Override
+    public DetailsResponse getVendorDetails(String vendorId) {
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(()-> new CustomException("Vendor not found with id: " + vendorId));
+
+        return DetailsResponse.builder()
+                .id(vendor.getId())
+                .vendorEmail(vendor.getEmail())
+                .businessName(vendor.getBusinessName())
+                .address(vendor.getBusinessAddress())
+                .contactNumber(vendor.getPhone())
+                .itemCategories(vendor.getItemCategory())
                 .build();
     }
 

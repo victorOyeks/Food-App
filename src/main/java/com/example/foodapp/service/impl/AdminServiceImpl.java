@@ -1,5 +1,6 @@
 package com.example.foodapp.service.impl;
 
+import com.example.foodapp.CustomFileHandler;
 import com.example.foodapp.constant.OrderType;
 import com.example.foodapp.constant.ROLE;
 import com.example.foodapp.dto.request.CompanyInvitation;
@@ -21,6 +22,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +38,8 @@ public class AdminServiceImpl implements AdminService {
     private final ItemCategoryRepository itemCategoryRepository;
     private final OrderRepository orderRepository;
     private final ItemMenuRepository itemMenuRepository;
+
+    private static final Logger logger = Logger.getLogger(AdminServiceImpl.class.getName());
 
     @Override
     public String inviteVendor(VendorInvitation vendorInvitation) throws UserAlreadyExistException, IOException {
@@ -182,21 +188,34 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
+
     @Override
     public List<DetailsResponse> getAllVendorDetails() {
         List<DetailsResponse> detailsResponses = new ArrayList<>();
         List<Vendor> vendors = vendorRepository.findAll();
 
-        for (Vendor vendor : vendors) {
-            DetailsResponse detailsResponse = new DetailsResponse();
-            detailsResponse.setId(vendor.getId());
-            detailsResponse.setVendorEmail(vendor.getEmail());
-            detailsResponse.setBusinessName(vendor.getBusinessName());
-            detailsResponse.setAddress(vendor.getBusinessAddress());
-            detailsResponse.setContactNumber(vendor.getPhone());
-            detailsResponse.setItemCategories(vendor.getItemCategory());
+        try{
+            CustomFileHandler customFileHandler = new CustomFileHandler();
+            logger.addHandler(customFileHandler);
 
-            detailsResponses.add(detailsResponse);
+            for (Vendor vendor : vendors) {
+                DetailsResponse detailsResponse = new DetailsResponse();
+                detailsResponse.setId(vendor.getId());
+                detailsResponse.setVendorEmail(vendor.getEmail());
+                detailsResponse.setBusinessName(vendor.getBusinessName());
+                detailsResponse.setAddress(vendor.getBusinessAddress());
+                detailsResponse.setContactNumber(vendor.getPhone());
+                detailsResponse.setItemCategories(vendor.getItemCategory());
+
+                detailsResponses.add(detailsResponse);
+
+                logger.info("Added details for vendor " + vendor);
+        }
+            logger.info("Vendors details fetched successfully!!! -----------------------------------------\n");
+//            logger.info("--------------------------------------------");
+
+        } catch (IOException | SecurityException e) {
+            e.printStackTrace();
         }
         return detailsResponses;
     }
@@ -206,16 +225,27 @@ public class AdminServiceImpl implements AdminService {
         List<DetailsResponse> detailsResponses = new ArrayList<>();
         List<Company> companies = companyRepository.findAll();
 
-        for (Company company : companies) {
-            DetailsResponse detailsResponse = new DetailsResponse();
-            detailsResponse.setId(company.getId());
-            detailsResponse.setBusinessName(company.getCompanyName());
-            detailsResponse.setAddress(company.getCompanyAddress());
-            detailsResponse.setContactNumber(company.getPhoneNumber());
+        try {
+            CustomFileHandler customFileHandler = new CustomFileHandler();
+            logger.addHandler(customFileHandler);
 
-            detailsResponses.add(detailsResponse);
+            for (Company company : companies) {
+                DetailsResponse detailsResponse = new DetailsResponse();
+                detailsResponse.setId(company.getId());
+                detailsResponse.setBusinessName(company.getCompanyName());
+                detailsResponse.setAddress(company.getCompanyAddress());
+                detailsResponse.setContactNumber(company.getPhoneNumber());
+
+                detailsResponses.add(detailsResponse);
+
+                logger.info("Added Company details for " + companies);
+            }
+
+            logger.info("Company details fetched successfully!!! -----------------------------------------\n");
+
+        } catch (IOException | SecurityException e) {
+            e.printStackTrace();
         }
-
         return detailsResponses;
     }
 

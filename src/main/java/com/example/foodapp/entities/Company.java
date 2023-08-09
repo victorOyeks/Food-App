@@ -17,6 +17,7 @@ import java.util.List;
 @Builder
 @Getter
 @Setter
+@ToString
 @Entity
 @Table
 public class Company  {

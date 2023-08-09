@@ -30,6 +30,13 @@ public class UserController {
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>(userService.viewUserProfile());
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
+    @GetMapping("vendors/{vendorId}")
+    public ResponseEntity<ApiResponse<DetailsResponse>> vendorDetails(@PathVariable String vendorId) {
+        ApiResponse<DetailsResponse> apiResponse = new ApiResponse<>(userService.getVendorDetails(vendorId));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
     @PutMapping("update-profile")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@RequestParam String firstName,
                                                                    @RequestParam String lastName,

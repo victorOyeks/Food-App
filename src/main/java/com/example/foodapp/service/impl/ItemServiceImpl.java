@@ -54,30 +54,35 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new CustomException("Food category not found for the vendor"));
         ItemMenu itemMenu = new ItemMenu();
 
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                ObjectUtils.asMap(
-                        "public_id", itemName,
-                        "folder", "images",
-                        "overwrite", true,
-                        "resource_type", "auto"
-                ));
-        String imageUrl = uploadResult.get("secure_url").toString();
+        if (file != null && !file.isEmpty()) {
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                    ObjectUtils.asMap(
+                            "public_id", itemName,
+                            "folder", "images",
+                            "overwrite", true,
+                            "resource_type", "auto"
+                    ));
+            String imageUrl = uploadResult.get("secure_url").toString();
 
-        itemMenu.setItemName(itemName);
-        itemMenu.setItemPrice(itemPrice);
-        itemMenu.setImageUrl(imageUrl);
-        itemMenu.setItemCategory(itemCategory);
+            itemMenu.setItemName(itemName);
+            itemMenu.setItemPrice(itemPrice);
+            itemMenu.setImageUrl(imageUrl);
+            itemMenu.setItemCategory(itemCategory);
 
-        itemCategory.getItemMenus().add(itemMenu);
-        itemCategoryRepository.save(itemCategory);
+            itemCategory.getItemMenus().add(itemMenu);
+            itemCategoryRepository.save(itemCategory);
 
-        return ItemMenuResponse.builder()
-                .itemName(itemMenu.getItemName())
-                .itemPrice(itemMenu.getItemPrice())
-                .imageUrl(imageUrl)
-                .categoryName(itemCategory.getCategoryName())
-                .build();
+            return ItemMenuResponse.builder()
+                    .itemName(itemMenu.getItemName())
+                    .itemPrice(itemMenu.getItemPrice())
+                    .imageUrl(imageUrl)
+                    .categoryName(itemCategory.getCategoryName())
+                    .build();
+        } else {
+            throw new CustomException("Image file is required");
+        }
     }
+
 
     public ItemMenuResponse editItemMenu(String itemId, String itemName, BigDecimal itemPrice, Boolean breakfast, Boolean lunch, Boolean dinner, String categoryId, MultipartFile file) throws IOException {
 

@@ -1,5 +1,6 @@
 package com.example.foodapp.service.impl;
 
+import com.example.foodapp.CustomFileHandler;
 import com.example.foodapp.constant.ROLE;
 import com.example.foodapp.dto.request.EmailDetails;
 import com.example.foodapp.dto.request.LoginRequest;
@@ -25,7 +26,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.Random;
+import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +41,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final CompanyRepository companyRepository;
     private final EmailServiceImpl emailService;
+
+    private static final Logger logger = Logger.getLogger(AuthServiceImpl.class.getName());
 
     @Override
     public String vendorAdminSignup(String email, String token) {
@@ -80,54 +85,64 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse authenticate(LoginRequest loginRequest) {
-        String email = loginRequest.getEmail();
-        User user = userRepository.findByEmail(email);
-        Vendor vendor = vendorRepository.findByEmail(email);
-        Admin admin = adminRepository.findByEmail(email);
-        Company company = companyRepository.findByCompanyEmail(email);
 
-        if (user == null && vendor == null && admin == null && company == null) {
-            throw new CustomException("User with " + email + " does not exist");
-        }
-        if (vendor != null) {
-            if (!vendor.getEnabled()) {
-                throw new CustomException("Vendor with " + email + " is not enabled");
-            }
-            if (vendor.getDeactivated()) {
-                throw new CustomException("Account has been deactivated! Contact Admin for support!");
-            }
-            if (passwordEncoder.matches(loginRequest.getPassword(), vendor.getPassword())) {
-                return performLogin(loginRequest, ROLE.VENDOR);
-            }
-        } else if (user != null) {
-            if(!user.getEnabled()) {
-                throw new CustomException("Your account has not been enabled");
-            }
-            if(!user.getActive()) {
-                throw new CustomException("Your account has deactivated. Contact Admin for support!");
-            }
-            // User authentication logic
-            if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-                return performLogin(loginRequest, ROLE.COMPANY_STAFF);
-            }
+        try {
+            CustomFileHandler customFileHandler = new CustomFileHandler();
+            logger.addHandler(customFileHandler);
 
-        } else if (company != null) {
-            if(!company.getEnabled()) {
-                throw new CustomException("Your account has not been enabled");
-            }
-            if(company.getDeactivated()) {
-                throw new CustomException("Your account has been Deactivated. Contact Admin for support!");
-            }
-            // User authentication logic
-            if (passwordEncoder.matches(loginRequest.getPassword(), company.getPassword())) {
-                return performLogin(loginRequest, ROLE.COMPANY_ADMIN);
-            }
 
-        } else {
-            // Admin authentication logic
-            if (passwordEncoder.matches(loginRequest.getPassword(), admin.getPassword())) {
-                return performLogin(loginRequest, ROLE.SUPER_ADMIN);
+            String email = loginRequest.getEmail();
+            User user = userRepository.findByEmail(email);
+            Vendor vendor = vendorRepository.findByEmail(email);
+            Admin admin = adminRepository.findByEmail(email);
+            Company company = companyRepository.findByCompanyEmail(email);
+
+            if (user == null && vendor == null && admin == null && company == null) {
+                throw new CustomException("User with " + email + " does not exist");
             }
+            if (vendor != null) {
+                if (!vendor.getEnabled()) {
+                    throw new CustomException("Vendor with " + email + " is not enabled");
+                }
+                if (vendor.getDeactivated()) {
+                    throw new CustomException("Account has been deactivated! Contact Admin for support!");
+                }
+                if (passwordEncoder.matches(loginRequest.getPassword(), vendor.getPassword())) {
+                    return performLogin(loginRequest, ROLE.VENDOR);
+                }
+            } else if (user != null) {
+                if (!user.getEnabled()) {
+                    throw new CustomException("Your account has not been enabled");
+                }
+                if (!user.getActive()) {
+                    throw new CustomException("Your account has deactivated. Contact Admin for support!");
+                }
+                // User authentication logic
+                if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+                    return performLogin(loginRequest, ROLE.COMPANY_STAFF);
+                }
+
+            } else if (company != null) {
+                if (!company.getEnabled()) {
+                    throw new CustomException("Your account has not been enabled");
+                }
+                if (company.getDeactivated()) {
+                    throw new CustomException("Your account has been Deactivated. Contact Admin for support!");
+                }
+                // User authentication logic
+                if (passwordEncoder.matches(loginRequest.getPassword(), company.getPassword())) {
+                    return performLogin(loginRequest, ROLE.COMPANY_ADMIN);
+                }
+
+            } else {
+                // Admin authentication logic
+                if (passwordEncoder.matches(loginRequest.getPassword(), admin.getPassword())) {
+                    return performLogin(loginRequest, ROLE.SUPER_ADMIN);
+                }
+            }
+            logger.info("User logged in with email address: " + loginRequest.getEmail() + "----------------------\n ");
+        } catch (IOException | SecurityException e) {
+            e.printStackTrace();
         }
         throw new CustomException("Incorrect Credentials!!!");
     }

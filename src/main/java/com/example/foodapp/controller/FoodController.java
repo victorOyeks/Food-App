@@ -33,11 +33,12 @@ public class FoodController {
     @PostMapping("category/{categoryId}/add-item-menu")
     public ResponseEntity<ApiResponse<ItemMenuResponse>> addFoodMenu(@RequestParam String itemName,
                                                                      @RequestParam BigDecimal itemPrice,
-                                                                     @RequestParam MultipartFile file,
+                                                                     @RequestParam (required = false) MultipartFile file,
                                                                      @PathVariable  String categoryId) throws IOException {
         ApiResponse<ItemMenuResponse> apiResponse = new ApiResponse<>(itemService.addItemMenu(itemName, itemPrice, categoryId, file));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
 
     @PutMapping("/category/{categoryId}/edit-item-menu/{itemId}")
     public ResponseEntity<ApiResponse<ItemMenuResponse>> editFoodMenu(@RequestParam String itemId,

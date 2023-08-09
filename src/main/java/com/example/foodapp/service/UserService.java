@@ -1,10 +1,7 @@
 package com.example.foodapp.service;
 
 import com.example.foodapp.dto.request.*;
-import com.example.foodapp.dto.response.LoginResponse;
-import com.example.foodapp.dto.response.RegistrationResponse;
-import com.example.foodapp.dto.response.UserDashBoardResponse;
-import com.example.foodapp.dto.response.UserResponse;
+import com.example.foodapp.dto.response.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -19,4 +16,5 @@ public interface UserService {
     List<UserDashBoardResponse> getUserDashBoard();
     UserResponse viewUserProfile();
     String forgotPassword(String email) throws IOException;
+    DetailsResponse getVendorDetails(String vendorId);
 }
