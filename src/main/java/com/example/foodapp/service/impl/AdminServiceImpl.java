@@ -22,9 +22,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.logging.FileHandler;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,6 +41,12 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public String inviteVendor(VendorInvitation vendorInvitation) throws UserAlreadyExistException, IOException {
+
+        CustomFileHandler customFileHandler = new CustomFileHandler();
+        logger.addHandler(customFileHandler);
+
+        logger.info("Inviting vendor: " + vendorInvitation);
+
         String vendorEmail = vendorInvitation.getVendorEmail();
         String note = vendorInvitation.getNote();
 
@@ -79,11 +83,16 @@ public class AdminServiceImpl implements AdminService {
         // Send the invitation email
         emailService.sendEmail(emailDetails);
 
+        logger.info("Vendor onboarded successfully. Email sent to " + vendor + " to complete registration");
+
         return "Vendor onboarded successfully. Email sent to vendor to complete registration";
     }
 
     @Override
     public String inviteCompany(CompanyInvitation companyInvitation) throws IOException {
+
+        logger.info("Inviting company: " + companyInvitation);
+
         String companyEmail = companyInvitation.getCompanyEmail();
         String note = companyInvitation.getNote();
 
@@ -118,11 +127,16 @@ public class AdminServiceImpl implements AdminService {
 
         emailService.sendEmail(emailDetails);
 
+        logger.info("Company with " + companyEmail + " onboarded successfully. Email sent to company to complete registration");
+
         return  "Company with " + companyEmail + " onboarded successfully. Email sent to company to complete registration";
     }
 
     @Override
     public void deactivateUser(String userId) throws IOException {
+
+        logger.info("Deactivating user with ID: " + userId);
+
         User user = userRepository.findById(userId).orElseThrow(()-> new CustomException("User not found with id: " + userId));
         if (user != null) {
             user.setActive(true);
@@ -134,11 +148,16 @@ public class AdminServiceImpl implements AdminService {
 
             // Send the invitation email
             emailService.sendEmail(emailDetails);
+
+            logger.info("User deactivated: " + userId);
         }
     }
 
     @Override
     public void reactivateUser(String userId) throws IOException {
+
+        logger.info("Reactivating user with ID: " + userId);
+
         User user = userRepository.findById(userId).orElseThrow(()-> new CustomException("User not found with id: " +userId));
         if (user != null) {
             user.setActive(false);
@@ -151,11 +170,15 @@ public class AdminServiceImpl implements AdminService {
             // Send the invitation email
             emailService.sendEmail(emailDetails);
 
+            logger.info("User reactivated: " + userId);
         }
     }
 
     @Override
     public void deactivateVendor(String userId) throws CustomException, IOException {
+
+        logger.info("Deactivating vendor with ID: " + userId);
+
         Vendor vendor = vendorRepository.findById(userId)
                 .orElseThrow(() -> new CustomException("Vendor not found with id: " +userId));
 
@@ -170,11 +193,16 @@ public class AdminServiceImpl implements AdminService {
         // Send the deactivation email
         emailService.sendEmail(emailDetails);
 
+        logger.info("Vendor deactivated: " + userId);
     }
 
     @Override
     public void reactivateVendor(String vendorId) throws IOException {
+
         Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(()-> new CustomException("Vendor not found with id: " +vendorId));
+
+        logger.info("Reactivating vendor with ID: " + vendor);
+
         if(vendor != null) {
             vendor.setDeactivated(false);
             vendorRepository.save(vendor);
@@ -185,16 +213,16 @@ public class AdminServiceImpl implements AdminService {
 
             // Send the invitation email
             emailService.sendEmail(emailDetails);
+            logger.info("Vendor reactivated: " + vendorId);
         }
     }
 
 
     @Override
-    public List<DetailsResponse> getAllVendorDetails() {
+    public List<DetailsResponse> getAllVendorDetails() throws IOException {
         List<DetailsResponse> detailsResponses = new ArrayList<>();
         List<Vendor> vendors = vendorRepository.findAll();
 
-        try{
             CustomFileHandler customFileHandler = new CustomFileHandler();
             logger.addHandler(customFileHandler);
 
@@ -212,11 +240,7 @@ public class AdminServiceImpl implements AdminService {
                 logger.info("Added details for vendor " + vendor);
         }
             logger.info("Vendors details fetched successfully!!! -----------------------------------------\n");
-//            logger.info("--------------------------------------------");
 
-        } catch (IOException | SecurityException e) {
-            e.printStackTrace();
-        }
         return detailsResponses;
     }
 

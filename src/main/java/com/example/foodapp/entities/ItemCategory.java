@@ -28,7 +28,6 @@ public class ItemCategory {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id")
     private Vendor vendor;
-//    @JsonIgnore
     @OneToMany(mappedBy = "itemCategory", cascade = CascadeType.ALL)
     private List<ItemMenu> itemMenus = new ArrayList<>();
     @CreationTimestamp

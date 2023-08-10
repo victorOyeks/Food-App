@@ -17,13 +17,12 @@ public interface AdminService {
     void reactivateUser(String userId) throws IOException;
     void deactivateVendor (String vendorId) throws IOException;
     void reactivateVendor(String vendorId) throws IOException;
-    List<DetailsResponse> getAllVendorDetails();
+    List<DetailsResponse> getAllVendorDetails() throws IOException;
     List<DetailsResponse> getAllCompanyDetails();
     List<UserResponse> getAllOnboardedUsers();
     List<CategoryResponse> getAllItemCategory();
     List<CustomerResponse> getAllCustomers();
     List<ItemMenuInfoResponse> getAllItemMenus();
-//    List<ItemMenuResponse> getAllBreakfastItemMenus();
     List<OrderDetailsResponse> viewAllOrders();
     List<AdminOrderResponse> viewAllOrdersByUserOrCompany(String userIdOrCompanyId);
 }

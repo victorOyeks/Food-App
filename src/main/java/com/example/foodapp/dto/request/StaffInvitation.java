@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @Data
 public class StaffInvitation {
-//    private String companyEmail;
     private String userEmail;
     private String note;
 }

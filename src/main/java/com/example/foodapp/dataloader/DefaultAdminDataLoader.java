@@ -23,7 +23,6 @@ public class DefaultAdminDataLoader implements CommandLineRunner {
             return; // Admin already exists, no need to create
         }
         String encodedPassword = passwordEncoder.encode("password1");
-        // Create a new default admin
         Admin admin = Admin.builder()
                 .email("tm30admin@foodapp.com")
                 .password(encodedPassword)
@@ -31,7 +30,6 @@ public class DefaultAdminDataLoader implements CommandLineRunner {
                 .locked(false)
                 .role(ROLE.SUPER_ADMIN)
                 .build();
-        // Save the admin to the database
         adminRepository.save(admin);
     }
 }

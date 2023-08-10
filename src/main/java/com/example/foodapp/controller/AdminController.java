@@ -68,7 +68,7 @@ public class AdminController {
     }
 
     @GetMapping("/all-vendors")
-    public ResponseEntity<ApiResponse<List<DetailsResponse>>> viewAllVendors() {
+    public ResponseEntity<ApiResponse<List<DetailsResponse>>> viewAllVendors() throws IOException {
         List<DetailsResponse> vendorDetails = adminService.getAllVendorDetails();
         ApiResponse<List<DetailsResponse>> apiResponse = new ApiResponse<>(vendorDetails);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
@@ -107,13 +107,6 @@ public class AdminController {
         ApiResponse<List<ItemMenuInfoResponse>> apiResponseList = new ApiResponse<>(itemMenus);
         return new ResponseEntity<>(apiResponseList, HttpStatus.OK);
     }
-
-//    @GetMapping("/breakfast-item-menus")
-//    public ResponseEntity<ApiResponse<List<ItemMenuResponse>>> getAllBreakfastItemMenus() {
-//        List<ItemMenuResponse> breakfastItemMenus = adminService.getAllBreakfastItemMenus();
-//        ApiResponse<List<ItemMenuResponse>> apiResponseList = new ApiResponse<>(breakfastItemMenus);
-//        return new ResponseEntity<>(apiResponseList, HttpStatus.OK);
-//    }
 
     @GetMapping("/all-orders")
     public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllOrders() {

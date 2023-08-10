@@ -28,35 +28,4 @@ public class ApiResponse<T> {
         this.message = "Processed Successfully";
         this.data = data;
     }
-
-    public ApiResponse(ResponseEntity<?> authenticate, String accessToken, String refreshToken) {
-
-    }
-
-
-//    public ApiResponse(String id, LocalDateTime requestTime, String requestType, String referenceId, boolean status, String message, T data) {
-//        this.requestTime = requestTime;
-//        this.requestType = requestType;
-//        this.referenceId = referenceId;
-//        this.status = status;
-//        this.message = message;
-//        this.data = data;
-//    }
-//
-//    public ApiResponse(String id, LocalDateTime requestTime, String requestType, String referenceId, boolean status, String message, String accessToken, String refreshToken, T data) {
-//        this.requestTime = requestTime;
-//        this.requestType = requestType;
-//        this.referenceId = referenceId;
-//        this.status = status;
-//        this.message = message;
-//        this.accessToken = accessToken;
-//        this.refreshToken = refreshToken;
-//        this.data = data;
-//    }
-//
-//    public ApiResponse(T data) {
-//        this.data = data;
-////        this.message = message;
-//    }
-
 }

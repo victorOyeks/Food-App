@@ -8,6 +8,10 @@ import java.io.IOException;
 public class CustomFileHandler extends FileHandler {
     private String currentLogFileName;
 
+//    private static final String LOG_DIRECTORY = "/papslogsfile/participant-status-enquiry-log";
+    private static final String LOG_DIRECTORY = "/Users/Oyeks/Documents/participant-status-enquiry-log";
+
+
     public CustomFileHandler() throws IOException, SecurityException {
         super(getLogFileName(), true);
         setFormatter(new SimpleFormatter());
@@ -15,7 +19,8 @@ public class CustomFileHandler extends FileHandler {
 
     private static String getLogFileName() {
         LocalDate now = LocalDate.now();
-        return "Admin Service-" + now.format(DateTimeFormatter.ISO_LOCAL_DATE) + ".log";
+        return LOG_DIRECTORY + "papss-" + now.format(DateTimeFormatter.ISO_LOCAL_DATE) + ".log";
+//        return "Admin Service-" + now.format(DateTimeFormatter.ISO_LOCAL_DATE) + ".log";
     }
 
     private synchronized void updateLogFile() throws IOException {

@@ -16,7 +16,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleBookNotFoundException(UserAlreadyExistException ex) {
         String errorMessage = ex.getMessage();
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
-        // Add more exception handlers here if needed
     }
 }
 

@@ -139,54 +139,6 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomException("Item menu not found!!!");
         }
     }
-//
-//
-//    public String createBulkOrder(String vendorId, List<String> itemMenuIds) {
-//        Company company = getAuthenticatedCompany();
-//        Vendor vendor = vendorRepository.findById(vendorId)
-//                .orElseThrow(() -> new CustomException("Vendor not found!!!"));
-//
-//        String userEmail = getAuthenticatedUser().getEmail();
-//        User user = userRepository.findByEmail(userEmail);
-//
-//        if (user == null) {
-//            throw new CustomException("User with email " + userEmail + " not found.");
-//        }
-//
-//        List<ItemMenu> selectedItemMenus = new ArrayList<>();
-//
-//        for (String itemMenuId : itemMenuIds) {
-//            ItemMenu itemMenu = findFoodMenuById(vendor.getId(), itemMenuId);
-//            if (itemMenu != null) {
-//                selectedItemMenus.add(itemMenu);
-//            } else {
-//                throw new CustomException("Item menu with id " + itemMenuId + " not found for vendor " + vendorId);
-//            }
-//        }
-//
-//        Order order = new Order();
-//        order.setCompany(company);
-//        order.setUser(user);
-//        order.setItemMenu(selectedItemMenus);
-//
-//        BigDecimal totalAmount = BigDecimal.ZERO;
-//        for (ItemMenu itemMenu : selectedItemMenus) {
-//            totalAmount = totalAmount.add(itemMenu.getItemPrice());
-//        }
-//        order.setTotalAmount(totalAmount);
-//        order.setDeliveryStatus(DeliveryStatus.ON_DELIVERY);
-//
-//        orderRepository.save(order);
-//
-//        if (user.getOrderList() == null) {
-//            user.setOrderList(new ArrayList<>());
-//        }
-//        user.getOrderList().add(order);
-//        userRepository.save(user);
-//
-//        return "Bulk order created successfully.";
-//    }
-
 
 
     private ItemMenu findFoodMenuById(String vendorId, String foodMenuId) {

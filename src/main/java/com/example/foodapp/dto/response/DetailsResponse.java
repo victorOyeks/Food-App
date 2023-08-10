@@ -19,5 +19,4 @@ public class DetailsResponse {
     private String address;
     private String contactNumber;
     private List<ItemCategory> itemCategories;
-//    private List<MenuResponse> menus;
 }
