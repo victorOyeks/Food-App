@@ -1,6 +1,6 @@
 package com.example.foodapp.service.impl;
 
-import com.example.foodapp.CustomFileHandler;
+import com.example.foodapp.utils.CustomFileHandler;
 import com.example.foodapp.constant.ROLE;
 import com.example.foodapp.dto.request.EmailDetails;
 import com.example.foodapp.dto.request.LoginRequest;
@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final CompanyRepository companyRepository;
     private final EmailServiceImpl emailService;
 
-    private static final Logger logger = Logger.getLogger(AuthServiceImpl.class.getName());
+    //private static final Logger logger = Logger.getLogger(AuthServiceImpl.class.getName());
 
     @Override
     public String vendorAdminSignup(String email, String token) {
@@ -85,10 +84,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse authenticate(LoginRequest loginRequest) {
-
-        try {
-            CustomFileHandler customFileHandler = new CustomFileHandler();
-            logger.addHandler(customFileHandler);
 
 
             String email = loginRequest.getEmail();
@@ -140,10 +135,7 @@ public class AuthServiceImpl implements AuthService {
                     return performLogin(loginRequest, ROLE.SUPER_ADMIN);
                 }
             }
-            logger.info("User logged in with email address: " + loginRequest.getEmail() + "----------------------\n ");
-        } catch (IOException | SecurityException e) {
-            e.printStackTrace();
-        }
+
         throw new CustomException("Incorrect Credentials!!!");
     }
 
