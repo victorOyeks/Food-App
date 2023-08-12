@@ -13,7 +13,10 @@ import com.example.foodapp.exception.UserAlreadyExistException;
 import com.example.foodapp.repository.*;
 import com.example.foodapp.service.AdminService;
 import com.example.foodapp.service.EmailService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -37,63 +40,71 @@ public class AdminServiceImpl implements AdminService {
     private final OrderRepository orderRepository;
     private final ItemMenuRepository itemMenuRepository;
 
-//    private static final Logger logger = Logger.getLogger(AdminServiceImpl.class.getName());
+    private static final Logger logger = Logger.getLogger(AdminServiceImpl.class.getName());
 
+    @Transactional
+    @CreatedBy
+    @LastModifiedBy
     @Override
     public String inviteVendor(VendorInvitation vendorInvitation) throws UserAlreadyExistException, IOException {
 
-        /*
         CustomFileHandler customFileHandler = new CustomFileHandler();
         logger.addHandler(customFileHandler);
 
-        logger.info("Inviting vendor: " + vendorInvitation);
-        */
+        try {
+            logger.info("Inviting vendor: " + vendorInvitation);
+//            logger.removeHandler(customFileHandler);
 
-        String vendorEmail = vendorInvitation.getVendorEmail();
-        String note = vendorInvitation.getNote();
+            String vendorEmail = vendorInvitation.getVendorEmail();
+            String note = vendorInvitation.getNote();
 
-        boolean existingUserInUser = userRepository.existsByEmail(vendorEmail);
-        if (existingUserInUser) {
-            throw new CustomException("User with " + vendorInvitation.getVendorEmail() + " already exist");
+            boolean existingUserInUser = userRepository.existsByEmail(vendorEmail);
+            if (existingUserInUser) {
+                throw new CustomException("User with " + vendorInvitation.getVendorEmail() + " already exist");
+            }
+
+            boolean existingVendorInVendor = vendorRepository.existsByEmail(vendorEmail);
+            if(existingVendorInVendor) {
+                throw new CustomException("User with " + vendorInvitation.getVendorEmail() + " already exist");
+            }
+
+            boolean existingCompany = companyRepository.existsByCompanyEmail(vendorEmail);
+            if(existingCompany) {
+                throw new CustomException("User with " + vendorInvitation.getVendorEmail() + " already exist");
+            }
+
+            String signupToken = generateSignupToken();
+
+            Vendor vendor = new Vendor();
+            vendor.setEmail(vendorEmail);
+            vendor.setRole(ROLE.VENDOR);
+            vendor.setEnabled(true);
+            vendor.setDeactivated(false);
+            vendor.setSignupToken(signupToken);
+            vendorRepository.save(vendor);
+
+            String invitationLink = "http://localhost:9191/api/auth/vendor-signup?email=" + URLEncoder.encode(vendorEmail, StandardCharsets.UTF_8) + "&token=" + signupToken;
+            String subject = "Invitation to Sign Up";
+            String messageBody = "Dear Vendor,\n\nYou have been invited to sign up on our platform. Please click the link below to complete your registration:\n\n" + invitationLink + "\n\nNote from the admin: " + note;
+            EmailDetails emailDetails = new EmailDetails(vendorEmail, subject, messageBody);
+
+            // Send the invitation email
+            emailService.sendEmail(emailDetails);
+
+            logger.info("Vendor onboarded successfully. Email sent to " + vendor + " to complete registration --------------");
+//            logger.removeHandler(customFileHandler);
+            return "Vendor onboarded successfully. Email sent to vendor to complete registration";
+        }finally {
+            logger.removeHandler(customFileHandler);
         }
-
-        boolean existingVendorInVendor = vendorRepository.existsByEmail(vendorEmail);
-        if(existingVendorInVendor) {
-            throw new CustomException("User with " + vendorInvitation.getVendorEmail() + " already exist");
-        }
-
-        boolean existingCompany = companyRepository.existsByCompanyEmail(vendorEmail);
-        if(existingCompany) {
-            throw new CustomException("User with " + vendorInvitation.getVendorEmail() + " already exist");
-        }
-
-        String signupToken = generateSignupToken();
-
-        Vendor vendor = new Vendor();
-        vendor.setEmail(vendorEmail);
-        vendor.setRole(ROLE.VENDOR);
-        vendor.setEnabled(true);
-        vendor.setDeactivated(false);
-        vendor.setSignupToken(signupToken);
-        vendorRepository.save(vendor);
-
-        String invitationLink = "http://localhost:9191/api/auth/vendor-signup?email=" + URLEncoder.encode(vendorEmail, StandardCharsets.UTF_8) + "&token=" + signupToken;
-        String subject = "Invitation to Sign Up";
-        String messageBody = "Dear Vendor,\n\nYou have been invited to sign up on our platform. Please click the link below to complete your registration:\n\n" + invitationLink + "\n\nNote from the admin: " + note;
-        EmailDetails emailDetails = new EmailDetails(vendorEmail, subject, messageBody);
-
-        // Send the invitation email
-        emailService.sendEmail(emailDetails);
-
-        //logger.info("Vendor onboarded successfully. Email sent to " + vendor + " to complete registration");
-
-        return "Vendor onboarded successfully. Email sent to vendor to complete registration";
     }
 
     @Override
     public String inviteCompany(CompanyInvitation companyInvitation) throws IOException {
+        CustomFileHandler customFileHandler = new CustomFileHandler();
+        logger.addHandler(customFileHandler);
 
-        //logger.info("Inviting company: " + companyInvitation);
+        logger.info("Inviting company: " + companyInvitation);
 
         String companyEmail = companyInvitation.getCompanyEmail();
         String note = companyInvitation.getNote();
@@ -129,7 +140,7 @@ public class AdminServiceImpl implements AdminService {
 
         emailService.sendEmail(emailDetails);
 
-        //logger.info("Company with " + companyEmail + " onboarded successfully. Email sent to company to complete registration");
+        logger.info("Company with " + companyEmail + " onboarded successfully. Email sent to company to complete registration");
 
         return  "Company with " + companyEmail + " onboarded successfully. Email sent to company to complete registration";
     }
@@ -224,9 +235,10 @@ public class AdminServiceImpl implements AdminService {
         List<DetailsResponse> detailsResponses = new ArrayList<>();
         List<Vendor> vendors = vendorRepository.findAll();
 
-            /*CustomFileHandler customFileHandler = new CustomFileHandler();
-            logger.addHandler(customFileHandler);*/
+        CustomFileHandler customFileHandler = new CustomFileHandler();
+        logger.addHandler(customFileHandler);
 
+        try {
             for (Vendor vendor : vendors) {
                 DetailsResponse detailsResponse = new DetailsResponse();
                 detailsResponse.setId(vendor.getId());
@@ -238,11 +250,14 @@ public class AdminServiceImpl implements AdminService {
 
                 detailsResponses.add(detailsResponse);
 
-                //logger.info("Added details for vendor " + vendor);
+                logger.info("Added details for vendor " + vendor);
+            }
+            logger.info("Vendors details fetched successfully!!! -----------------------------------------\n");
+            logger.removeHandler(customFileHandler);
+            return detailsResponses;
+        } finally {
+            logger.removeHandler(customFileHandler);
         }
-//            logger.info("Vendors details fetched successfully!!! -----------------------------------------\n");
-
-        return detailsResponses;
     }
 
     @Override
@@ -260,10 +275,10 @@ public class AdminServiceImpl implements AdminService {
 
                 detailsResponses.add(detailsResponse);
 
-                //logger.info("Added Company details for " + companies);
+                logger.info("Added Company details for " + companies);
             }
 
-//            logger.info("Company details fetched successfully!!! -----------------------------------------\n");
+            logger.info("Company details fetched successfully!!! -----------------------------------------\n");
 
         return detailsResponses;
     }

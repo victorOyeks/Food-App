@@ -26,7 +26,7 @@ public class UserController {
     }
 
     @GetMapping("profile")
-    public ResponseEntity<ApiResponse<UserResponse>> profile() {
+    public ResponseEntity<ApiResponse<UserResponse>> profile() throws IOException {
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>(userService.viewUserProfile());
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

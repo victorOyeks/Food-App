@@ -41,11 +41,12 @@ public class AuthServiceImpl implements AuthService {
     private final CompanyRepository companyRepository;
     private final EmailServiceImpl emailService;
 
-    //private static final Logger logger = Logger.getLogger(AuthServiceImpl.class.getName());
+    private static final Logger logger = Logger.getLogger(AuthServiceImpl.class.getName());
 
     @Override
     public String vendorAdminSignup(String email, String token) {
         Vendor vendor = vendorRepository.findByEmailAndSignupToken(email, token);
+
         if (vendor == null) {
             throw new CustomException("Invalid Vendor. Contact Admin!");
         }
@@ -83,9 +84,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public LoginResponse authenticate(LoginRequest loginRequest) {
+    public LoginResponse authenticate(LoginRequest loginRequest) throws IOException {
 
+        CustomFileHandler customFileHandler = new CustomFileHandler();
+        logger.addHandler(customFileHandler);
 
+        try {
             String email = loginRequest.getEmail();
             User user = userRepository.findByEmail(email);
             Vendor vendor = vendorRepository.findByEmail(email);
@@ -105,6 +109,7 @@ public class AuthServiceImpl implements AuthService {
                 if (passwordEncoder.matches(loginRequest.getPassword(), vendor.getPassword())) {
                     return performLogin(loginRequest, ROLE.VENDOR);
                 }
+                logger.info("Signed in vendor: -----------------> " + vendor);
             } else if (user != null) {
                 if (!user.getEnabled()) {
                     throw new CustomException("Your account has not been enabled");
@@ -116,6 +121,7 @@ public class AuthServiceImpl implements AuthService {
                 if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
                     return performLogin(loginRequest, ROLE.COMPANY_STAFF);
                 }
+                logger.info("Signed in user: -----------------> " + user);
 
             } else if (company != null) {
                 if (!company.getEnabled()) {
@@ -128,15 +134,21 @@ public class AuthServiceImpl implements AuthService {
                 if (passwordEncoder.matches(loginRequest.getPassword(), company.getPassword())) {
                     return performLogin(loginRequest, ROLE.COMPANY_ADMIN);
                 }
+                logger.info("Signed in company: -----------------> " + company);
 
             } else {
                 // Admin authentication logic
                 if (passwordEncoder.matches(loginRequest.getPassword(), admin.getPassword())) {
                     return performLogin(loginRequest, ROLE.SUPER_ADMIN);
                 }
+                logger.info("Signed in admin: -----------------> " + admin);
             }
 
-        throw new CustomException("Incorrect Credentials!!!");
+            throw new CustomException("Incorrect Credentials!!!");
+        } finally {
+            logger.removeHandler(customFileHandler);
+        }
+
     }
 
     private LoginResponse performLogin(LoginRequest loginRequest, ROLE role) {

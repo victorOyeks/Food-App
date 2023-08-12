@@ -16,6 +16,7 @@ import com.example.foodapp.repository.VendorRepository;
 import com.example.foodapp.security.JwtService;
 import com.example.foodapp.service.EmailService;
 import com.example.foodapp.service.UserService;
+import com.example.foodapp.utils.CustomFileHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,6 +27,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +42,8 @@ public class UserServiceImpl implements UserService {
     private final AdminRepository adminRepository;
     private final CompanyRepository companyRepository;
     private final Cloudinary cloudinary;
+
+    private static final Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
 
     @Override
     public UserResponse signup(RegistrationRequest request) {
@@ -191,19 +196,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String forgotPassword(String email) throws IOException {
-        User user = userRepository.findByEmail(email);
 
-        if (user == null) {
-            throw new CustomException("User with " + email + " does not exist");
+        CustomFileHandler customFileHandler = new CustomFileHandler();
+        logger.addHandler(customFileHandler);
+
+        try {
+            User user = userRepository.findByEmail(email);
+            logger.info("Reset password User --------------->" + user);
+
+            if (user == null) {
+                throw new CustomException("User with " + email + " does not exist");
+            }
+
+            String resetToken = generateResetToken();
+            user.setVerificationToken(resetToken);
+            userRepository.save(user);
+
+            sendPasswordResetEmail(email, resetToken);
+
+            return "Password reset link has been sent to your email address!!!.";
+        }finally {
+            logger.removeHandler(customFileHandler);
         }
-
-        String resetToken = generateResetToken();
-        user.setVerificationToken(resetToken);
-        userRepository.save(user);
-
-        sendPasswordResetEmail(email, resetToken);
-
-        return "Password reset link has been sent to your email address!!!.";
     }
 
     @Override
@@ -222,17 +236,25 @@ public class UserServiceImpl implements UserService {
         return detailsResponses;
     }
 
-    public UserResponse viewUserProfile() {
-        User existingUser = getAuthenticatedUser();
+    public UserResponse viewUserProfile() throws IOException {
+        CustomFileHandler customFileHandler = new CustomFileHandler();
+        logger.addHandler(customFileHandler);
 
-        return UserResponse.builder()
-                .userId(existingUser.getId())
-                .firstName(existingUser.getFirstName())
-                .lastName(existingUser.getLastName())
-                .email(existingUser.getEmail())
-                .phone(existingUser.getPhone())
-                .profilePictureUrl(existingUser.getProfilePictureUrl())
-                .build();
+        try {
+            User existingUser = getAuthenticatedUser();
+            logger.info("Existing user -----------------> " + existingUser);
+            return UserResponse.builder()
+                    .userId(existingUser.getId())
+                    .firstName(existingUser.getFirstName())
+                    .lastName(existingUser.getLastName())
+                    .email(existingUser.getEmail())
+                    .phone(existingUser.getPhone())
+                    .profilePictureUrl(existingUser.getProfilePictureUrl())
+                    .build();
+        }
+        finally {
+            logger.removeHandler(customFileHandler);
+        }
     }
 
     @Override

@@ -33,7 +33,7 @@ public class AuthController {
     }
 
     @PostMapping("authenticate")
-    public ResponseEntity<ApiResponse<LoginResponse>> loginUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<LoginResponse>> loginUser(@RequestBody LoginRequest loginRequest) throws IOException {
         ApiResponse<LoginResponse> apiResponse = new ApiResponse<>(authService.authenticate(loginRequest));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
