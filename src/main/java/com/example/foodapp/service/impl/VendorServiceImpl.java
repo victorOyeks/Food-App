@@ -3,21 +3,12 @@ package com.example.foodapp.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.foodapp.dto.request.EmailDetails;
+import com.example.foodapp.dto.request.ReviewRequest;
 import com.example.foodapp.dto.request.VendorRegistrationRequest;
-import com.example.foodapp.dto.response.BusinessRegistrationResponse;
-import com.example.foodapp.dto.response.FoodDataResponse;
-import com.example.foodapp.dto.response.OrderResponse;
-import com.example.foodapp.dto.response.OrderSummary;
-import com.example.foodapp.entities.ItemMenu;
-import com.example.foodapp.entities.Order;
-import com.example.foodapp.entities.User;
-import com.example.foodapp.entities.Vendor;
+import com.example.foodapp.dto.response.*;
+import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
-import com.example.foodapp.exception.ResourceNotFoundException;
-import com.example.foodapp.repository.CompanyRepository;
-import com.example.foodapp.repository.OrderRepository;
-import com.example.foodapp.repository.UserRepository;
-import com.example.foodapp.repository.VendorRepository;
+import com.example.foodapp.repository.*;
 import com.example.foodapp.service.EmailService;
 import com.example.foodapp.service.VendorService;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +33,7 @@ public class VendorServiceImpl implements VendorService {
     private final CompanyRepository companyRepository;
     private final OrderRepository orderRepository;
     private final Cloudinary cloudinary;
+    private final ReviewRepository reviewRepository;
 
     @Override
     public BusinessRegistrationResponse vendorSignup(VendorRegistrationRequest request) {
@@ -191,6 +183,34 @@ public class VendorServiceImpl implements VendorService {
                 .build();
     }
 
+    @Override
+    public ReviewResponse addRatingAndReview(String vendorId, ReviewRequest reviewRequest) {
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found"));
+
+        Review review = new Review();
+        review.setRating(reviewRequest.getRating());
+        review.setComment(reviewRequest.getComment());
+        review.setVendor(vendor);
+        reviewRepository.save(review);
+
+
+        vendor.getReviews().add(review);
+
+        List<Review> reviews = vendor.getReviews();
+        double sumRatings = reviews.stream().mapToDouble(Review::getRating).sum();
+        Double averageRating = sumRatings / reviews.size();
+        vendor.setAverageRating(averageRating);
+        vendor.setTotalRatings((long) reviews.size());
+
+        vendorRepository.save(vendor);
+
+        return ReviewResponse.builder()
+                .id(vendor.getId())
+                .businessName(vendor.getBusinessName())
+                .averageRating(vendor.getAverageRating())
+                .build();
+    }
 
     private void sendVerificationEmail(String recipient, String verificationToken) throws IOException {
         String verificationLink = "http://localhost:9191/api/auth/verify?token=" + verificationToken;

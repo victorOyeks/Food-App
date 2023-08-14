@@ -50,4 +50,9 @@ public class Vendor{
     @JsonIgnoreProperties("vendor")
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemCategory> itemCategory = new ArrayList<>();
+    private Double averageRating;
+    private Long totalRatings;
+    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews = new ArrayList<>();
+
 }

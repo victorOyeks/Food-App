@@ -1,5 +1,6 @@
 package com.example.foodapp.controller;
 
+import com.example.foodapp.dto.request.ReviewRequest;
 import com.example.foodapp.dto.response.*;
 import com.example.foodapp.service.VendorService;
 import lombok.RequiredArgsConstructor;
@@ -44,5 +45,12 @@ public class VendorController {
     public ResponseEntity<ApiResponse<BusinessRegistrationResponse>> profile() {
         ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(vendorService.viewVendorProfile());
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("{vendorId}/add-reviews")
+    public ResponseEntity<ApiResponse<ReviewResponse>> addReview(@PathVariable String vendorId,
+                                                                               @RequestBody ReviewRequest reviewRequest) {
+        ApiResponse<ReviewResponse> apiResponse = new ApiResponse<>(vendorService.addRatingAndReview(vendorId, reviewRequest));
+        return  new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 }

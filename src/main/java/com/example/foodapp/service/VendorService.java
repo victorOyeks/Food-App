@@ -1,9 +1,11 @@
 package com.example.foodapp.service;
 
+import com.example.foodapp.dto.request.ReviewRequest;
 import com.example.foodapp.dto.request.VendorRegistrationRequest;
 import com.example.foodapp.dto.response.BusinessRegistrationResponse;
 import com.example.foodapp.dto.response.OrderResponse;
 import com.example.foodapp.dto.response.OrderSummary;
+import com.example.foodapp.dto.response.ReviewResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -17,4 +19,5 @@ public interface VendorService {
     List<OrderResponse> viewAllOrdersToVendor();
     BusinessRegistrationResponse viewVendorProfile();
     OrderSummary calculateOrderSummary(List<OrderResponse> orders);
+    ReviewResponse addRatingAndReview(String vendorId, ReviewRequest reviewRequest);
 }
