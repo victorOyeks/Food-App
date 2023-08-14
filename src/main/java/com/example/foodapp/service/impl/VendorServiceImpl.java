@@ -166,7 +166,6 @@ public class VendorServiceImpl implements VendorService {
                         .build());
             }
         }
-
         return orderResponses;
     }
 
@@ -184,22 +183,31 @@ public class VendorServiceImpl implements VendorService {
     }
 
     @Override
-    public ReviewResponse addRatingAndReview(String vendorId, ReviewRequest reviewRequest) {
+    public ReviewResponse addRatingAndReview(Review review, String vendorId, ReviewRequest reviewRequest) {
+
+        Integer rating = reviewRequest.getRating();
+        String comment = reviewRequest.getComment();
+
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new CustomException("Vendor not found"));
 
-        Review review = new Review();
-        review.setRating(reviewRequest.getRating());
-        review.setComment(reviewRequest.getComment());
+        User user = getAuthenticatedUser();
+
+        List<Review> existingReviews = reviewRepository.findByVendorAndUser(vendor, user);
+        if (!existingReviews.isEmpty()) {
+            throw new CustomException("User has already reviewed this vendor");
+        }
+
+        review.setRating(rating);
+        review.setComment(comment);
         review.setVendor(vendor);
+        review.setUser(user);
         reviewRepository.save(review);
-
-
-        vendor.getReviews().add(review);
 
         List<Review> reviews = vendor.getReviews();
         double sumRatings = reviews.stream().mapToDouble(Review::getRating).sum();
-        Double averageRating = sumRatings / reviews.size();
+        Double averageRating = reviews.isEmpty() ? 0.0 : sumRatings / reviews.size();
+
         vendor.setAverageRating(averageRating);
         vendor.setTotalRatings((long) reviews.size());
 
@@ -211,6 +219,7 @@ public class VendorServiceImpl implements VendorService {
                 .averageRating(vendor.getAverageRating())
                 .build();
     }
+
 
     private void sendVerificationEmail(String recipient, String verificationToken) throws IOException {
         String verificationLink = "http://localhost:9191/api/auth/verify?token=" + verificationToken;
@@ -244,6 +253,16 @@ public class VendorServiceImpl implements VendorService {
             throw new CustomException("Vendor not found");
         }
         return vendor;
+    }
+
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) {
+            throw new CustomException("User not found");
+        }
+        return user;
     }
 
 

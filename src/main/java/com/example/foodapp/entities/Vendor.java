@@ -43,10 +43,12 @@ public class Vendor{
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-    /*@CreatedBy
+    /*
+    @CreatedBy
     private String createdBy;
     @LastModifiedBy
-    private String lastModifiedBy;*/
+    private String lastModifiedBy;
+    */
     @JsonIgnoreProperties("vendor")
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemCategory> itemCategory = new ArrayList<>();
