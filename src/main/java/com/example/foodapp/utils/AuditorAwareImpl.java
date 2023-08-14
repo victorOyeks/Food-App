@@ -1,4 +1,4 @@
-package com.example.foodapp.utils;
+/*package com.example.foodapp.utils;
 
 import com.example.foodapp.entities.Admin;
 import com.example.foodapp.entities.Company;
@@ -69,7 +69,7 @@ public class AuditorAwareImpl implements AuditorAware<String> {
                 .getAuthority();
     }*/
 
-    private Object getAuthenticatedEntity(Class<?> entityType) {
+    /*private Object getAuthenticatedEntity(Class<?> entityType) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userEmail = authentication.getName();
 
@@ -103,3 +103,4 @@ public class AuditorAwareImpl implements AuditorAware<String> {
     }
 
 }
+*/

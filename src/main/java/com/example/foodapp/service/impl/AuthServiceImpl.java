@@ -1,6 +1,5 @@
 package com.example.foodapp.service.impl;
 
-import com.example.foodapp.utils.CustomFileHandler;
 import com.example.foodapp.constant.ROLE;
 import com.example.foodapp.dto.request.EmailDetails;
 import com.example.foodapp.dto.request.LoginRequest;
@@ -86,10 +85,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse authenticate(LoginRequest loginRequest) throws IOException {
 
-        CustomFileHandler customFileHandler = new CustomFileHandler();
+        /*CustomFileHandler customFileHandler = new CustomFileHandler();
         logger.addHandler(customFileHandler);
 
-        try {
+        try {*/
             String email = loginRequest.getEmail();
             User user = userRepository.findByEmail(email);
             Vendor vendor = vendorRepository.findByEmail(email);
@@ -145,9 +144,9 @@ public class AuthServiceImpl implements AuthService {
             }
 
             throw new CustomException("Incorrect Credentials!!!");
-        } finally {
+        /*} finally {
             logger.removeHandler(customFileHandler);
-        }
+        }*/
 
     }
 

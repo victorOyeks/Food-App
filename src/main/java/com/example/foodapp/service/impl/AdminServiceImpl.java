@@ -1,6 +1,5 @@
 package com.example.foodapp.service.impl;
 
-import com.example.foodapp.utils.CustomFileHandler;
 import com.example.foodapp.constant.OrderType;
 import com.example.foodapp.constant.ROLE;
 import com.example.foodapp.dto.request.CompanyInvitation;
@@ -48,12 +47,12 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public String inviteVendor(VendorInvitation vendorInvitation) throws UserAlreadyExistException, IOException {
 
-        CustomFileHandler customFileHandler = new CustomFileHandler();
+        /*CustomFileHandler customFileHandler = new CustomFileHandler();
         logger.addHandler(customFileHandler);
 
         try {
             logger.info("Inviting vendor: " + vendorInvitation);
-//            logger.removeHandler(customFileHandler);
+            logger.removeHandler(customFileHandler);*/
 
             String vendorEmail = vendorInvitation.getVendorEmail();
             String note = vendorInvitation.getNote();
@@ -92,17 +91,17 @@ public class AdminServiceImpl implements AdminService {
             emailService.sendEmail(emailDetails);
 
             logger.info("Vendor onboarded successfully. Email sent to " + vendor + " to complete registration --------------");
-//            logger.removeHandler(customFileHandler);
+            //logger.removeHandler(customFileHandler);
             return "Vendor onboarded successfully. Email sent to vendor to complete registration";
-        }finally {
+        /*}finally {
             logger.removeHandler(customFileHandler);
-        }
+        }*/
     }
 
     @Override
     public String inviteCompany(CompanyInvitation companyInvitation) throws IOException {
-        CustomFileHandler customFileHandler = new CustomFileHandler();
-        logger.addHandler(customFileHandler);
+        /*CustomFileHandler customFileHandler = new CustomFileHandler();
+        logger.addHandler(customFileHandler);*/
 
         logger.info("Inviting company: " + companyInvitation);
 
@@ -140,7 +139,7 @@ public class AdminServiceImpl implements AdminService {
 
         emailService.sendEmail(emailDetails);
 
-        logger.info("Company with " + companyEmail + " onboarded successfully. Email sent to company to complete registration");
+        //logger.info("Company with " + companyEmail + " onboarded successfully. Email sent to company to complete registration");
 
         return  "Company with " + companyEmail + " onboarded successfully. Email sent to company to complete registration";
     }
@@ -235,10 +234,10 @@ public class AdminServiceImpl implements AdminService {
         List<DetailsResponse> detailsResponses = new ArrayList<>();
         List<Vendor> vendors = vendorRepository.findAll();
 
-        CustomFileHandler customFileHandler = new CustomFileHandler();
+        /*CustomFileHandler customFileHandler = new CustomFileHandler();
         logger.addHandler(customFileHandler);
 
-        try {
+        try {*/
             for (Vendor vendor : vendors) {
                 DetailsResponse detailsResponse = new DetailsResponse();
                 detailsResponse.setId(vendor.getId());
@@ -250,14 +249,14 @@ public class AdminServiceImpl implements AdminService {
 
                 detailsResponses.add(detailsResponse);
 
-                logger.info("Added details for vendor " + vendor);
+                //logger.info("Added details for vendor " + vendor);
             }
-            logger.info("Vendors details fetched successfully!!! -----------------------------------------\n");
-            logger.removeHandler(customFileHandler);
+            //logger.info("Vendors details fetched successfully!!! -----------------------------------------\n");
+            //logger.removeHandler(customFileHandler);
             return detailsResponses;
-        } finally {
+        /*} finally {
             logger.removeHandler(customFileHandler);
-        }
+        }*/
     }
 
     @Override
@@ -275,10 +274,10 @@ public class AdminServiceImpl implements AdminService {
 
                 detailsResponses.add(detailsResponse);
 
-                logger.info("Added Company details for " + companies);
+                //logger.info("Added Company details for " + companies);
             }
 
-            logger.info("Company details fetched successfully!!! -----------------------------------------\n");
+            //logger.info("Company details fetched successfully!!! -----------------------------------------\n");
 
         return detailsResponses;
     }
@@ -390,7 +389,6 @@ public class AdminServiceImpl implements AdminService {
             orderDetails.setDeliveryStatus(order.getDeliveryStatus());
             orderDetailsResponses.add(orderDetails);
         }
-
         return orderDetailsResponses;
     }
 

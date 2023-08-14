@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.io.IOException;
 
+/*
 public class CustomFileHandler extends FileHandler {
     private String currentLogFileName;
 
@@ -66,5 +67,4 @@ public class CustomFileHandler extends FileHandler {
             e.printStackTrace();
         }
     }
-}
-
+}*/

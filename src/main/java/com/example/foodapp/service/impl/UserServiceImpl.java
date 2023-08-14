@@ -16,7 +16,6 @@ import com.example.foodapp.repository.VendorRepository;
 import com.example.foodapp.security.JwtService;
 import com.example.foodapp.service.EmailService;
 import com.example.foodapp.service.UserService;
-import com.example.foodapp.utils.CustomFileHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -43,7 +42,7 @@ public class UserServiceImpl implements UserService {
     private final CompanyRepository companyRepository;
     private final Cloudinary cloudinary;
 
-    private static final Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
+    //private static final Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
 
     @Override
     public UserResponse signup(RegistrationRequest request) {
@@ -197,12 +196,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public String forgotPassword(String email) throws IOException {
 
-        CustomFileHandler customFileHandler = new CustomFileHandler();
+        /*CustomFileHandler customFileHandler = new CustomFileHandler();
         logger.addHandler(customFileHandler);
 
-        try {
+        try {*/
             User user = userRepository.findByEmail(email);
-            logger.info("Reset password User --------------->" + user);
+            //logger.info("Reset password User --------------->" + user);
 
             if (user == null) {
                 throw new CustomException("User with " + email + " does not exist");
@@ -215,9 +214,9 @@ public class UserServiceImpl implements UserService {
             sendPasswordResetEmail(email, resetToken);
 
             return "Password reset link has been sent to your email address!!!.";
-        }finally {
+        /*}finally {
             logger.removeHandler(customFileHandler);
-        }
+        }*/
     }
 
     @Override
@@ -237,12 +236,12 @@ public class UserServiceImpl implements UserService {
     }
 
     public UserResponse viewUserProfile() throws IOException {
-        CustomFileHandler customFileHandler = new CustomFileHandler();
+        /*/CustomFileHandler customFileHandler = new CustomFileHandler();
         logger.addHandler(customFileHandler);
 
-        try {
+        try {*/
             User existingUser = getAuthenticatedUser();
-            logger.info("Existing user -----------------> " + existingUser);
+            //logger.info("Existing user -----------------> " + existingUser);
             return UserResponse.builder()
                     .userId(existingUser.getId())
                     .firstName(existingUser.getFirstName())
@@ -251,10 +250,10 @@ public class UserServiceImpl implements UserService {
                     .phone(existingUser.getPhone())
                     .profilePictureUrl(existingUser.getProfilePictureUrl())
                     .build();
-        }
+        /*}
         finally {
             logger.removeHandler(customFileHandler);
-        }
+        }*/
     }
 
     @Override
