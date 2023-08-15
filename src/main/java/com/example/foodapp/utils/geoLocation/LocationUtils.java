@@ -55,4 +55,15 @@ public class LocationUtils {
         }
         return null;
     }
+
+    public static String getMapUri(GeoLocation location) {
+        UriComponents uri = UriComponentsBuilder.newInstance()
+                .scheme("https")
+                .host("www.google.com")
+                .path("/maps/place/")
+                .queryParam("q", location.getLat() + "," + location.getLng())
+                .build();
+
+        return uri.toUriString();
+    }
 }

@@ -15,5 +15,6 @@ public class BusinessRegistrationResponse {
     private String businessName;
     private String domainName;
     private String businessAddress;
+    private String mapUri;
     private String imageUrl;
 }

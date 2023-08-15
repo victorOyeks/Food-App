@@ -36,6 +36,7 @@ public class Vendor{
     private String domainName;
     private String businessAddress;
     private GeoLocation coordinates;
+    private String mapUri;
     private String imageUrl;
     private Boolean active;
     private String signupToken;

@@ -12,6 +12,7 @@ import com.example.foodapp.service.EmailService;
 import com.example.foodapp.service.VendorService;
 import com.example.foodapp.utils.geoLocation.GeoLocation;
 import com.example.foodapp.utils.geoLocation.GeoResponse;
+import com.example.foodapp.utils.geoLocation.LocationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -80,6 +81,8 @@ public class VendorServiceImpl implements VendorService {
 //        String verificationToken = generateToken();
         String encodedPassword = passwordEncoder.encode(password);
 
+        String mapUri = LocationUtils.getMapUri(coordinates);
+
         existingVendor.setFirstName(request.getFirstName());
         existingVendor.setLastName(request.getLastName());
         existingVendor.setPhone(request.getPhone());
@@ -87,6 +90,7 @@ public class VendorServiceImpl implements VendorService {
         existingVendor.setBusinessName(request.getBusinessName());
         existingVendor.setBusinessAddress(actualLocation);
         existingVendor.setCoordinates(coordinates);
+        existingVendor.setMapUri(mapUri);
         existingVendor.setDomainName(request.getDomainName());
         existingVendor.setActive(true);
         existingVendor.setEnabled(true);
@@ -101,12 +105,18 @@ public class VendorServiceImpl implements VendorService {
                 .businessName(existingVendor.getBusinessName())
                 .domainName(existingVendor.getDomainName())
                 .businessAddress(existingVendor.getBusinessAddress())
+                .mapUri(existingVendor.getMapUri())
                 .build();
     }
 
     public BusinessRegistrationResponse updateVendorProfile(String firstName, String lastName,
                                                             String phone, String businessName, String domainName,
                                                             String businessAddress, MultipartFile file) throws IOException {
+
+        GeoResponse geoDetails = getGeoDetails(businessAddress);
+        String actualLocation = extractActualLocation(geoDetails);
+        GeoLocation coordinates = extractGeoLocation(geoDetails);
+
         Vendor existingVendor = getAuthenticatedVendor();
 
         String imageUrl = existingVendor.getImageUrl(); // Save the current image URL before updating
@@ -123,11 +133,15 @@ public class VendorServiceImpl implements VendorService {
             imageUrl = uploadResult.get("secure_url").toString();
         }
 
+        String mapUri = LocationUtils.getMapUri(coordinates);
+
         existingVendor.setFirstName(firstName);
         existingVendor.setLastName(lastName);
         existingVendor.setPhone(phone);
         existingVendor.setBusinessName(businessName);
-        existingVendor.setBusinessAddress(businessAddress);
+        existingVendor.setBusinessAddress(actualLocation);
+        existingVendor.setCoordinates(coordinates);
+        existingVendor.setMapUri(mapUri);
         existingVendor.setDomainName(domainName);
         existingVendor.setImageUrl(imageUrl);
 
