@@ -2,6 +2,7 @@ package com.example.foodapp.service;
 
 import com.example.foodapp.dto.request.*;
 import com.example.foodapp.dto.response.*;
+import com.example.foodapp.entities.Review;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -17,4 +18,5 @@ public interface UserService {
     UserResponse viewUserProfile() throws IOException;
     String forgotPassword(String email) throws IOException;
     DetailsResponse getVendorDetails(String vendorId);
+    ReviewResponse addRatingAndReview(Review review, String vendorId, ReviewRequest reviewRequest);
 }

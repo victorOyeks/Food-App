@@ -47,11 +47,4 @@ public class VendorController {
         ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(vendorService.viewVendorProfile());
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
-    @PostMapping("{vendorId}/add-reviews")
-    public ResponseEntity<ApiResponse<ReviewResponse>> addReview(@PathVariable String vendorId,
-                                                                               @RequestBody ReviewRequest reviewRequest, Review review) {
-        ApiResponse<ReviewResponse> apiResponse = new ApiResponse<>(vendorService.addRatingAndReview(review, vendorId, reviewRequest));
-        return  new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
 }

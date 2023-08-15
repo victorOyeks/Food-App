@@ -6,16 +6,17 @@ import com.example.foodapp.constant.CompanySize;
 import com.example.foodapp.constant.ROLE;
 import com.example.foodapp.dto.request.CompanyRegistrationRequest;
 import com.example.foodapp.dto.request.EmailDetails;
+import com.example.foodapp.dto.request.ReviewRequest;
 import com.example.foodapp.dto.request.StaffInvitation;
 import com.example.foodapp.dto.response.BusinessRegistrationResponse;
 import com.example.foodapp.dto.response.CompanyResponse;
+import com.example.foodapp.dto.response.ReviewResponse;
 import com.example.foodapp.entities.Company;
+import com.example.foodapp.entities.Review;
 import com.example.foodapp.entities.User;
+import com.example.foodapp.entities.Vendor;
 import com.example.foodapp.exception.CustomException;
-import com.example.foodapp.repository.AdminRepository;
-import com.example.foodapp.repository.CompanyRepository;
-import com.example.foodapp.repository.UserRepository;
-import com.example.foodapp.repository.VendorRepository;
+import com.example.foodapp.repository.*;
 import com.example.foodapp.service.CompanyService;
 import com.example.foodapp.service.EmailService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -45,6 +47,7 @@ public class CompanyServiceImpl implements CompanyService {
     private final PasswordEncoder passwordEncoder;
     private final AdminRepository adminRepository;
     private final Cloudinary cloudinary;
+    private final ReviewRepository reviewRepository;
 
     @Override
     public BusinessRegistrationResponse companySignup(CompanyRegistrationRequest request) throws IOException {
@@ -244,11 +247,47 @@ public class CompanyServiceImpl implements CompanyService {
                 .build();
     }
 
+    @Override
+    public ReviewResponse addRatingAndReview(Review review, String vendorId, ReviewRequest reviewRequest) {
+
+        Integer rating = reviewRequest.getRating();
+        String comment = reviewRequest.getComment();
+
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found"));
+
+        Company company = getAuthenticatedCompany();
+
+        List<Review> existingCompanyReviews = reviewRepository.findByVendorAndCompany(vendor, company);
+        if (!existingCompanyReviews.isEmpty()) {
+            throw new CustomException("Company has already reviewed this vendor!!!");
+        }
+        review.setRating(rating);
+        review.setComment(comment);
+        review.setVendor(vendor);
+        review.setCompany(company);
+        reviewRepository.save(review);
+
+        List<Review> reviews = vendor.getReviews();
+        double sumRatings = reviews.stream().mapToDouble(Review::getRating).sum();
+        Double averageRating = reviews.isEmpty() ? 0.0 : sumRatings / reviews.size();
+
+        vendor.setAverageRating(averageRating);
+        vendor.setTotalRatings((long) reviews.size());
+
+        vendorRepository.save(vendor);
+
+        return ReviewResponse.builder()
+                .id(vendor.getId())
+                .businessName(vendor.getBusinessName())
+                .averageRating(vendor.getAverageRating())
+                .build();
+    }
 
     private String generateResetToken() {
         Random random = new Random();
         int randomNumber = random.nextInt(1000000);
-        return String.format("%06d", randomNumber); // Format the random number as a 6-digit string
+        return String.format("%06d", randomNumber);
     }
 
     private void sendPasswordResetEmail(String recipient, String resetToken) throws IOException {

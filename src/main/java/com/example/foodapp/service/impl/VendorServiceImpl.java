@@ -182,45 +182,6 @@ public class VendorServiceImpl implements VendorService {
                 .build();
     }
 
-    @Override
-    public ReviewResponse addRatingAndReview(Review review, String vendorId, ReviewRequest reviewRequest) {
-
-        Integer rating = reviewRequest.getRating();
-        String comment = reviewRequest.getComment();
-
-        Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new CustomException("Vendor not found"));
-
-        User user = getAuthenticatedUser();
-
-        List<Review> existingReviews = reviewRepository.findByVendorAndUser(vendor, user);
-        if (!existingReviews.isEmpty()) {
-            throw new CustomException("User has already reviewed this vendor");
-        }
-
-        review.setRating(rating);
-        review.setComment(comment);
-        review.setVendor(vendor);
-        review.setUser(user);
-        reviewRepository.save(review);
-
-        List<Review> reviews = vendor.getReviews();
-        double sumRatings = reviews.stream().mapToDouble(Review::getRating).sum();
-        Double averageRating = reviews.isEmpty() ? 0.0 : sumRatings / reviews.size();
-
-        vendor.setAverageRating(averageRating);
-        vendor.setTotalRatings((long) reviews.size());
-
-        vendorRepository.save(vendor);
-
-        return ReviewResponse.builder()
-                .id(vendor.getId())
-                .businessName(vendor.getBusinessName())
-                .averageRating(vendor.getAverageRating())
-                .build();
-    }
-
-
     private void sendVerificationEmail(String recipient, String verificationToken) throws IOException {
         String verificationLink = "http://localhost:9191/api/auth/verify?token=" + verificationToken;
         String subject = "Account Verification";
@@ -235,6 +196,7 @@ public class VendorServiceImpl implements VendorService {
         EmailDetails emailDetails = new EmailDetails(recipient, subject, messageBody);
         emailService.sendEmail(emailDetails);
     }
+
     private String generateToken() {
         return UUID.randomUUID().toString();
     }
@@ -263,6 +225,16 @@ public class VendorServiceImpl implements VendorService {
             throw new CustomException("User not found");
         }
         return user;
+    }
+
+    private Company getAuthenticatedCompany() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String companyEmail = authentication.getName();
+        Company company = companyRepository.findByCompanyEmail(companyEmail);
+        if (company == null) {
+            throw new CustomException("Company not found");
+        }
+        return company;
     }
 
 

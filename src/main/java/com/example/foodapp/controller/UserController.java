@@ -1,7 +1,9 @@
 package com.example.foodapp.controller;
 
 import com.example.foodapp.dto.request.ChangePasswordRequest;
+import com.example.foodapp.dto.request.ReviewRequest;
 import com.example.foodapp.dto.response.*;
+import com.example.foodapp.entities.Review;
 import com.example.foodapp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -50,5 +52,12 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
         ApiResponse<String> apiResponse = new ApiResponse<>(userService.changePassword(changePasswordRequest));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("vendors/{vendorId}/user-reviews")
+    public ResponseEntity<ApiResponse<ReviewResponse>> addReview(@PathVariable String vendorId,
+                                                                 @RequestBody ReviewRequest reviewRequest, Review review) {
+        ApiResponse<ReviewResponse> apiResponse = new ApiResponse<>(userService.addRatingAndReview(review, vendorId, reviewRequest));
+        return  new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 }

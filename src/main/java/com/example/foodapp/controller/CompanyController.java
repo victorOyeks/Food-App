@@ -1,10 +1,13 @@
 package com.example.foodapp.controller;
 
 import com.example.foodapp.constant.CompanySize;
+import com.example.foodapp.dto.request.ReviewRequest;
 import com.example.foodapp.dto.request.StaffInvitation;
 import com.example.foodapp.dto.response.ApiResponse;
 import com.example.foodapp.dto.response.BusinessRegistrationResponse;
 import com.example.foodapp.dto.response.CompanyResponse;
+import com.example.foodapp.dto.response.ReviewResponse;
+import com.example.foodapp.entities.Review;
 import com.example.foodapp.service.CompanyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,5 +48,12 @@ public class CompanyController {
     public ResponseEntity<ApiResponse<CompanyResponse>> viewProfile () {
         ApiResponse<CompanyResponse> apiResponse = new ApiResponse<>(companyService.viewCompanyProfile());
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("vendors/{vendorId}/company-reviews")
+    public ResponseEntity<ApiResponse<ReviewResponse>> addReview(@PathVariable String vendorId,
+                                                                 @RequestBody ReviewRequest reviewRequest, Review review) {
+        ApiResponse<ReviewResponse> apiResponse = new ApiResponse<>(companyService.addRatingAndReview(review, vendorId, reviewRequest));
+        return  new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 }

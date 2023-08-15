@@ -3,16 +3,10 @@ package com.example.foodapp.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.foodapp.dto.request.*;
-import com.example.foodapp.dto.response.DetailsResponse;
-import com.example.foodapp.dto.response.LoginResponse;
-import com.example.foodapp.dto.response.UserDashBoardResponse;
-import com.example.foodapp.dto.response.UserResponse;
+import com.example.foodapp.dto.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
-import com.example.foodapp.repository.AdminRepository;
-import com.example.foodapp.repository.CompanyRepository;
-import com.example.foodapp.repository.UserRepository;
-import com.example.foodapp.repository.VendorRepository;
+import com.example.foodapp.repository.*;
 import com.example.foodapp.security.JwtService;
 import com.example.foodapp.service.EmailService;
 import com.example.foodapp.service.UserService;
@@ -26,8 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Supplier;
-import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +33,7 @@ public class UserServiceImpl implements UserService {
     private final AdminRepository adminRepository;
     private final CompanyRepository companyRepository;
     private final Cloudinary cloudinary;
+    private final ReviewRepository reviewRepository;
 
     //private static final Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
 
@@ -271,6 +264,42 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    @Override
+    public ReviewResponse addRatingAndReview(Review review, String vendorId, ReviewRequest reviewRequest) {
+
+        Integer rating = reviewRequest.getRating();
+        String comment = reviewRequest.getComment();
+
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found"));
+
+        User user = getAuthenticatedUser();
+
+        List<Review> existingUserReviews = reviewRepository.findByVendorAndUser(vendor, user);
+        if (!existingUserReviews.isEmpty()) {
+            throw new CustomException("User has already reviewed this vendor!!!");
+        }
+        review.setRating(rating);
+        review.setComment(comment);
+        review.setVendor(vendor);
+        review.setUser(user);
+        reviewRepository.save(review);
+
+        List<Review> reviews = vendor.getReviews();
+        double sumRatings = reviews.stream().mapToDouble(Review::getRating).sum();
+        Double averageRating = reviews.isEmpty() ? 0.0 : sumRatings / reviews.size();
+
+        vendor.setAverageRating(averageRating);
+        vendor.setTotalRatings((long) reviews.size());
+
+        vendorRepository.save(vendor);
+
+        return ReviewResponse.builder()
+                .id(vendor.getId())
+                .businessName(vendor.getBusinessName())
+                .averageRating(vendor.getAverageRating())
+                .build();
+    }
 
     private void sendVerificationEmail(String recipient, String verificationToken) throws IOException {
         String verificationLink = "http://localhost:9191/api/auth/verify?token=" + verificationToken;
