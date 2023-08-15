@@ -3,7 +3,6 @@ package com.example.foodapp.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.foodapp.dto.request.EmailDetails;
-import com.example.foodapp.dto.request.ReviewRequest;
 import com.example.foodapp.dto.request.VendorRegistrationRequest;
 import com.example.foodapp.dto.response.*;
 import com.example.foodapp.entities.*;
@@ -11,6 +10,8 @@ import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.repository.*;
 import com.example.foodapp.service.EmailService;
 import com.example.foodapp.service.VendorService;
+import com.example.foodapp.utils.geoLocation.GeoLocation;
+import com.example.foodapp.utils.geoLocation.GeoResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +22,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+
+import static com.example.foodapp.utils.geoLocation.LocationUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +40,10 @@ public class VendorServiceImpl implements VendorService {
 
     @Override
     public BusinessRegistrationResponse vendorSignup(VendorRegistrationRequest request) {
+
+        GeoResponse geoDetails = getGeoDetails(request);
+        String actualLocation = extractActualLocation(geoDetails);
+        GeoLocation coordinates = extractGeoLocation(geoDetails);
 
         String email = request.getEmail();
         String password = request.getPassword();
@@ -73,15 +80,15 @@ public class VendorServiceImpl implements VendorService {
 //        String verificationToken = generateToken();
         String encodedPassword = passwordEncoder.encode(password);
 
-
         existingVendor.setFirstName(request.getFirstName());
         existingVendor.setLastName(request.getLastName());
         existingVendor.setPhone(request.getPhone());
         existingVendor.setPassword(encodedPassword);
         existingVendor.setBusinessName(request.getBusinessName());
-        existingVendor.setBusinessAddress(request.getBusinessAddress());
+        existingVendor.setBusinessAddress(actualLocation);
+        existingVendor.setCoordinates(coordinates);
         existingVendor.setDomainName(request.getDomainName());
-        existingVendor.setDeactivated(false);
+        existingVendor.setActive(true);
         existingVendor.setEnabled(true);
 
         vendorRepository.save(existingVendor);
@@ -135,7 +142,6 @@ public class VendorServiceImpl implements VendorService {
                 .imageUrl(existingVendor.getImageUrl())
                 .build();
     }
-
 
     public List<OrderResponse> viewAllOrdersToVendor() {
         Vendor vendor = getAuthenticatedVendor();

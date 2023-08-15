@@ -1,13 +1,12 @@
 package com.example.foodapp.entities;
 
 import com.example.foodapp.constant.ROLE;
+import com.example.foodapp.utils.geoLocation.GeoLocation;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.LastModifiedBy;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -36,8 +35,9 @@ public class Vendor{
     private String businessName;
     private String domainName;
     private String businessAddress;
+    private GeoLocation coordinates;
     private String imageUrl;
-    private Boolean deactivated;
+    private Boolean active;
     private String signupToken;
     @CreationTimestamp
     private LocalDateTime createdAt;

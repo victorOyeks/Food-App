@@ -19,5 +19,5 @@ public interface CompanyService {
     BusinessRegistrationResponse updateCompanyProfile(String companyName, String companyAddress,
                                                       String phoneNumber, CompanySize companySize, MultipartFile file) throws IOException;
     CompanyResponse viewCompanyProfile();
-    ReviewResponse addRatingAndReview(Review review, String vendorId, ReviewRequest reviewRequest);
+    ReviewResponse addRatingAndReviewByCompany(Review review, String vendorId, ReviewRequest reviewRequest);
 }

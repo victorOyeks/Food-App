@@ -265,7 +265,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ReviewResponse addRatingAndReview(Review review, String vendorId, ReviewRequest reviewRequest) {
+    public ReviewResponse addRatingAndReviewByUser(Review review, String vendorId, ReviewRequest reviewRequest) {
 
         Integer rating = reviewRequest.getRating();
         String comment = reviewRequest.getComment();

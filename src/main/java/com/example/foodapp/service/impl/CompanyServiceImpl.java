@@ -248,7 +248,7 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public ReviewResponse addRatingAndReview(Review review, String vendorId, ReviewRequest reviewRequest) {
+    public ReviewResponse addRatingAndReviewByCompany(Review review, String vendorId, ReviewRequest reviewRequest) {
 
         Integer rating = reviewRequest.getRating();
         String comment = reviewRequest.getComment();

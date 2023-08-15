@@ -57,7 +57,7 @@ public class UserController {
     @PostMapping("vendors/{vendorId}/user-reviews")
     public ResponseEntity<ApiResponse<ReviewResponse>> addReview(@PathVariable String vendorId,
                                                                  @RequestBody ReviewRequest reviewRequest, Review review) {
-        ApiResponse<ReviewResponse> apiResponse = new ApiResponse<>(userService.addRatingAndReview(review, vendorId, reviewRequest));
+        ApiResponse<ReviewResponse> apiResponse = new ApiResponse<>(userService.addRatingAndReviewByUser(review, vendorId, reviewRequest));
         return  new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 }

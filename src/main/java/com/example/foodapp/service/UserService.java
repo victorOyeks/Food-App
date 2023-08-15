@@ -18,5 +18,5 @@ public interface UserService {
     UserResponse viewUserProfile() throws IOException;
     String forgotPassword(String email) throws IOException;
     DetailsResponse getVendorDetails(String vendorId);
-    ReviewResponse addRatingAndReview(Review review, String vendorId, ReviewRequest reviewRequest);
+    ReviewResponse addRatingAndReviewByUser(Review review, String vendorId, ReviewRequest reviewRequest);
 }

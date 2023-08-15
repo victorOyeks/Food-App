@@ -18,5 +18,7 @@ public class DetailsResponse {
     private String businessName;
     private String address;
     private String contactNumber;
+    private Long totalRatings;
+    private Boolean active;
     private List<ItemCategory> itemCategories;
 }

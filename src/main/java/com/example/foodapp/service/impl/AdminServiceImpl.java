@@ -78,7 +78,7 @@ public class AdminServiceImpl implements AdminService {
             vendor.setEmail(vendorEmail);
             vendor.setRole(ROLE.VENDOR);
             vendor.setEnabled(true);
-            vendor.setDeactivated(false);
+            vendor.setActive(true);
             vendor.setSignupToken(signupToken);
             vendorRepository.save(vendor);
 
@@ -193,7 +193,7 @@ public class AdminServiceImpl implements AdminService {
         Vendor vendor = vendorRepository.findById(userId)
                 .orElseThrow(() -> new CustomException("Vendor not found with id: " +userId));
 
-        vendor.setDeactivated(true);
+        vendor.setActive(false);
         vendorRepository.save(vendor);
 
         System.out.println("sending email to " + vendor);
@@ -215,7 +215,7 @@ public class AdminServiceImpl implements AdminService {
         //logger.info("Reactivating vendor with ID: " + vendor);
 
         if(vendor != null) {
-            vendor.setDeactivated(false);
+            vendor.setActive(true);
             vendorRepository.save(vendor);
 
             String subject = "Account Deactivated!";
@@ -245,8 +245,9 @@ public class AdminServiceImpl implements AdminService {
                 detailsResponse.setBusinessName(vendor.getBusinessName());
                 detailsResponse.setAddress(vendor.getBusinessAddress());
                 detailsResponse.setContactNumber(vendor.getPhone());
+                detailsResponse.setTotalRatings(vendor.getTotalRatings());
+                detailsResponse.setActive(vendor.getActive());
                 detailsResponse.setItemCategories(vendor.getItemCategory());
-
                 detailsResponses.add(detailsResponse);
 
                 //logger.info("Added details for vendor " + vendor);

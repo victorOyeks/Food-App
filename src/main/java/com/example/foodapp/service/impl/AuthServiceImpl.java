@@ -102,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
                 if (!vendor.getEnabled()) {
                     throw new CustomException("Vendor with " + email + " is not enabled");
                 }
-                if (vendor.getDeactivated()) {
+                if (!vendor.getActive()) {
                     throw new CustomException("Account has been deactivated! Contact Admin for support!");
                 }
                 if (passwordEncoder.matches(loginRequest.getPassword(), vendor.getPassword())) {
