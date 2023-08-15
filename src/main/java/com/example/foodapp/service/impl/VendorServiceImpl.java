@@ -257,7 +257,6 @@ public class VendorServiceImpl implements VendorService {
         return company;
     }
 
-
     public OrderSummary calculateOrderSummary(List<OrderResponse> orders) {
         int totalItems = 0;
         BigDecimal totalSum = BigDecimal.ZERO;
