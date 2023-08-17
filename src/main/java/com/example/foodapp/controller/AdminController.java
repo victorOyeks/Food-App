@@ -7,6 +7,7 @@ import com.example.foodapp.dto.response.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.exception.UserAlreadyExistException;
 import com.example.foodapp.service.AdminService;
+import com.example.foodapp.service.VendorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +72,13 @@ public class AdminController {
     public ResponseEntity<ApiResponse<List<DetailsResponse>>> viewAllVendors() throws IOException {
         List<DetailsResponse> vendorDetails = adminService.getAllVendorDetails();
         ApiResponse<List<DetailsResponse>> apiResponse = new ApiResponse<>(vendorDetails);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("vendors/{vendorId}")
+    public ResponseEntity<ApiResponse<BusinessRegistrationResponse>> viewVendor(@PathVariable String vendorId) {
+        BusinessRegistrationResponse vendorDetails = adminService.getVendor(vendorId);
+        ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(vendorDetails);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

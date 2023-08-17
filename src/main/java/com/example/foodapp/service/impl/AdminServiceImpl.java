@@ -261,6 +261,24 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    public BusinessRegistrationResponse getVendor(String vendorId) {
+
+        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new CustomException("Vendor not found!!!"));
+
+        return BusinessRegistrationResponse.builder()
+                .id(vendor.getId())
+                .email(vendor.getEmail())
+                .businessName(vendor.getBusinessName())
+                .domainName(vendor.getDomainName())
+                .businessAddress(vendor.getBusinessAddress())
+                .mapUri(vendor.getMapUri())
+                .imageUrl(vendor.getImageUrl())
+                .coordinates(vendor.getCoordinates())
+                .build();
+
+    }
+
+    @Override
     public List<DetailsResponse> getAllCompanyDetails() {
         List<DetailsResponse> detailsResponses = new ArrayList<>();
         List<Company> companies = companyRepository.findAll();

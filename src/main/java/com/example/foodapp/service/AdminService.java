@@ -18,6 +18,7 @@ public interface AdminService {
     void deactivateVendor (String vendorId) throws IOException;
     void reactivateVendor(String vendorId) throws IOException;
     List<DetailsResponse> getAllVendorDetails() throws IOException;
+    BusinessRegistrationResponse getVendor(String vendorId);
     List<DetailsResponse> getAllCompanyDetails();
     List<UserResponse> getAllOnboardedUsers();
     List<CategoryResponse> getAllItemCategory();

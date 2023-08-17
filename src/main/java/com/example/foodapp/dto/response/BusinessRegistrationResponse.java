@@ -1,5 +1,6 @@
 package com.example.foodapp.dto.response;
 
+import com.example.foodapp.utils.geoLocation.GeoLocation;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,4 +18,5 @@ public class BusinessRegistrationResponse {
     private String businessAddress;
     private String mapUri;
     private String imageUrl;
+    private GeoLocation coordinates;
 }

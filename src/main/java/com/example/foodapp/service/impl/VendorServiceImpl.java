@@ -153,6 +153,7 @@ public class VendorServiceImpl implements VendorService {
                 .businessName(existingVendor.getBusinessName())
                 .domainName(existingVendor.getDomainName())
                 .businessAddress(existingVendor.getBusinessAddress())
+                .mapUri(existingVendor.getMapUri())
                 .imageUrl(existingVendor.getImageUrl())
                 .build();
     }
@@ -199,6 +200,8 @@ public class VendorServiceImpl implements VendorService {
                 .domainName(existingVendor.getDomainName())
                 .businessAddress(existingVendor.getBusinessAddress())
                 .imageUrl(existingVendor.getImageUrl())
+                .mapUri(existingVendor.getMapUri())
+                .coordinates(existingVendor.getCoordinates())
                 .build();
     }
 
