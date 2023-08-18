@@ -275,14 +275,12 @@ public class AdminServiceImpl implements AdminService {
                 .imageUrl(vendor.getImageUrl())
                 .coordinates(vendor.getCoordinates())
                 .build();
-
     }
 
     @Override
     public List<DetailsResponse> getAllCompanyDetails() {
         List<DetailsResponse> detailsResponses = new ArrayList<>();
         List<Company> companies = companyRepository.findAll();
-
 
             for (Company company : companies) {
                 DetailsResponse detailsResponse = new DetailsResponse();
@@ -457,7 +455,6 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-
     private String getCustomerName(Order order) {
         if (order.getUser() != null) {
             return order.getUser().getFirstName() + " " + order.getUser().getLastName();
@@ -490,7 +487,6 @@ public class AdminServiceImpl implements AdminService {
         }
         return itemMenuOrdersCountMap;
     }
-
 
     private BigDecimal calculateTotalAmountSpent(List<Order> orders) {
         return orders.stream()
