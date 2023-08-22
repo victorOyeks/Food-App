@@ -83,7 +83,6 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-
     public ItemMenuResponse editItemMenu(String itemId, String itemName, BigDecimal itemPrice, Boolean breakfast, Boolean lunch, Boolean dinner, String categoryId, MultipartFile file) throws IOException {
 
         Vendor vendor = getAuthenticatedVendor();
@@ -164,7 +163,6 @@ public class ItemServiceImpl implements ItemService {
         itemMenu.setItemCategory(null);
         itemMenuRepository.delete(itemMenu);
     }
-
 
     public List<CategoryResponse> getAllItemCategory() {
         Vendor vendor = getAuthenticatedVendor();

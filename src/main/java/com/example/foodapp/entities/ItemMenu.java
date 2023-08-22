@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -33,5 +34,8 @@ public class ItemMenu implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_category_id")
     private ItemCategory itemCategory;
-
+    @ElementCollection
+    private List<String> availableSupplements;
+    @Transient
+    private Supplement selectedSupplement;
 }

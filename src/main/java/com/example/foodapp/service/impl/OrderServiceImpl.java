@@ -4,6 +4,7 @@ import com.example.foodapp.constant.DeliveryStatus;
 import com.example.foodapp.constant.PaymentStatus;
 import com.example.foodapp.dto.request.BulkItemOrderRequest;
 import com.example.foodapp.dto.request.ItemOrderRequest;
+import com.example.foodapp.dto.request.SupplementRequest;
 import com.example.foodapp.dto.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.entities.Order;
@@ -52,7 +53,10 @@ public class OrderServiceImpl implements OrderService {
         return foodDataResponse;
     }
 
+
+    /*
     public String selectItemForIndividual(String vendorId, String menuId) {
+
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new CustomException("Vendor not found!!!"));
         User user = getAuthenticatedUser();
@@ -95,6 +99,57 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomException("Item menu not found!!!");
         }
     }
+
+    public String selectItemWithSupplementForIndividual(String vendorId, String menuId, String supplementName,  BigDecimal supplementPrice) {
+
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found!!!"));
+        User user = getAuthenticatedUser();
+        //ItemMenu itemMenu = findFoodMenuById(vendor.getId(), menuId);
+
+        ItemMenu selectedMenu = findFoodMenuById(vendor.getId(), menuId);
+
+        if (selectedMenu != null) {
+            Supplement selectedSupplement = new Supplement(supplementName, supplementPrice);
+            selectedMenu.setSelectedSupplement(selectedSupplement);
+
+            // Calculate total price including supplement
+            BigDecimal totalAmount = selectedMenu.getItemPrice().add(supplementPrice);
+
+            Order existingOpenOrder = orderRepository.findOpenOrderByUser(user.getId());
+
+            if (existingOpenOrder != null) {
+                List<ItemMenu> selectedItemMenus = existingOpenOrder.getItemMenu();
+                selectedItemMenus.add(selectedMenu);
+                existingOpenOrder.setItemMenu(selectedItemMenus);
+
+                existingOpenOrder.setTotalAmount(existingOpenOrder.getTotalAmount().add(totalAmount));
+                orderRepository.save(existingOpenOrder);
+            } else {
+                Order newOrder = new Order();
+                newOrder.setUser(user);
+
+                List<ItemMenu> selectedItemMenus = new ArrayList<>();
+                selectedItemMenus.add(selectedMenu);
+                newOrder.setItemMenu(selectedItemMenus);
+
+                newOrder.setTotalAmount(totalAmount);
+                newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
+                newOrder.setPaymentStatus(PaymentStatus.PENDING);
+
+                orderRepository.save(newOrder);
+            }
+            if (user.getOrderList() == null) {
+                user.setOrderList(new ArrayList<>());
+            }
+            return "Food selected successfully!!!";
+        } else {
+            throw new CustomException("Item menu not found!!!");
+        }
+    }
+    */
+
+
 
     public String selectItemForCompany(String vendorId, String menuId) {
         Vendor vendor = vendorRepository.findById(vendorId)

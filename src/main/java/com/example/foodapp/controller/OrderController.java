@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -24,11 +25,30 @@ public class OrderController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
+    /*
     @PostMapping("/vendors/{vendorId}/select-item-individual")
     public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId, @RequestParam String menuId) {
         ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectItemForIndividual(vendorId, menuId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }*/
+
+    @PostMapping("/vendors/{vendorId}/select-item-individual")
+    public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId,
+                                                                         @RequestParam String menuId,
+                                                                         @RequestParam String supplementName,
+                                                                         @RequestParam(required = false) BigDecimal supplementPrice) {
+
+        ApiResponse<String> apiResponse;
+        //user selects supplements
+        if (supplementName != null && supplementPrice != null) {
+            apiResponse = new ApiResponse<>(orderService.selectItemWithSupplementForIndividual(vendorId, menuId, supplementName, supplementPrice));
+        } else {
+            // User didn't select a supplement
+            apiResponse = new ApiResponse<>(orderService.selectItemForIndividual(vendorId, menuId));
+        }
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
 
     @PostMapping("/vendors/{vendorId}/select-item-company")
     public ResponseEntity<ApiResponse<String>> selectItemsForCompanies(@PathVariable String vendorId, @RequestParam String menuId) {
