@@ -1,9 +1,9 @@
 package com.example.foodapp.service;
 
-import com.example.foodapp.dto.request.LoginRequest;
-import com.example.foodapp.dto.request.ResetEmail;
-import com.example.foodapp.dto.request.ResetPasswordRequest;
-import com.example.foodapp.dto.response.LoginResponse;
+import com.example.foodapp.payloads.request.LoginRequest;
+import com.example.foodapp.payloads.request.ResetEmail;
+import com.example.foodapp.payloads.request.ResetPasswordRequest;
+import com.example.foodapp.payloads.response.LoginResponse;
 
 import java.io.IOException;
 

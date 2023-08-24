@@ -1,9 +1,9 @@
 package com.example.foodapp.controller;
 
-import com.example.foodapp.dto.request.CategoryRequest;
-import com.example.foodapp.dto.response.ApiResponse;
-import com.example.foodapp.dto.response.CategoryResponse;
-import com.example.foodapp.dto.response.ItemMenuResponse;
+import com.example.foodapp.payloads.request.CategoryRequest;
+import com.example.foodapp.payloads.response.ApiResponse;
+import com.example.foodapp.payloads.response.CategoryResponse;
+import com.example.foodapp.payloads.response.ItemMenuResponse;
 import com.example.foodapp.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

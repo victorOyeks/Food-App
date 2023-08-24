@@ -29,11 +29,12 @@ public class Company  {
     private String companyName;
     private String password;
     private String companyAddress;
+    private String domainName;
     private CompanySize companySize;
     private String imageUrl;
     private ROLE role;
     private Boolean enabled;
-    private Boolean deactivated;
+    private Boolean active;
     private String signupToken;
     private String verificationToken;
     @CreationTimestamp

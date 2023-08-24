@@ -1,11 +1,11 @@
 package com.example.foodapp.service.impl;
 
 import com.example.foodapp.constant.ROLE;
-import com.example.foodapp.dto.request.EmailDetails;
-import com.example.foodapp.dto.request.LoginRequest;
-import com.example.foodapp.dto.request.ResetEmail;
-import com.example.foodapp.dto.request.ResetPasswordRequest;
-import com.example.foodapp.dto.response.LoginResponse;
+import com.example.foodapp.payloads.request.EmailDetails;
+import com.example.foodapp.payloads.request.LoginRequest;
+import com.example.foodapp.payloads.request.ResetEmail;
+import com.example.foodapp.payloads.request.ResetPasswordRequest;
+import com.example.foodapp.payloads.response.LoginResponse;
 import com.example.foodapp.entities.Admin;
 import com.example.foodapp.entities.Company;
 import com.example.foodapp.entities.User;
@@ -126,7 +126,7 @@ public class AuthServiceImpl implements AuthService {
                 if (!company.getEnabled()) {
                     throw new CustomException("Your account has not been enabled");
                 }
-                if (company.getDeactivated()) {
+                if (!company.getActive()) {
                     throw new CustomException("Your account has been Deactivated. Contact Admin for support!");
                 }
                 // User authentication logic

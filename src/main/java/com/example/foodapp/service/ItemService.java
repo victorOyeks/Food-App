@@ -1,8 +1,8 @@
 package com.example.foodapp.service;
 
-import com.example.foodapp.dto.request.CategoryRequest;
-import com.example.foodapp.dto.response.CategoryResponse;
-import com.example.foodapp.dto.response.ItemMenuResponse;
+import com.example.foodapp.payloads.request.CategoryRequest;
+import com.example.foodapp.payloads.response.CategoryResponse;
+import com.example.foodapp.payloads.response.ItemMenuResponse;
 import com.example.foodapp.entities.ItemMenu;
 import org.springframework.web.multipart.MultipartFile;
 

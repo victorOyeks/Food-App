@@ -1,6 +1,6 @@
 package com.example.foodapp.utils.geoLocation;
 
-import com.example.foodapp.dto.request.VendorRegistrationRequest;
+import com.example.foodapp.payloads.request.VendorRegistrationRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestParam;

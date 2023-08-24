@@ -1,8 +1,8 @@
 package com.example.foodapp.controller;
 
-import com.example.foodapp.dto.request.*;
-import com.example.foodapp.dto.request.ResetEmail;
-import com.example.foodapp.dto.response.*;
+import com.example.foodapp.payloads.request.*;
+import com.example.foodapp.payloads.request.ResetEmail;
+import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.exception.ResourceNotFoundException;
 import com.example.foodapp.service.CompanyService;

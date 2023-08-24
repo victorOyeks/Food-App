@@ -1,7 +1,7 @@
 package com.example.foodapp.service;
 
-import com.example.foodapp.dto.request.*;
-import com.example.foodapp.dto.response.*;
+import com.example.foodapp.payloads.request.*;
+import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.ItemMenuReview;
 import com.example.foodapp.entities.VendorReview;
 import org.springframework.web.multipart.MultipartFile;

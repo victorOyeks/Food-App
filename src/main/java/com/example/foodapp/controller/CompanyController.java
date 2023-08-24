@@ -1,9 +1,9 @@
 package com.example.foodapp.controller;
 
 import com.example.foodapp.constant.CompanySize;
-import com.example.foodapp.dto.request.ReviewRequest;
-import com.example.foodapp.dto.request.StaffInvitation;
-import com.example.foodapp.dto.response.*;
+import com.example.foodapp.payloads.request.ReviewRequest;
+import com.example.foodapp.payloads.request.StaffInvitation;
+import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.ItemMenuReview;
 import com.example.foodapp.entities.VendorReview;
 import com.example.foodapp.service.CompanyService;

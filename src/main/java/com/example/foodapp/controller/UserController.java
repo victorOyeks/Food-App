@@ -1,8 +1,8 @@
 package com.example.foodapp.controller;
 
-import com.example.foodapp.dto.request.ChangePasswordRequest;
-import com.example.foodapp.dto.request.ReviewRequest;
-import com.example.foodapp.dto.response.*;
+import com.example.foodapp.payloads.request.ChangePasswordRequest;
+import com.example.foodapp.payloads.request.ReviewRequest;
+import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.ItemMenuReview;
 import com.example.foodapp.entities.VendorReview;
 import com.example.foodapp.service.UserService;

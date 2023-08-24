@@ -1,10 +1,10 @@
 package com.example.foodapp.controller;
 
 import com.example.foodapp.constant.TimeFrame;
-import com.example.foodapp.dto.request.CompanyInvitation;
-import com.example.foodapp.dto.request.VendorInvitation;
-import com.example.foodapp.dto.response.*;
-import com.example.foodapp.entities.Order;
+import com.example.foodapp.payloads.request.ChangePasswordRequest;
+import com.example.foodapp.payloads.request.CompanyInvitation;
+import com.example.foodapp.payloads.request.VendorInvitation;
+import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.exception.UserAlreadyExistException;
 import com.example.foodapp.service.AdminService;
@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -22,6 +23,13 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+
+
+    @PutMapping("change-password")
+    public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+        ApiResponse<String> apiResponse = new ApiResponse<>(adminService.changePassword(changePasswordRequest));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
 
     @PostMapping("invite-vendor")
     public ResponseEntity<ApiResponse<String>> inviteVendor(@RequestBody VendorInvitation vendorInvitation) throws UserAlreadyExistException, IOException {
@@ -82,10 +90,30 @@ public class AdminController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
+    /*
     @GetMapping("/all-companies")
-    public ResponseEntity<ApiResponse<List<DetailsResponse>>> viewAllCompanies() {
-        List<DetailsResponse> vendorDetails = adminService.getAllCompanyDetails();
-        ApiResponse<List<DetailsResponse>> apiResponse = new ApiResponse<>(vendorDetails);
+    public ResponseEntity<ApiResponse<List<CompanyResponse>>> viewAllCompanies() {
+        List<CompanyResponse> vendorDetails = adminService.getAllCompanyDetails();
+        ApiResponse<List<CompanyResponse>> apiResponse = new ApiResponse<>(vendorDetails);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+     */
+
+    @GetMapping("/all-companies")
+    public ResponseEntity<ApiResponse<List<CompanyResponse>>> viewAllCompanies(@RequestParam("status") String status) {
+        List<CompanyResponse> companyDetails;
+
+        if ("active".equalsIgnoreCase(status)) {
+            companyDetails = adminService.getAllCompanyDetails(true); // Pass 'true' for active companies
+        } else if ("inactive".equalsIgnoreCase(status)) {
+            companyDetails = adminService.getAllCompanyDetails(false); // Pass 'false' for inactive companies
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        // Shuffle the response if needed
+        Collections.shuffle(companyDetails);
+
+        ApiResponse<List<CompanyResponse>> apiResponse = new ApiResponse<>(companyDetails);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -116,6 +144,7 @@ public class AdminController {
         return new ResponseEntity<>(apiResponseList, HttpStatus.OK);
     }
 
+    //TODO: dont delete the controller below
     /*@GetMapping("/all-orders")
     public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllOrders() {
         List<OrderDetailsResponse> orderDetailsResponses = adminService.viewAllOrders();
@@ -136,6 +165,13 @@ public class AdminController {
     public ResponseEntity<ApiResponse<List<ItemMenusInCategoriesResponse>>> viewAllItemsInCategories (@RequestParam String vendorId) {
         List<ItemMenusInCategoriesResponse> allItems = adminService.getAllItemMenusInAllCategories(vendorId);
         ApiResponse<List<ItemMenusInCategoriesResponse>> apiResponse = new ApiResponse<>(allItems);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/items-all-items-categories")
+    public ResponseEntity<ApiResponse<List<ItemNamesResponse>>> getAllItemsInCategory (@RequestParam String vendorId) {
+        List<ItemNamesResponse> allItems = adminService.getAllItemsInCategory(vendorId);
+        ApiResponse<List<ItemNamesResponse>> apiResponse = new ApiResponse<>(allItems);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

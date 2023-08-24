@@ -3,10 +3,11 @@ package com.example.foodapp.service.impl;
 import com.example.foodapp.constant.OrderType;
 import com.example.foodapp.constant.ROLE;
 import com.example.foodapp.constant.TimeFrame;
-import com.example.foodapp.dto.request.CompanyInvitation;
-import com.example.foodapp.dto.request.EmailDetails;
-import com.example.foodapp.dto.request.VendorInvitation;
-import com.example.foodapp.dto.response.*;
+import com.example.foodapp.payloads.request.ChangePasswordRequest;
+import com.example.foodapp.payloads.request.CompanyInvitation;
+import com.example.foodapp.payloads.request.EmailDetails;
+import com.example.foodapp.payloads.request.VendorInvitation;
+import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.exception.UserAlreadyExistException;
@@ -17,6 +18,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -42,6 +46,8 @@ public class AdminServiceImpl implements AdminService {
     private final ItemCategoryRepository itemCategoryRepository;
     private final OrderRepository orderRepository;
     private final ItemMenuRepository itemMenuRepository;
+    private final AdminRepository adminRepository;
+    private final PasswordEncoder passwordEncoder;
 
     private static final Logger logger = Logger.getLogger(AdminServiceImpl.class.getName());
 
@@ -132,7 +138,7 @@ public class AdminServiceImpl implements AdminService {
         company.setCompanyEmail(companyEmail);
         company.setRole(ROLE.COMPANY_ADMIN);
         company.setEnabled(true);
-        company.setDeactivated(false);
+        company.setActive(true);
         company.setSignupToken(signupToken);
         companyRepository.save(company);
 
@@ -282,26 +288,56 @@ public class AdminServiceImpl implements AdminService {
                 .build();
     }
 
+    /*
     @Override
-    public List<DetailsResponse> getAllCompanyDetails() {
-        List<DetailsResponse> detailsResponses = new ArrayList<>();
+    public List<CompanyResponse> getAllCompanyDetails() {
+        List<CompanyResponse> companyResponse = new ArrayList<>();
         List<Company> companies = companyRepository.findAll();
 
             for (Company company : companies) {
-                DetailsResponse detailsResponse = new DetailsResponse();
+                CompanyResponse detailsResponse = new CompanyResponse();
                 detailsResponse.setId(company.getId());
-                detailsResponse.setBusinessName(company.getCompanyName());
-                detailsResponse.setAddress(company.getCompanyAddress());
-                detailsResponse.setContactNumber(company.getPhoneNumber());
+                detailsResponse.setCompanyName(company.getCompanyName());
+                detailsResponse.setCompanyEmail(company.getCompanyEmail());
+                detailsResponse.setDomainName(company.getDomainName());
+                detailsResponse.setPhoneNumber(company.getPhoneNumber());
+                detailsResponse.setCompanyAddress(company.getCompanyAddress());
+                detailsResponse.setCompanySize(company.getCompanySize());
+                detailsResponse.setImageUrl(company.getImageUrl());
+                detailsResponse.setStatus(company.getActive());
 
-                detailsResponses.add(detailsResponse);
+                companyResponse.add(detailsResponse);
 
                 //logger.info("Added Company details for " + companies);
             }
 
             //logger.info("Company details fetched successfully!!! -----------------------------------------\n");
 
-        return detailsResponses;
+        return companyResponse;
+    }
+
+     */
+
+    public List<CompanyResponse> getAllCompanyDetails(boolean active) {
+        List<CompanyResponse> companyResponse = new ArrayList<>();
+        List<Company> companies = companyRepository.findByActive(active);
+
+        for (Company company : companies) {
+            CompanyResponse detailsResponse = new CompanyResponse();
+            detailsResponse.setId(company.getId());
+            detailsResponse.setCompanyName(company.getCompanyName());
+            detailsResponse.setCompanyEmail(company.getCompanyEmail());
+            detailsResponse.setDomainName(company.getDomainName());
+            detailsResponse.setPhoneNumber(company.getPhoneNumber());
+            detailsResponse.setCompanyAddress(company.getCompanyAddress());
+            detailsResponse.setCompanySize(company.getCompanySize());
+            detailsResponse.setImageUrl(company.getImageUrl());
+            detailsResponse.setStatus(company.getActive());
+
+            companyResponse.add(detailsResponse);
+        }
+
+        return companyResponse;
     }
 
     public List<UserResponse> getAllOnboardedUsers() {
@@ -435,6 +471,8 @@ public class AdminServiceImpl implements AdminService {
                     .build();
     }
 
+
+    //TODO: dont delete the method below;
     /*public List<OrderDetailsResponse> viewAllOrders() {
         List<Order> allOrders = orderRepository.findAll();
         List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
@@ -483,6 +521,7 @@ public class AdminServiceImpl implements AdminService {
                 orderDetails.setOrderId(order.getOrderId());
                 orderDetails.setOrderDate(orderDate);
                 orderDetails.setCustomerName(getCustomerName(order));
+                orderDetails.setProfilePic(getCustomerProfilePic(order));
                 orderDetails.setOrderType(getOrderType(order));
                 orderDetails.setAmount(order.getTotalAmount());
                 orderDetails.setDeliveryStatus(order.getDeliveryStatus());
@@ -502,10 +541,11 @@ public class AdminServiceImpl implements AdminService {
 
         if (user != null) {
             orderList = orderRepository.findOrdersByUserId(userIdOrCompanyId);
-            addOrdersToResponse(orderList, orderResponses, OrderType.INDIVIDUAL, user.getFirstName() + " " + user.getLastName(), user.getPhone(), user.getEmail());
+            addOrdersToResponse(orderList, orderResponses, OrderType.INDIVIDUAL, user.getFirstName() + " " + user.getLastName(), user.getProfilePictureUrl(), user.getPhone(), user.getEmail(), user.getActive());
+
         } else if (company != null) {
             orderList = orderRepository.findOrdersByCompanyId(userIdOrCompanyId);
-            addOrdersToResponse(orderList, orderResponses, OrderType.COMPANY, company.getCompanyName(), company.getPhoneNumber(), company.getCompanyEmail());
+            addOrdersToResponse(orderList, orderResponses, OrderType.COMPANY, company.getCompanyName(), company.getImageUrl(), company.getPhoneNumber(), company.getCompanyEmail(), company.getActive());
         } else {
             throw new CustomException("User or Company not found with ID: " + userIdOrCompanyId);
         }
@@ -513,7 +553,81 @@ public class AdminServiceImpl implements AdminService {
         return orderResponses;
     }
 
-    private void addOrdersToResponse(List<Order> orderList, List<AdminOrderResponse> orderResponses, OrderType orderType, String customerName, String phone, String email) {
+    public String changePassword(ChangePasswordRequest request) {
+        Admin existingAdmin = getAuthenticatedAdmin();
+
+        if (!passwordEncoder.matches(request.getOldPassword(), existingAdmin.getPassword())) {
+            throw new CustomException("Incorrect old password");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            System.out.println("New password: " + request.getNewPassword());
+            System.out.println("Confirm password: " + request.getConfirmNewPassword());
+            throw new CustomException("New password and confirm password do not match");
+        }
+
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+        existingAdmin.setPassword(encodedPassword);
+
+        adminRepository.save(existingAdmin);
+
+        return "Password changed successfully!!!";
+    }
+
+    public List<ItemNamesResponse> getAllItemsInCategory(String vendorId) {
+        List<ItemCategory> foodCategories = itemCategoryRepository.findByVendorId(vendorId);
+
+        return foodCategories.stream()
+                .flatMap(foodCategory -> foodCategory.getItemMenus().stream())
+                .map(itemMenu -> ItemNamesResponse.builder()
+                        .categoryId(itemMenu.getItemCategory().getCategoryId())
+                        .categoryName(itemMenu.getItemCategory().getCategoryName())
+                        .itemName(itemMenu.getItemName())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    /* //TODO: DO NOT DELETE THIS METHOD
+    public List<OrderHistoryResponse> viewOrderHistoryByUserOrCompany(String userIdOrCompanyId) {
+
+        List<Order> orderList;
+        List<OrderHistoryResponse> orderResponses = new ArrayList<>();
+
+        // Check if the provided ID belongs to a User or a Company
+        User user = userRepository.findById(userIdOrCompanyId).orElse(null);
+        Company company = companyRepository.findById(userIdOrCompanyId).orElse(null);
+
+        if (user != null) {
+            orderList = orderRepository.findOrdersByUserId(userIdOrCompanyId);
+            addOrdersHistoryToResponse(orderList, orderResponses, OrderType.INDIVIDUAL, user.getFirstName() + " " + user.getLastName(), user.getProfilePictureUrl(), user.getPhone(), user.getEmail());
+        } else if (company != null) {
+            orderList = orderRepository.findOrdersByCompanyId(userIdOrCompanyId);
+            addOrdersHistoryToResponse(orderList, orderResponses, OrderType.COMPANY, company.getCompanyName(), company.getImageUrl(), company.getPhoneNumber(), company.getCompanyEmail());
+        } else {
+            throw new CustomException("User or Company not found with ID: " + userIdOrCompanyId);
+        }
+
+        return orderResponses;
+    }
+
+    private void addOrdersHistoryToResponse(List<Order> orderList, List<OrderHistoryResponse> orderResponses, OrderType orderType, String name, String profilePic, String contactNumber, String email) {
+        for (Order order : orderList) {
+            OrderHistoryResponse orderResponse = new OrderHistoryResponse();
+            orderResponse.setOrderId(order.getOrderId());
+            orderResponse.setOrderDate(order.getCreatedAt());
+            orderResponse.setCustomerName(name);
+            orderResponse.setProfilePic(profilePic);
+            orderResponse.setOrderType(orderType);
+            orderResponse.setAmount(order.getTotalAmount());
+            orderResponse.setDeliveryStatus(order.getDeliveryStatus());
+            orderResponse.setContactNumber(contactNumber);
+            orderResponse.setEmail(email);
+            orderResponses.add(orderResponse);
+        }
+    }
+    */
+
+    private void addOrdersToResponse(List<Order> orderList, List<AdminOrderResponse> orderResponses, OrderType orderType, String customerName, String profilePic, String phone, String email, Boolean active) {
         for (Order order : orderList) {
             List<FoodDataResponse> foodDataResponses = new ArrayList<>();
             for (ItemMenu itemMenu : order.getItemMenu()) {
@@ -531,11 +645,13 @@ public class AdminServiceImpl implements AdminService {
                     .items(foodDataResponses)
                     .orderType(orderType)
                     .customerName(customerName)
+                    .profilePic(profilePic)
                     .phone(phone)
                     .email(email)
                     .totalAmount(order.getTotalAmount())
                     .deliveryStatus(order.getDeliveryStatus())
                     .createdAt(order.getCreatedAt())
+                    .customerStatus(active)
                     .build());
         }
     }
@@ -545,6 +661,15 @@ public class AdminServiceImpl implements AdminService {
             return order.getUser().getFirstName() + " " + order.getUser().getLastName();
         } else if (order.getCompany() != null) {
             return order.getCompany().getCompanyName();
+        } else {
+            return "Unknown Customer";
+        }
+    }
+    private String getCustomerProfilePic(Order order) {
+        if (order.getUser() != null) {
+            return order.getUser().getProfilePictureUrl();
+        } else if (order.getCompany() != null) {
+            return order.getCompany().getImageUrl();
         } else {
             return "Unknown Customer";
         }
@@ -610,5 +735,15 @@ public class AdminServiceImpl implements AdminService {
     private String generateSignupToken() {
         UUID signupToken = UUID.randomUUID();
         return signupToken.toString();
+    }
+
+    private Admin getAuthenticatedAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Admin admin = adminRepository.findByEmail(email);
+        if (admin == null) {
+            throw new CustomException("Admin not found");
+        }
+        return admin;
     }
 }
