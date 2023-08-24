@@ -1,5 +1,6 @@
 package com.example.foodapp.service;
 
+import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.dto.request.CompanyInvitation;
 import com.example.foodapp.dto.request.VendorInvitation;
 import com.example.foodapp.dto.response.*;
@@ -24,7 +25,9 @@ public interface AdminService {
     List<CustomerResponse> getAllCustomers();
     List<ItemMenuInfoResponse> getAllItemMenus();
     List<ItemMenusInCategoriesResponse> getAllItemMenusInAllCategories(String vendorId);
-    CategoryResponse getItemMenusInCategory(String categoryId, String vendorId);
-    List<OrderDetailsResponse> viewAllOrders();
+    CategoryResponse getItemMenusInCategory(String vendorId, String categoryId);
+//    List<OrderDetailsResponse> viewAllOrders();
+
+    List<OrderDetailsResponse> viewOrdersByTimeFrame(TimeFrame timeFrame);
     List<AdminOrderResponse> viewAllOrdersByUserOrCompany(String userIdOrCompanyId);
 }

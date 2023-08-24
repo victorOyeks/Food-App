@@ -27,8 +27,6 @@ public class ItemMenu implements Serializable {
     private String itemName;
     private BigDecimal itemPrice;
     private String imageUrl;
-    private Double averageRating;
-    private Long totalRatings;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp
@@ -41,6 +39,9 @@ public class ItemMenu implements Serializable {
     private List<String> availableSupplements;
     @Transient
     private Supplement selectedSupplement;
+    private Double averageRating;
+    private Long totalRatings;
+    @JsonIgnore
     @OneToMany(mappedBy = "itemMenu", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemMenuReview> itemMenuReviews = new ArrayList<>();
 }

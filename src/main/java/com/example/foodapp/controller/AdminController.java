@@ -1,8 +1,10 @@
 package com.example.foodapp.controller;
 
+import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.dto.request.CompanyInvitation;
 import com.example.foodapp.dto.request.VendorInvitation;
 import com.example.foodapp.dto.response.*;
+import com.example.foodapp.entities.Order;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.exception.UserAlreadyExistException;
 import com.example.foodapp.service.AdminService;
@@ -114,12 +116,21 @@ public class AdminController {
         return new ResponseEntity<>(apiResponseList, HttpStatus.OK);
     }
 
-    @GetMapping("/all-orders")
+    /*@GetMapping("/all-orders")
     public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllOrders() {
         List<OrderDetailsResponse> orderDetailsResponses = adminService.viewAllOrders();
         ApiResponse<List<OrderDetailsResponse>> apiResponse = new ApiResponse<>(orderDetailsResponses);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }*/
+
+    @GetMapping("/all-orders")
+    public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewOrdersByTimeFrame(
+            @RequestParam("timeFrame") TimeFrame timeFrame) {
+        List<OrderDetailsResponse> orderDetailsResponses = adminService.viewOrdersByTimeFrame(timeFrame);
+        ApiResponse<List<OrderDetailsResponse>> apiResponse = new ApiResponse<>(orderDetailsResponses);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
 
     @GetMapping("/items-all-categories")
     public ResponseEntity<ApiResponse<List<ItemMenusInCategoriesResponse>>> viewAllItemsInCategories (@RequestParam String vendorId) {

@@ -2,6 +2,7 @@ package com.example.foodapp.service.impl;
 
 import com.example.foodapp.constant.OrderType;
 import com.example.foodapp.constant.ROLE;
+import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.dto.request.CompanyInvitation;
 import com.example.foodapp.dto.request.EmailDetails;
 import com.example.foodapp.dto.request.VendorInvitation;
@@ -22,7 +23,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -419,7 +423,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public CategoryResponse getItemMenusInCategory(String categoryId, String vendorId) {
+    public CategoryResponse getItemMenusInCategory(String vendorId, String categoryId) {
 
             ItemCategory itemCategory = itemCategoryRepository.findByVendorIdAndCategoryId(vendorId, categoryId)
                     .orElseThrow(() -> new CustomException("Food category not found for the vendor"));
@@ -429,10 +433,9 @@ public class AdminServiceImpl implements AdminService {
                     .categoryName(itemCategory.getCategoryName())
                     .itemMenus(itemCategory.getItemMenus())
                     .build();
-
     }
 
-    public List<OrderDetailsResponse> viewAllOrders() {
+    /*public List<OrderDetailsResponse> viewAllOrders() {
         List<Order> allOrders = orderRepository.findAll();
         List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
 
@@ -447,6 +450,46 @@ public class AdminServiceImpl implements AdminService {
             orderDetailsResponses.add(orderDetails);
         }
         return orderDetailsResponses;
+    }*/
+
+
+    public List<OrderDetailsResponse> viewOrdersByTimeFrame(TimeFrame timeFrame) {
+        List<Order> allOrders = orderRepository.findAll();
+        LocalDateTime now = LocalDateTime.now();
+        List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
+
+        for (Order order : allOrders) {
+            LocalDateTime orderDate = order.getCreatedAt();
+            boolean isInTimeFrame = false;
+
+            switch (timeFrame) {
+                case TODAY:
+                    isInTimeFrame = orderDate.toLocalDate().equals(LocalDate.now());
+                    break;
+                case THIS_WEEK:
+                    LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                    LocalDateTime endOfWeek = startOfWeek.plusWeeks(1);
+                    isInTimeFrame = orderDate.isAfter(startOfWeek) && orderDate.isBefore(endOfWeek);
+                    break;
+                case THIS_MONTH:
+                    LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
+                    LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+                    isInTimeFrame = orderDate.isAfter(startOfMonth) && orderDate.isBefore(endOfMonth);
+                    break;
+            }
+
+            if (isInTimeFrame) {
+                OrderDetailsResponse orderDetails = new OrderDetailsResponse();
+                orderDetails.setOrderId(order.getOrderId());
+                orderDetails.setOrderDate(orderDate);
+                orderDetails.setCustomerName(getCustomerName(order));
+                orderDetails.setOrderType(getOrderType(order));
+                orderDetails.setAmount(order.getTotalAmount());
+                orderDetails.setDeliveryStatus(order.getDeliveryStatus());
+                orderDetailsResponses.add(orderDetails);
+            }
+        }
+        return orderDetailsResponses;
     }
 
     public List<AdminOrderResponse> viewAllOrdersByUserOrCompany(String userIdOrCompanyId) {
@@ -459,10 +502,10 @@ public class AdminServiceImpl implements AdminService {
 
         if (user != null) {
             orderList = orderRepository.findOrdersByUserId(userIdOrCompanyId);
-            addOrdersToResponse(orderList, orderResponses, OrderType.INDIVIDUAL, user.getFirstName() + " " + user.getLastName());
+            addOrdersToResponse(orderList, orderResponses, OrderType.INDIVIDUAL, user.getFirstName() + " " + user.getLastName(), user.getPhone(), user.getEmail());
         } else if (company != null) {
             orderList = orderRepository.findOrdersByCompanyId(userIdOrCompanyId);
-            addOrdersToResponse(orderList, orderResponses, OrderType.COMPANY, company.getCompanyName());
+            addOrdersToResponse(orderList, orderResponses, OrderType.COMPANY, company.getCompanyName(), company.getPhoneNumber(), company.getCompanyEmail());
         } else {
             throw new CustomException("User or Company not found with ID: " + userIdOrCompanyId);
         }
@@ -470,7 +513,7 @@ public class AdminServiceImpl implements AdminService {
         return orderResponses;
     }
 
-    private void addOrdersToResponse(List<Order> orderList, List<AdminOrderResponse> orderResponses, OrderType orderType, String customerName) {
+    private void addOrdersToResponse(List<Order> orderList, List<AdminOrderResponse> orderResponses, OrderType orderType, String customerName, String phone, String email) {
         for (Order order : orderList) {
             List<FoodDataResponse> foodDataResponses = new ArrayList<>();
             for (ItemMenu itemMenu : order.getItemMenu()) {
@@ -488,6 +531,8 @@ public class AdminServiceImpl implements AdminService {
                     .items(foodDataResponses)
                     .orderType(orderType)
                     .customerName(customerName)
+                    .phone(phone)
+                    .email(email)
                     .totalAmount(order.getTotalAmount())
                     .deliveryStatus(order.getDeliveryStatus())
                     .createdAt(order.getCreatedAt())

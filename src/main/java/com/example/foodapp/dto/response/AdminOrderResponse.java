@@ -21,6 +21,8 @@ public class AdminOrderResponse {
     private BigDecimal totalAmount;
     private OrderType orderType;
     private String customerName;
+    private String phone;
+    private String email;
     private DeliveryStatus deliveryStatus;
     private LocalDateTime createdAt;
 }
