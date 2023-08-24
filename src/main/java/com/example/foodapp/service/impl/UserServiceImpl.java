@@ -2,8 +2,8 @@ package com.example.foodapp.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.example.foodapp.dto.request.*;
-import com.example.foodapp.dto.response.*;
+import com.example.foodapp.payloads.request.*;
+import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.repository.*;

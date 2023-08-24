@@ -1,6 +1,6 @@
 package com.example.foodapp.service.impl;
 
-import com.example.foodapp.dto.request.EmailDetails;
+import com.example.foodapp.payloads.request.EmailDetails;
 import com.example.foodapp.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

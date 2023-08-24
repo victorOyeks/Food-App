@@ -2,17 +2,14 @@ package com.example.foodapp.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.example.foodapp.dto.request.EmailDetails;
-import com.example.foodapp.dto.request.VendorRegistrationRequest;
-import com.example.foodapp.dto.response.*;
+import com.example.foodapp.payloads.request.EmailDetails;
+import com.example.foodapp.payloads.request.VendorRegistrationRequest;
+import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.repository.*;
 import com.example.foodapp.service.EmailService;
 import com.example.foodapp.service.VendorService;
-import com.example.foodapp.utils.geoLocation.GeoLocation;
-import com.example.foodapp.utils.geoLocation.GeoResponse;
-import com.example.foodapp.utils.geoLocation.LocationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,8 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
-
-import static com.example.foodapp.utils.geoLocation.LocationUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -41,10 +36,11 @@ public class VendorServiceImpl implements VendorService {
 
     @Override
     public BusinessRegistrationResponse vendorSignup(VendorRegistrationRequest request) {
-
+/*
         GeoResponse geoDetails = getGeoDetails(request);
         String actualLocation = extractActualLocation(geoDetails);
         GeoLocation coordinates = extractGeoLocation(geoDetails);
+*/
 
         String email = request.getEmail();
         String password = request.getPassword();
@@ -81,16 +77,16 @@ public class VendorServiceImpl implements VendorService {
 //        String verificationToken = generateToken();
         String encodedPassword = passwordEncoder.encode(password);
 
-        String mapUri = LocationUtils.getMapUri(coordinates);
+        //String mapUri = LocationUtils.getMapUri(coordinates);
 
         existingVendor.setFirstName(request.getFirstName());
         existingVendor.setLastName(request.getLastName());
         existingVendor.setPhone(request.getPhone());
         existingVendor.setPassword(encodedPassword);
         existingVendor.setBusinessName(request.getBusinessName());
-        existingVendor.setBusinessAddress(actualLocation);
-        existingVendor.setCoordinates(coordinates);
-        existingVendor.setMapUri(mapUri);
+        existingVendor.setBusinessAddress(request.getBusinessAddress());
+//        existingVendor.setCoordinates(coordinates);
+//        existingVendor.setMapUri(mapUri);
         existingVendor.setDomainName(request.getDomainName());
         existingVendor.setActive(true);
         existingVendor.setEnabled(true);
@@ -112,10 +108,11 @@ public class VendorServiceImpl implements VendorService {
     public BusinessRegistrationResponse updateVendorProfile(String firstName, String lastName,
                                                             String phone, String businessName, String domainName,
                                                             String businessAddress, MultipartFile file) throws IOException {
-
+        /*
         GeoResponse geoDetails = getGeoDetails(businessAddress);
         String actualLocation = extractActualLocation(geoDetails);
         GeoLocation coordinates = extractGeoLocation(geoDetails);
+        */
 
         Vendor existingVendor = getAuthenticatedVendor();
 
@@ -133,15 +130,15 @@ public class VendorServiceImpl implements VendorService {
             imageUrl = uploadResult.get("secure_url").toString();
         }
 
-        String mapUri = LocationUtils.getMapUri(coordinates);
+        //String mapUri = LocationUtils.getMapUri(coordinates);
 
         existingVendor.setFirstName(firstName);
         existingVendor.setLastName(lastName);
         existingVendor.setPhone(phone);
         existingVendor.setBusinessName(businessName);
-        existingVendor.setBusinessAddress(actualLocation);
-        existingVendor.setCoordinates(coordinates);
-        existingVendor.setMapUri(mapUri);
+        existingVendor.setBusinessAddress(businessAddress);
+//        existingVendor.setCoordinates(coordinates);
+//        existingVendor.setMapUri(mapUri);
         existingVendor.setDomainName(domainName);
         existingVendor.setImageUrl(imageUrl);
 

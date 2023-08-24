@@ -2,10 +2,7 @@ package com.example.foodapp.service.impl;
 
 import com.example.foodapp.constant.DeliveryStatus;
 import com.example.foodapp.constant.PaymentStatus;
-import com.example.foodapp.dto.request.BulkItemOrderRequest;
-import com.example.foodapp.dto.request.ItemOrderRequest;
-import com.example.foodapp.dto.request.SupplementRequest;
-import com.example.foodapp.dto.response.*;
+import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.entities.Order;
 import com.example.foodapp.exception.CustomException;
@@ -20,7 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +50,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    /*
+
     public String selectItemForIndividual(String vendorId, String menuId) {
 
         Vendor vendor = vendorRepository.findById(vendorId)
@@ -147,7 +143,7 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomException("Item menu not found!!!");
         }
     }
-    */
+
 
 
 

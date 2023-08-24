@@ -1,6 +1,6 @@
 package com.example.foodapp.service;
 
-import com.example.foodapp.dto.request.EmailDetails;
+import com.example.foodapp.payloads.request.EmailDetails;
 
 import java.io.IOException;
 

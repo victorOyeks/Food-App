@@ -1,8 +1,7 @@
 package com.example.foodapp.service;
 
-import com.example.foodapp.dto.request.SupplementRequest;
-import com.example.foodapp.dto.response.FoodDataResponse;
-import com.example.foodapp.dto.response.OrderViewResponse;
+import com.example.foodapp.payloads.response.FoodDataResponse;
+import com.example.foodapp.payloads.response.OrderViewResponse;
 
 import java.math.BigDecimal;
 import java.util.List;

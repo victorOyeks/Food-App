@@ -2,10 +2,10 @@ package com.example.foodapp.service.impl;
 
 import com.example.foodapp.constant.OrderType;
 import com.example.foodapp.constant.ROLE;
-import com.example.foodapp.dto.request.CompanyInvitation;
-import com.example.foodapp.dto.request.EmailDetails;
-import com.example.foodapp.dto.request.VendorInvitation;
-import com.example.foodapp.dto.response.*;
+import com.example.foodapp.payloads.request.CompanyInvitation;
+import com.example.foodapp.payloads.request.EmailDetails;
+import com.example.foodapp.payloads.request.VendorInvitation;
+import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.exception.UserAlreadyExistException;
@@ -246,8 +246,9 @@ public class AdminServiceImpl implements AdminService {
                 detailsResponse.setAddress(vendor.getBusinessAddress());
                 detailsResponse.setContactNumber(vendor.getPhone());
                 detailsResponse.setTotalRatings(vendor.getTotalRatings());
+                detailsResponse.setAverageRating(vendor.getAverageRating());
                 detailsResponse.setActive(vendor.getActive());
-                detailsResponse.setItemCategories(vendor.getItemCategory());
+                //detailsResponse.setItemCategories(vendor.getItemCategory());
                 detailsResponses.add(detailsResponse);
 
                 //logger.info("Added details for vendor " + vendor);
@@ -385,6 +386,7 @@ public class AdminServiceImpl implements AdminService {
                             .itemName(itemMenu.getItemName())
                             .orderCount(orderCount)
                             .updatedDate(itemMenu.getUpdatedAt())
+                            .itemCategory(itemMenu.getItemCategory())
                             .build();
                 })
                 .collect(Collectors.toList());
