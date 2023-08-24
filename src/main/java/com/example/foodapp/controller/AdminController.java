@@ -121,6 +121,20 @@ public class AdminController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
+    @GetMapping("/items-all-categories")
+    public ResponseEntity<ApiResponse<List<ItemMenusInCategoriesResponse>>> viewAllItemsInCategories (@RequestParam String vendorId) {
+        List<ItemMenusInCategoriesResponse> allItems = adminService.getAllItemMenusInAllCategories(vendorId);
+        ApiResponse<List<ItemMenusInCategoriesResponse>> apiResponse = new ApiResponse<>(allItems);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/items-per-categories")
+    public ResponseEntity<ApiResponse<CategoryResponse>> viewAllItemsInCategory (@RequestParam String vendorId, @RequestParam String categoryId) {
+        CategoryResponse allItems = adminService.getItemMenusInCategory(vendorId, categoryId);
+        ApiResponse<CategoryResponse> apiResponse = new ApiResponse<>(allItems);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
     @GetMapping("/user/{id}/orders")
     public ResponseEntity<ApiResponse<List<AdminOrderResponse>>> viewAllOrdersByCompany(@PathVariable String id) {
         List<AdminOrderResponse> orders = adminService.viewAllOrdersByUserOrCompany(id);

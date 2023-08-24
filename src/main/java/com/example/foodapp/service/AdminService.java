@@ -23,6 +23,8 @@ public interface AdminService {
     List<CategoryResponse> getAllItemCategory();
     List<CustomerResponse> getAllCustomers();
     List<ItemMenuInfoResponse> getAllItemMenus();
+    List<ItemMenusInCategoriesResponse> getAllItemMenusInAllCategories(String vendorId);
+    CategoryResponse getItemMenusInCategory(String categoryId, String vendorId);
     List<OrderDetailsResponse> viewAllOrders();
     List<AdminOrderResponse> viewAllOrdersByUserOrCompany(String userIdOrCompanyId);
 }

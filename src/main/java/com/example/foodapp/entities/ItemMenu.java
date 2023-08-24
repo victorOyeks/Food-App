@@ -41,6 +41,6 @@ public class ItemMenu implements Serializable {
     private List<String> availableSupplements;
     @Transient
     private Supplement selectedSupplement;
-    @OneToMany(mappedBy = "item_menu", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "itemMenu", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemMenuReview> itemMenuReviews = new ArrayList<>();
 }

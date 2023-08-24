@@ -337,6 +337,7 @@ public class UserServiceImpl implements UserService {
 
         return ItemMenuReviewResponse.builder()
                 .id(itemMenu.getItemId())
+                .itemMenu(itemMenu.getItemName())
                 .imageUrl(itemMenu.getImageUrl())
                 .averageRating(itemMenu.getAverageRating())
                 .build();

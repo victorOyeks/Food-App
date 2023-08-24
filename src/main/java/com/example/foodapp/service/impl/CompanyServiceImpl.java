@@ -197,7 +197,6 @@ public class CompanyServiceImpl implements CompanyService {
         return "Password reset code has been sent to your email address!!!.";
     }
 
-
     public BusinessRegistrationResponse updateCompanyProfile(String companyName, String companyAddress,
                                                              String phoneNumber, CompanySize companySize, MultipartFile file) throws IOException {
         Company existingCompany = getAuthenticatedCompany();
@@ -317,6 +316,7 @@ public class CompanyServiceImpl implements CompanyService {
 
         return ItemMenuReviewResponse.builder()
                 .id(itemMenu.getItemId())
+                .itemMenu(itemMenu.getItemName())
                 .imageUrl(itemMenu.getImageUrl())
                 .averageRating(itemMenu.getAverageRating())
                 .build();

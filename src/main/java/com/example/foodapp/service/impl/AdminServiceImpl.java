@@ -394,26 +394,42 @@ public class AdminServiceImpl implements AdminService {
         return itemMenuInfoResponses;
     }
 
-    public List<ItemMenuInfoResponse> getAllItemMenusInAllCategories() {
-        List<ItemMenu> allItemMenus = itemMenuRepository.findAll();
+    @Override
+    public List<ItemMenusInCategoriesResponse> getAllItemMenusInAllCategories(String vendorId) {
+
+        List<ItemMenu> allItemMenus = itemMenuRepository.findAllByVendorId(vendorId);
 
         // Group itemMenus by name and count the orders for each itemMenu
         Map<String, Long> itemMenuOrdersCountMap = getOrderCountByItemMenuName();
 
-        List<ItemMenuInfoResponse> itemMenuInfoResponses = allItemMenus.stream()
+        List<ItemMenusInCategoriesResponse> itemMenuInfoResponses = allItemMenus.stream()
                 .map(itemMenu -> {
                     Long orderCount = itemMenuOrdersCountMap.getOrDefault(itemMenu.getItemName(), 0L);
 
-                    return ItemMenuInfoResponse.builder()
+                    return ItemMenusInCategoriesResponse.builder()
                             .itemName(itemMenu.getItemName())
-                            .orderCount(orderCount)
-                            .updatedDate(itemMenu.getUpdatedAt())
-                            .itemCategory(itemMenu.getItemCategory().getCategoryName())
+                            .totalSales(orderCount)
+                            .ratingByOrder(itemMenu.getAverageRating())
+                            .image(itemMenu.getImageUrl())
                             .build();
                 })
                 .collect(Collectors.toList());
 
         return itemMenuInfoResponses;
+    }
+
+    @Override
+    public CategoryResponse getItemMenusInCategory(String categoryId, String vendorId) {
+
+            ItemCategory itemCategory = itemCategoryRepository.findByVendorIdAndCategoryId(vendorId, categoryId)
+                    .orElseThrow(() -> new CustomException("Food category not found for the vendor"));
+
+            return CategoryResponse.builder()
+                    .categoryId(itemCategory.getCategoryId())
+                    .categoryName(itemCategory.getCategoryName())
+                    .itemMenus(itemCategory.getItemMenus())
+                    .build();
+
     }
 
     public List<OrderDetailsResponse> viewAllOrders() {

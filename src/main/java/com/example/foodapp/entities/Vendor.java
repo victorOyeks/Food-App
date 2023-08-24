@@ -57,5 +57,4 @@ public class Vendor{
     private Long totalRatings;
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VendorReview> vendorReviews = new ArrayList<>();
-
 }

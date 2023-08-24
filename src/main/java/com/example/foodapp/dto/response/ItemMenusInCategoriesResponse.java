@@ -5,16 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ItemMenusInAllCategoriesResponse {
+public class ItemMenusInCategoriesResponse {
         private String itemName;
         private Long totalSales;
-        private LocalDateTime ratingByOrder;
+        private Double ratingByOrder;
         private String image;
 }

@@ -55,7 +55,7 @@ public class CompanyController {
         return  new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PostMapping("itemMenus/{itemMenusId}/itemMenu-reviews")
+    @PostMapping("itemMenus/{itemMenusId}/company-reviews")
     public ResponseEntity<ApiResponse<ItemMenuReviewResponse>> addItemMenuReview(@PathVariable String itemMenusId,
                                                                                  @RequestBody ReviewRequest reviewRequest, ItemMenuReview itemMenuReview) {
         ApiResponse<ItemMenuReviewResponse> apiResponse = new ApiResponse<>(companyService.addRatingAndReviewToItemMenuByCompany(itemMenuReview, itemMenusId, reviewRequest));
