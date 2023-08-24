@@ -2,9 +2,9 @@ package com.example.foodapp.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.example.foodapp.payloads.request.CategoryRequest;
-import com.example.foodapp.payloads.response.CategoryResponse;
-import com.example.foodapp.payloads.response.ItemMenuResponse;
+import com.example.foodapp.dto.request.CategoryRequest;
+import com.example.foodapp.dto.response.CategoryResponse;
+import com.example.foodapp.dto.response.ItemMenuResponse;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.repository.ItemCategoryRepository;

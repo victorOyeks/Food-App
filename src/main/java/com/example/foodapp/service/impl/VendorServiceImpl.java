@@ -2,9 +2,9 @@ package com.example.foodapp.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.example.foodapp.payloads.request.EmailDetails;
-import com.example.foodapp.payloads.request.VendorRegistrationRequest;
-import com.example.foodapp.payloads.response.*;
+import com.example.foodapp.dto.request.EmailDetails;
+import com.example.foodapp.dto.request.VendorRegistrationRequest;
+import com.example.foodapp.dto.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.repository.*;
@@ -32,7 +32,7 @@ public class VendorServiceImpl implements VendorService {
     private final CompanyRepository companyRepository;
     private final OrderRepository orderRepository;
     private final Cloudinary cloudinary;
-    private final ReviewRepository reviewRepository;
+    private final VendorReviewRepository vendorReviewRepository;
 
     @Override
     public BusinessRegistrationResponse vendorSignup(VendorRegistrationRequest request) {

@@ -1,8 +1,9 @@
 package com.example.foodapp.service;
 
-import com.example.foodapp.payloads.request.*;
-import com.example.foodapp.payloads.response.*;
-import com.example.foodapp.entities.Review;
+import com.example.foodapp.dto.request.*;
+import com.example.foodapp.dto.response.*;
+import com.example.foodapp.entities.ItemMenuReview;
+import com.example.foodapp.entities.VendorReview;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -18,5 +19,6 @@ public interface UserService {
     UserResponse viewUserProfile() throws IOException;
     String forgotPassword(String email) throws IOException;
     DetailsResponse getVendorDetails(String vendorId);
-    ReviewResponse addRatingAndReviewByUser(Review review, String vendorId, ReviewRequest reviewRequest);
+    VendorReviewResponse addRatingAndReviewByUser(VendorReview vendorReview, String vendorId, ReviewRequest reviewRequest);
+    ItemMenuReviewResponse addRatingAndReviewToItemMenuByUser(ItemMenuReview itemMenuReview, String itemMenuId, ReviewRequest reviewRequest);
 }

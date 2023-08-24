@@ -1,8 +1,8 @@
 package com.example.foodapp.service;
 
-import com.example.foodapp.payloads.request.CompanyInvitation;
-import com.example.foodapp.payloads.request.VendorInvitation;
-import com.example.foodapp.payloads.response.*;
+import com.example.foodapp.dto.request.CompanyInvitation;
+import com.example.foodapp.dto.request.VendorInvitation;
+import com.example.foodapp.dto.response.*;
 import com.example.foodapp.exception.UserAlreadyExistException;
 
 import java.io.IOException;

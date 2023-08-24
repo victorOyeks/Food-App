@@ -1,6 +1,6 @@
 package com.example.foodapp.controller;
 
-import com.example.foodapp.payloads.response.*;
+import com.example.foodapp.dto.response.*;
 import com.example.foodapp.service.VendorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

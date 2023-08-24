@@ -4,17 +4,15 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.foodapp.constant.CompanySize;
 import com.example.foodapp.constant.ROLE;
-import com.example.foodapp.payloads.request.CompanyRegistrationRequest;
-import com.example.foodapp.payloads.request.EmailDetails;
-import com.example.foodapp.payloads.request.ReviewRequest;
-import com.example.foodapp.payloads.request.StaffInvitation;
-import com.example.foodapp.payloads.response.BusinessRegistrationResponse;
-import com.example.foodapp.payloads.response.CompanyResponse;
-import com.example.foodapp.payloads.response.ReviewResponse;
-import com.example.foodapp.entities.Company;
-import com.example.foodapp.entities.Review;
-import com.example.foodapp.entities.User;
-import com.example.foodapp.entities.Vendor;
+import com.example.foodapp.dto.request.CompanyRegistrationRequest;
+import com.example.foodapp.dto.request.EmailDetails;
+import com.example.foodapp.dto.request.ReviewRequest;
+import com.example.foodapp.dto.request.StaffInvitation;
+import com.example.foodapp.dto.response.BusinessRegistrationResponse;
+import com.example.foodapp.dto.response.CompanyResponse;
+import com.example.foodapp.dto.response.ItemMenuReviewResponse;
+import com.example.foodapp.dto.response.VendorReviewResponse;
+import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.repository.*;
 import com.example.foodapp.service.CompanyService;
@@ -47,7 +45,9 @@ public class CompanyServiceImpl implements CompanyService {
     private final PasswordEncoder passwordEncoder;
     private final AdminRepository adminRepository;
     private final Cloudinary cloudinary;
-    private final ReviewRepository reviewRepository;
+    private final VendorReviewRepository vendorReviewRepository;
+    private final ItemMenuRepository itemMenuRepository;
+    private final ItemMenuReviewRepository itemMenuReviewRepository;
 
     @Override
     public BusinessRegistrationResponse companySignup(CompanyRegistrationRequest request) throws IOException {
@@ -248,7 +248,7 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public ReviewResponse addRatingAndReviewByCompany(Review review, String vendorId, ReviewRequest reviewRequest) {
+    public VendorReviewResponse addRatingAndReviewByCompany(VendorReview vendorReview, String vendorId, ReviewRequest reviewRequest) {
 
         Integer rating = reviewRequest.getRating();
         String comment = reviewRequest.getComment();
@@ -258,29 +258,67 @@ public class CompanyServiceImpl implements CompanyService {
 
         Company company = getAuthenticatedCompany();
 
-        List<Review> existingCompanyReviews = reviewRepository.findByVendorAndCompany(vendor, company);
-        if (!existingCompanyReviews.isEmpty()) {
+        List<VendorReview> existingCompanyVendorReviews = vendorReviewRepository.findByVendorAndCompany(vendor, company);
+        if (!existingCompanyVendorReviews.isEmpty()) {
             throw new CustomException("Company has already reviewed this vendor!!!");
         }
-        review.setRating(rating);
-        review.setComment(comment);
-        review.setVendor(vendor);
-        review.setCompany(company);
-        reviewRepository.save(review);
+        vendorReview.setRating(rating);
+        vendorReview.setComment(comment);
+        vendorReview.setVendor(vendor);
+        vendorReview.setCompany(company);
+        vendorReviewRepository.save(vendorReview);
 
-        List<Review> reviews = vendor.getReviews();
-        double sumRatings = reviews.stream().mapToDouble(Review::getRating).sum();
-        Double averageRating = reviews.isEmpty() ? 0.0 : sumRatings / reviews.size();
+        List<VendorReview> vendorReviews = vendor.getVendorReviews();
+        double sumRatings = vendorReviews.stream().mapToDouble(VendorReview::getRating).sum();
+        Double averageRating = vendorReviews.isEmpty() ? 0.0 : sumRatings / vendorReviews.size();
 
         vendor.setAverageRating(averageRating);
-        vendor.setTotalRatings((long) reviews.size());
+        vendor.setTotalRatings((long) vendorReviews.size());
 
         vendorRepository.save(vendor);
 
-        return ReviewResponse.builder()
+        return VendorReviewResponse.builder()
                 .id(vendor.getId())
                 .businessName(vendor.getBusinessName())
                 .averageRating(vendor.getAverageRating())
+                .build();
+    }
+
+    @Override
+    public ItemMenuReviewResponse addRatingAndReviewToItemMenuByCompany(ItemMenuReview itemMenuReview, String itemMenuId, ReviewRequest reviewRequest) {
+
+        Integer rating = reviewRequest.getRating();
+        String comment = reviewRequest.getComment();
+
+        ItemMenu itemMenu = itemMenuRepository.findById(itemMenuId)
+                .orElseThrow(() -> new CustomException("Item menu not found"));
+
+        Company company = getAuthenticatedCompany();
+
+        List<ItemMenuReview> existingCompanyItemMenuReviews = itemMenuReviewRepository.findByItemMenuAndCompany(itemMenu, company);
+        if (!existingCompanyItemMenuReviews.isEmpty()) {
+            throw new CustomException("Company has already reviewed this item!!!");
+        }
+
+        itemMenuReview.setRating(rating);
+        itemMenuReview.setComment(comment);
+        itemMenuReview.setItemMenu(itemMenu);
+        itemMenuReview.setCompany(company);
+        itemMenuReviewRepository.save(itemMenuReview);
+
+        List<ItemMenuReview> itemMenuReviews = itemMenu.getItemMenuReviews();
+        double sumRatings = itemMenuReviews.stream().mapToDouble(ItemMenuReview::getRating).sum();
+        Double averageRating = itemMenuReviews.isEmpty() ? 0.0 : sumRatings / itemMenuReviews.size();
+
+        itemMenu.setAverageRating(averageRating);
+        itemMenu.setTotalRatings((long) itemMenuReviews.size());
+
+        itemMenuRepository.save(itemMenu);
+
+        return ItemMenuReviewResponse.builder()
+                .id(itemMenu.getItemId())
+                .imageUrl(itemMenu.getImageUrl())
+                .averageRating(itemMenu.getAverageRating())
                 .build();
     }
 

@@ -1,9 +1,10 @@
 package com.example.foodapp.controller;
 
-import com.example.foodapp.payloads.request.ChangePasswordRequest;
-import com.example.foodapp.payloads.request.ReviewRequest;
-import com.example.foodapp.payloads.response.*;
-import com.example.foodapp.entities.Review;
+import com.example.foodapp.dto.request.ChangePasswordRequest;
+import com.example.foodapp.dto.request.ReviewRequest;
+import com.example.foodapp.dto.response.*;
+import com.example.foodapp.entities.ItemMenuReview;
+import com.example.foodapp.entities.VendorReview;
 import com.example.foodapp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -55,9 +56,16 @@ public class UserController {
     }
 
     @PostMapping("vendors/{vendorId}/user-reviews")
-    public ResponseEntity<ApiResponse<ReviewResponse>> addReview(@PathVariable String vendorId,
-                                                                 @RequestBody ReviewRequest reviewRequest, Review review) {
-        ApiResponse<ReviewResponse> apiResponse = new ApiResponse<>(userService.addRatingAndReviewByUser(review, vendorId, reviewRequest));
+    public ResponseEntity<ApiResponse<VendorReviewResponse>> addVendorReview(@PathVariable String vendorId,
+                                                                       @RequestBody ReviewRequest reviewRequest, VendorReview vendorReview) {
+        ApiResponse<VendorReviewResponse> apiResponse = new ApiResponse<>(userService.addRatingAndReviewByUser(vendorReview, vendorId, reviewRequest));
+        return  new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+        @PostMapping("itemMenus/{itemMenusId}/itemMenu-reviews")
+    public ResponseEntity<ApiResponse<ItemMenuReviewResponse>> addItemMenuReview(@PathVariable String itemMenusId,
+                                                                       @RequestBody ReviewRequest reviewRequest, ItemMenuReview itemMenuReview) {
+        ApiResponse<ItemMenuReviewResponse> apiResponse = new ApiResponse<>(userService.addRatingAndReviewToItemMenuByUser(itemMenuReview, itemMenusId, reviewRequest));
         return  new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 }

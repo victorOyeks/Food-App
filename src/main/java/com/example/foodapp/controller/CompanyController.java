@@ -1,13 +1,11 @@
 package com.example.foodapp.controller;
 
 import com.example.foodapp.constant.CompanySize;
-import com.example.foodapp.payloads.request.ReviewRequest;
-import com.example.foodapp.payloads.request.StaffInvitation;
-import com.example.foodapp.payloads.response.ApiResponse;
-import com.example.foodapp.payloads.response.BusinessRegistrationResponse;
-import com.example.foodapp.payloads.response.CompanyResponse;
-import com.example.foodapp.payloads.response.ReviewResponse;
-import com.example.foodapp.entities.Review;
+import com.example.foodapp.dto.request.ReviewRequest;
+import com.example.foodapp.dto.request.StaffInvitation;
+import com.example.foodapp.dto.response.*;
+import com.example.foodapp.entities.ItemMenuReview;
+import com.example.foodapp.entities.VendorReview;
 import com.example.foodapp.service.CompanyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,9 +49,16 @@ public class CompanyController {
     }
 
     @PostMapping("vendors/{vendorId}/company-reviews")
-    public ResponseEntity<ApiResponse<ReviewResponse>> addReview(@PathVariable String vendorId,
-                                                                 @RequestBody ReviewRequest reviewRequest, Review review) {
-        ApiResponse<ReviewResponse> apiResponse = new ApiResponse<>(companyService.addRatingAndReviewByCompany(review, vendorId, reviewRequest));
+    public ResponseEntity<ApiResponse<VendorReviewResponse>> addVendorReview(@PathVariable String vendorId,
+                                                                       @RequestBody ReviewRequest reviewRequest, VendorReview vendorReview) {
+        ApiResponse<VendorReviewResponse> apiResponse = new ApiResponse<>(companyService.addRatingAndReviewByCompany(vendorReview, vendorId, reviewRequest));
+        return  new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("itemMenus/{itemMenusId}/itemMenu-reviews")
+    public ResponseEntity<ApiResponse<ItemMenuReviewResponse>> addItemMenuReview(@PathVariable String itemMenusId,
+                                                                                 @RequestBody ReviewRequest reviewRequest, ItemMenuReview itemMenuReview) {
+        ApiResponse<ItemMenuReviewResponse> apiResponse = new ApiResponse<>(companyService.addRatingAndReviewToItemMenuByCompany(itemMenuReview, itemMenusId, reviewRequest));
         return  new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 }

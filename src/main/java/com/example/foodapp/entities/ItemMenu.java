@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -26,6 +27,8 @@ public class ItemMenu implements Serializable {
     private String itemName;
     private BigDecimal itemPrice;
     private String imageUrl;
+    private Double averageRating;
+    private Long totalRatings;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp
@@ -38,4 +41,6 @@ public class ItemMenu implements Serializable {
     private List<String> availableSupplements;
     @Transient
     private Supplement selectedSupplement;
+    @OneToMany(mappedBy = "item_menu", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemMenuReview> itemMenuReviews = new ArrayList<>();
 }

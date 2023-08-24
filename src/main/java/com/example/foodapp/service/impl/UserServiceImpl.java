@@ -2,8 +2,8 @@ package com.example.foodapp.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.example.foodapp.payloads.request.*;
-import com.example.foodapp.payloads.response.*;
+import com.example.foodapp.dto.request.*;
+import com.example.foodapp.dto.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.repository.*;
@@ -33,7 +33,9 @@ public class UserServiceImpl implements UserService {
     private final AdminRepository adminRepository;
     private final CompanyRepository companyRepository;
     private final Cloudinary cloudinary;
-    private final ReviewRepository reviewRepository;
+    private final VendorReviewRepository vendorReviewRepository;
+    private final ItemMenuRepository itemMenuRepository;
+    private final ItemMenuReviewRepository itemMenuReviewRepository;
 
     //private static final Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
 
@@ -265,7 +267,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ReviewResponse addRatingAndReviewByUser(Review review, String vendorId, ReviewRequest reviewRequest) {
+    public VendorReviewResponse addRatingAndReviewByUser(VendorReview vendorReview, String vendorId, ReviewRequest reviewRequest) {
 
         Integer rating = reviewRequest.getRating();
         String comment = reviewRequest.getComment();
@@ -275,31 +277,71 @@ public class UserServiceImpl implements UserService {
 
         User user = getAuthenticatedUser();
 
-        List<Review> existingUserReviews = reviewRepository.findByVendorAndUser(vendor, user);
-        if (!existingUserReviews.isEmpty()) {
+        List<VendorReview> existingUserVendorReviews = vendorReviewRepository.findByVendorAndUser(vendor, user);
+        if (!existingUserVendorReviews.isEmpty()) {
             throw new CustomException("User has already reviewed this vendor!!!");
         }
-        review.setRating(rating);
-        review.setComment(comment);
-        review.setVendor(vendor);
-        review.setUser(user);
-        reviewRepository.save(review);
+        vendorReview.setRating(rating);
+        vendorReview.setComment(comment);
+        vendorReview.setVendor(vendor);
+        vendorReview.setUser(user);
+        vendorReviewRepository.save(vendorReview);
 
-        List<Review> reviews = vendor.getReviews();
-        double sumRatings = reviews.stream().mapToDouble(Review::getRating).sum();
-        Double averageRating = reviews.isEmpty() ? 0.0 : sumRatings / reviews.size();
+        List<VendorReview> vendorReviews = vendor.getVendorReviews();
+        double sumRatings = vendorReviews.stream().mapToDouble(VendorReview::getRating).sum();
+        Double averageRating = vendorReviews.isEmpty() ? 0.0 : sumRatings / vendorReviews.size();
 
         vendor.setAverageRating(averageRating);
-        vendor.setTotalRatings((long) reviews.size());
+        vendor.setTotalRatings((long) vendorReviews.size());
 
         vendorRepository.save(vendor);
 
-        return ReviewResponse.builder()
+        return VendorReviewResponse.builder()
                 .id(vendor.getId())
                 .businessName(vendor.getBusinessName())
                 .averageRating(vendor.getAverageRating())
                 .build();
     }
+
+
+@Override
+    public ItemMenuReviewResponse addRatingAndReviewToItemMenuByUser(ItemMenuReview itemMenuReview, String itemMenuId, ReviewRequest reviewRequest) {
+
+        Integer rating = reviewRequest.getRating();
+        String comment = reviewRequest.getComment();
+
+        ItemMenu itemMenu = itemMenuRepository.findById(itemMenuId)
+                .orElseThrow(() -> new CustomException("Item menu not found"));
+
+        User user = getAuthenticatedUser();
+
+        List<ItemMenuReview> existingUserItemMenuReviews = itemMenuReviewRepository.findByItemMenuAndUser(itemMenu, user);
+        if (!existingUserItemMenuReviews.isEmpty()) {
+            throw new CustomException("User has already reviewed this item!!!");
+        }
+
+        itemMenuReview.setRating(rating);
+        itemMenuReview.setComment(comment);
+        itemMenuReview.setItemMenu(itemMenu);
+        itemMenuReview.setUser(user);
+        itemMenuReviewRepository.save(itemMenuReview);
+
+        List<ItemMenuReview> itemMenuReviews = itemMenu.getItemMenuReviews();
+        double sumRatings = itemMenuReviews.stream().mapToDouble(ItemMenuReview::getRating).sum();
+        Double averageRating = itemMenuReviews.isEmpty() ? 0.0 : sumRatings / itemMenuReviews.size();
+
+        itemMenu.setAverageRating(averageRating);
+        itemMenu.setTotalRatings((long) itemMenuReviews.size());
+
+        itemMenuRepository.save(itemMenu);
+
+        return ItemMenuReviewResponse.builder()
+                .id(itemMenu.getItemId())
+                .imageUrl(itemMenu.getImageUrl())
+                .averageRating(itemMenu.getAverageRating())
+                .build();
+    }
+
 
     private void sendVerificationEmail(String recipient, String verificationToken) throws IOException {
         String verificationLink = "http://localhost:9191/api/auth/verify?token=" + verificationToken;

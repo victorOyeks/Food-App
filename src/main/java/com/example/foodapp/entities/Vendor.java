@@ -56,6 +56,6 @@ public class Vendor{
     private Double averageRating;
     private Long totalRatings;
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> reviews = new ArrayList<>();
+    private List<VendorReview> vendorReviews = new ArrayList<>();
 
 }

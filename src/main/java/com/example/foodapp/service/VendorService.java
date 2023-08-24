@@ -1,9 +1,9 @@
 package com.example.foodapp.service;
 
-import com.example.foodapp.payloads.request.VendorRegistrationRequest;
-import com.example.foodapp.payloads.response.BusinessRegistrationResponse;
-import com.example.foodapp.payloads.response.OrderResponse;
-import com.example.foodapp.payloads.response.OrderSummary;
+import com.example.foodapp.dto.request.VendorRegistrationRequest;
+import com.example.foodapp.dto.response.BusinessRegistrationResponse;
+import com.example.foodapp.dto.response.OrderResponse;
+import com.example.foodapp.dto.response.OrderSummary;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;

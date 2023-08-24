@@ -2,10 +2,10 @@ package com.example.foodapp.service.impl;
 
 import com.example.foodapp.constant.OrderType;
 import com.example.foodapp.constant.ROLE;
-import com.example.foodapp.payloads.request.CompanyInvitation;
-import com.example.foodapp.payloads.request.EmailDetails;
-import com.example.foodapp.payloads.request.VendorInvitation;
-import com.example.foodapp.payloads.response.*;
+import com.example.foodapp.dto.request.CompanyInvitation;
+import com.example.foodapp.dto.request.EmailDetails;
+import com.example.foodapp.dto.request.VendorInvitation;
+import com.example.foodapp.dto.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.exception.UserAlreadyExistException;
@@ -386,7 +386,29 @@ public class AdminServiceImpl implements AdminService {
                             .itemName(itemMenu.getItemName())
                             .orderCount(orderCount)
                             .updatedDate(itemMenu.getUpdatedAt())
-                            .itemCategory(itemMenu.getItemCategory())
+                            .itemCategory(itemMenu.getItemCategory().getCategoryName())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return itemMenuInfoResponses;
+    }
+
+    public List<ItemMenuInfoResponse> getAllItemMenusInAllCategories() {
+        List<ItemMenu> allItemMenus = itemMenuRepository.findAll();
+
+        // Group itemMenus by name and count the orders for each itemMenu
+        Map<String, Long> itemMenuOrdersCountMap = getOrderCountByItemMenuName();
+
+        List<ItemMenuInfoResponse> itemMenuInfoResponses = allItemMenus.stream()
+                .map(itemMenu -> {
+                    Long orderCount = itemMenuOrdersCountMap.getOrDefault(itemMenu.getItemName(), 0L);
+
+                    return ItemMenuInfoResponse.builder()
+                            .itemName(itemMenu.getItemName())
+                            .orderCount(orderCount)
+                            .updatedDate(itemMenu.getUpdatedAt())
+                            .itemCategory(itemMenu.getItemCategory().getCategoryName())
                             .build();
                 })
                 .collect(Collectors.toList());
