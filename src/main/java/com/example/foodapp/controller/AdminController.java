@@ -137,7 +137,7 @@ public class AdminController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping("/all-items")
+    @GetMapping("/menu-list")
     public ResponseEntity<ApiResponse<List<ItemMenuInfoResponse>>> getAllItemMenus() {
         List<ItemMenuInfoResponse> itemMenus = adminService.getAllItemMenus();
         ApiResponse<List<ItemMenuInfoResponse>> apiResponseList = new ApiResponse<>(itemMenus);

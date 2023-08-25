@@ -15,8 +15,11 @@ public class BusinessRegistrationResponse {
     private String email;
     private String businessName;
     private String domainName;
+    private String phoneNumber;
     private String businessAddress;
     private String mapUri;
     private String imageUrl;
+    private Boolean status;
+    private Double rating;
     private GeoLocation coordinates;
 }

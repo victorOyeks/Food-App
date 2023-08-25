@@ -21,19 +21,27 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String orderId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id")
     private Company company;
+
     @ManyToMany
     private List<ItemMenu> itemMenu;
+
     private BigDecimal totalAmount;
+
     private PaymentStatus paymentStatus;
+
     private DeliveryStatus deliveryStatus;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
+
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 }

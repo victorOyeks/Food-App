@@ -161,7 +161,7 @@ public class AdminServiceImpl implements AdminService {
 
         User user = userRepository.findById(userId).orElseThrow(()-> new CustomException("User not found with id: " + userId));
         if (user != null) {
-            user.setActive(true);
+            user.setActive(false);
             userRepository.save(user);
 
             String subject = "Account Deactivated!";
@@ -181,7 +181,7 @@ public class AdminServiceImpl implements AdminService {
 
         User user = userRepository.findById(userId).orElseThrow(()-> new CustomException("User not found with id: " +userId));
         if (user != null) {
-            user.setActive(false);
+            user.setActive(true);
             userRepository.save(user);
 
             String subject = "Account Reactivated!";
@@ -255,6 +255,7 @@ public class AdminServiceImpl implements AdminService {
                 detailsResponse.setBusinessName(vendor.getBusinessName());
                 detailsResponse.setAddress(vendor.getBusinessAddress());
                 detailsResponse.setContactNumber(vendor.getPhone());
+                detailsResponse.setLastAccessed(vendor.getUpdatedAt());
                 detailsResponse.setTotalRatings(vendor.getTotalRatings());
                 detailsResponse.setAverageRating(vendor.getAverageRating());
                 detailsResponse.setActive(vendor.getActive());
@@ -281,10 +282,12 @@ public class AdminServiceImpl implements AdminService {
                 .email(vendor.getEmail())
                 .businessName(vendor.getBusinessName())
                 .domainName(vendor.getDomainName())
+                .phoneNumber(vendor.getPhone())
                 .businessAddress(vendor.getBusinessAddress())
                 .mapUri(vendor.getMapUri())
                 .imageUrl(vendor.getImageUrl())
                 .coordinates(vendor.getCoordinates())
+                .status(vendor.getActive())
                 .build();
     }
 
