@@ -21,4 +21,11 @@ public interface OrderRepository extends JpaRepository <Order, String> {
 
     @Query("SELECT o FROM Order o WHERE o.company.id = :companyId AND o.deliveryStatus = com.example.foodapp.constant.DeliveryStatus.PENDING")
     Order findOpenOrderByCompany(String companyId);
+
+    @Query("SELECT o FROM Order o WHERE o.user.id = :userId AND o.paymentStatus =com.example.foodapp.constant.PaymentStatus.PENDING")
+    List<Order> findPendingOrdersByUserId(String userId);
+
+    @Query("SELECT o FROM Order o WHERE o.company.id = :companyId AND o.paymentStatus =com.example.foodapp.constant.PaymentStatus.PENDING")
+    List<Order> findPendingOrdersByCompanyId(String companyId);
+
 }

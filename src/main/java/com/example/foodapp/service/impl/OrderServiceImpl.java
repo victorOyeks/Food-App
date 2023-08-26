@@ -209,9 +209,16 @@ public class OrderServiceImpl implements OrderService {
         return viewAllOrdersInternal(orderRepository.findOrdersByUserId(userId));
     }
 
-    public OrderViewResponse viewAllOrdersByCompany() {
+    public OrderViewResponse viewUserCart() {
+        String userId = getAuthenticatedUser().getId();
+        List<Order> pendingOrders = orderRepository.findPendingOrdersByUserId(userId);
+        return viewAllOrdersInternal(pendingOrders);
+    }
+
+    public OrderViewResponse viewCompanyCart() {
         String companyId = getAuthenticatedCompany().getId();
-        return viewAllOrdersInternal(orderRepository.findOrdersByCompanyId(companyId));
+        List<Order> pendingOrders = orderRepository.findPendingOrdersByCompanyId(companyId);
+        return viewAllOrdersInternal(pendingOrders);
     }
 
     private OrderViewResponse viewAllOrdersInternal(List<Order> orderList) {

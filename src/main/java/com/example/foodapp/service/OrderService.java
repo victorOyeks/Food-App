@@ -11,8 +11,9 @@ public interface OrderService {
     String selectItemForIndividual (String vendorId, String menuId);
     String selectItemWithSupplementForIndividual (String vendorId, String menuId, String supplementName, BigDecimal supplementPrice);
     String selectItemForCompany(String vendorId, String menuId);
-    OrderViewResponse viewAllOrdersByCompany();
+    OrderViewResponse viewCompanyCart();
     OrderViewResponse viewAllOrdersByUser();
+    OrderViewResponse viewUserCart();
     String deleteItem(String orderId, String foodItemId);
     String deleteOrder(String orderId);
 }

@@ -35,13 +35,13 @@ public class OrderController {
     @PostMapping("/vendors/{vendorId}/select-item-individual")
     public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId,
                                                                          @RequestParam String menuId,
-                                                                         @RequestParam String supplementName,
+                                                                         @RequestParam(required = false) String supplementId,
                                                                          @RequestParam(required = false) BigDecimal supplementPrice) {
 
         ApiResponse<String> apiResponse;
         //user selects supplements
-        if (supplementName != null && supplementPrice != null) {
-            apiResponse = new ApiResponse<>(orderService.selectItemWithSupplementForIndividual(vendorId, menuId, supplementName, supplementPrice));
+        if (supplementId != null && supplementPrice != null) {
+            apiResponse = new ApiResponse<>(orderService.selectItemWithSupplementForIndividual(vendorId, menuId, supplementId, supplementPrice));
         } else {
             // User didn't select a supplement
             apiResponse = new ApiResponse<>(orderService.selectItemForIndividual(vendorId, menuId));
@@ -56,13 +56,13 @@ public class OrderController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping()
+    @GetMapping("carts")
     public ResponseEntity<ApiResponse<OrderViewResponse>> viewAllOrders() {
         OrderViewResponse orders;
         try {
-            orders = orderService.viewAllOrdersByUser();
+            orders = orderService.viewUserCart();
         } catch (CustomException userException) {
-            orders = orderService.viewAllOrdersByCompany();
+            orders = orderService.viewCompanyCart();
         }
         ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(orders);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
