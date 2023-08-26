@@ -221,43 +221,6 @@ public class OrderServiceImpl implements OrderService {
         return viewAllOrdersInternal(pendingOrders);
     }
 
-    private OrderViewResponse viewAllOrdersInternal(List<Order> orderList) {
-        List<OrderResponse> orderResponses = new ArrayList<>();
-        int totalFoodItems = 0;
-        BigDecimal totalSum = BigDecimal.ZERO;
-
-        for (Order order : orderList) {
-            List<FoodDataResponse> foodDataResponses = new ArrayList<>();
-
-            for (ItemMenu itemMenu : order.getItemMenu()) {
-                Vendor vendor = itemMenu.getItemCategory().getVendor();
-                foodDataResponses.add(FoodDataResponse.builder()
-                        .itemId(itemMenu.getItemId())
-//                        .recipient(order.getUser().getFirstName())
-                        .itemName(itemMenu.getItemName())
-                        .price(itemMenu.getItemPrice())
-                                .imageUri(itemMenu.getImageUrl())
-                        .vendorName(vendor.getBusinessName())
-                        .build());
-                totalFoodItems++;
-            }
-            orderResponses.add(OrderResponse.builder()
-                    .orderId(order.getOrderId())
-                    .items(foodDataResponses)
-                    .totalAmount(order.getTotalAmount())
-                    .build());
-
-            totalSum = totalSum.add(order.getTotalAmount());
-        }
-
-        OrderSummary orderSummary = OrderSummary.builder()
-                .totalItems(totalFoodItems)
-                .totalSum(totalSum)
-                .build();
-
-        return new OrderViewResponse(orderResponses, orderSummary);
-    }
-
     public String deleteItem(String orderId, String foodItemId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new CustomException("Order not found!!!"));
@@ -281,6 +244,8 @@ public class OrderServiceImpl implements OrderService {
         return "Order deleted successfully!!!";
     }
 
+
+    /*********************** HELPER METHODS ************************/
 
     private BigDecimal calculateTotalAmount(Order order) {
         BigDecimal totalAmount = BigDecimal.ZERO;
@@ -307,5 +272,42 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomException("Company not found");
         }
         return company;
+    }
+
+    private OrderViewResponse viewAllOrdersInternal(List<Order> orderList) {
+        List<OrderResponse> orderResponses = new ArrayList<>();
+        int totalFoodItems = 0;
+        BigDecimal totalSum = BigDecimal.ZERO;
+
+        for (Order order : orderList) {
+            List<FoodDataResponse> foodDataResponses = new ArrayList<>();
+
+            for (ItemMenu itemMenu : order.getItemMenu()) {
+                Vendor vendor = itemMenu.getItemCategory().getVendor();
+                foodDataResponses.add(FoodDataResponse.builder()
+                        .itemId(itemMenu.getItemId())
+//                        .recipient(order.getUser().getFirstName())
+                        .itemName(itemMenu.getItemName())
+                        .price(itemMenu.getItemPrice())
+                        .imageUri(itemMenu.getImageUrl())
+                        .vendorName(vendor.getBusinessName())
+                        .build());
+                totalFoodItems++;
+            }
+            orderResponses.add(OrderResponse.builder()
+                    .orderId(order.getOrderId())
+                    .items(foodDataResponses)
+                    .totalAmount(order.getTotalAmount())
+                    .build());
+
+            totalSum = totalSum.add(order.getTotalAmount());
+        }
+
+        OrderSummary orderSummary = OrderSummary.builder()
+                .totalItems(totalFoodItems)
+                .totalSum(totalSum)
+                .build();
+
+        return new OrderViewResponse(orderResponses, orderSummary);
     }
 }
