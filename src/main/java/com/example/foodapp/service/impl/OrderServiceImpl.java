@@ -143,9 +143,6 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-
-
-
     public String selectItemForCompany(String vendorId, String menuId) {
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new CustomException("Vendor not found!!!"));
@@ -189,8 +186,6 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomException("Item menu not found!!!");
         }
     }
-
-
 
     private ItemMenu findFoodMenuById(String vendorId, String foodMenuId) {
         Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(()-> new CustomException("Vendor nor found!!!"));
@@ -286,6 +281,7 @@ public class OrderServiceImpl implements OrderService {
         }
         return totalAmount;
     }
+
     private User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userEmail = authentication.getName();
