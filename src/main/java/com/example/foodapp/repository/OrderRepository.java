@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository <Order, String> {
@@ -28,4 +29,7 @@ public interface OrderRepository extends JpaRepository <Order, String> {
     @Query("SELECT o FROM Order o WHERE o.company.id = :companyId AND o.paymentStatus =com.example.foodapp.constant.PaymentStatus.PENDING")
     List<Order> findPendingOrdersByCompanyId(String companyId);
 
+    Optional<Order> findByOrderIdAndUserId(String orderId, String userId);
+
+    Optional<Order> findByOrderIdAndCompanyId(String orderId, String companyId);
 }

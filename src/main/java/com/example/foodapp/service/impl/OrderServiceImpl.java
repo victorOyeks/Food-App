@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -48,8 +49,6 @@ public class OrderServiceImpl implements OrderService {
         }
         return foodDataResponse;
     }
-
-
 
     public String selectItemForIndividual(String vendorId, String menuId) {
 
@@ -192,6 +191,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
+
     private ItemMenu findFoodMenuById(String vendorId, String foodMenuId) {
         Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(()-> new CustomException("Vendor nor found!!!"));
         for (ItemCategory itemCategory : vendor.getItemCategory()) {
@@ -204,9 +204,41 @@ public class OrderServiceImpl implements OrderService {
         return null;
     }
 
+
+    public UserOrderDetailsResponse viewOrderByOrderIdForUser(String orderId) {
+        String userId = getAuthenticatedUser().getId();
+        Optional<Order> orderOptional = orderRepository.findByOrderIdAndUserId(orderId, userId);
+
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            return buildOrderResponse(order);
+        } else {
+            throw new CustomException("Order not found with orderId: " + orderId);
+        }
+    }
+
+    public UserOrderDetailsResponse viewOrderByOrderIdForCompany(String orderId) {
+        String companyId = getAuthenticatedCompany().getId();
+        Optional<Order> orderOptional = orderRepository.findByOrderIdAndCompanyId(orderId, companyId);
+
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            return buildOrderResponse(order);
+        } else {
+            throw new CustomException("Order not found with orderId: " + orderId);
+        }
+    }
+
     public OrderViewResponse viewAllOrdersByUser() {
         String userId = getAuthenticatedUser().getId();
         return viewAllOrdersInternal(orderRepository.findOrdersByUserId(userId));
+    }
+
+    public UserOrderViewResponse viewSimplifiedOrdersByUser() {
+        String userId = getAuthenticatedUser().getId();
+        List<Order> userOrders = orderRepository.findOrdersByUserId(userId);
+        List<SimplifiedOrderResponse> simplifiedOrders = viewSimplifiedOrdersInternal(userOrders);
+        return new UserOrderViewResponse(simplifiedOrders, null);
     }
 
     public OrderViewResponse viewUserCart() {
@@ -309,5 +341,42 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         return new OrderViewResponse(orderResponses, orderSummary);
+    }
+
+    private List<SimplifiedOrderResponse> viewSimplifiedOrdersInternal(List<Order> orderList) {
+        List<SimplifiedOrderResponse> simplifiedOrderResponses = new ArrayList<>();
+
+        for (Order order : orderList) {
+            simplifiedOrderResponses.add(new SimplifiedOrderResponse(
+                    order.getOrderId(),
+                    order.getTotalAmount(),
+                    order.getDeliveryStatus(),
+                    order.getPaymentStatus()
+            ));
+        }
+        return simplifiedOrderResponses;
+    }
+
+    private UserOrderDetailsResponse buildOrderResponse(Order order) {
+        List<FoodDataResponse> foodDataResponses = new ArrayList<>();
+
+        for (ItemMenu itemMenu : order.getItemMenu()) {
+            Vendor vendor = itemMenu.getItemCategory().getVendor();
+            foodDataResponses.add(FoodDataResponse.builder()
+                    .itemId(itemMenu.getItemId())
+                    .itemName(itemMenu.getItemName())
+                    .price(itemMenu.getItemPrice())
+                    .imageUri(itemMenu.getImageUrl())
+                    .vendorName(vendor.getBusinessName())
+                    .build());
+        }
+
+        return UserOrderDetailsResponse.builder()
+                .orderId(order.getOrderId())
+                .itemMenu(order.getItemMenu())
+                .totalAmount(order.getTotalAmount())
+                .paymentStatus(order.getPaymentStatus())
+                .deliveryStatus(order.getDeliveryStatus())
+                .build();
     }
 }
