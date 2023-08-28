@@ -2,6 +2,7 @@ package com.example.foodapp.payloads.response;
 
 import com.example.foodapp.constant.DeliveryStatus;
 import com.example.foodapp.constant.OrderType;
+import com.example.foodapp.constant.PaymentStatus;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -19,4 +20,5 @@ public class OrderDetailsResponse {
     private OrderType orderType;
     private BigDecimal amount;
     private DeliveryStatus deliveryStatus;
+    private PaymentStatus paymentStatus;
 }

@@ -2,6 +2,8 @@ package com.example.foodapp.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.example.foodapp.constant.OrderType;
+import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.payloads.request.EmailDetails;
 import com.example.foodapp.payloads.request.VendorRegistrationRequest;
 import com.example.foodapp.payloads.response.*;
@@ -19,7 +21,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -155,37 +162,141 @@ public class VendorServiceImpl implements VendorService {
                 .build();
     }
 
-    public List<OrderResponse> viewAllOrdersToVendor() {
-        Vendor vendor = getAuthenticatedVendor();
-        List<Order> orders = orderRepository.findOrdersByVendor(vendor);
+//    public List<OrderResponse> viewAllOrdersToVendor() {
+//        Vendor vendor = getAuthenticatedVendor();
+//        List<Order> orders = orderRepository.findOrdersByVendor(vendor);
+//
+//        List<OrderResponse> orderResponses = new ArrayList<>();
+//
+//        for (Order order : orders) {
+//            List<FoodDataResponse> foodDataResponses = new ArrayList<>();
+//
+//            for (ItemMenu itemMenu : order.getItemMenu()) {
+//                Vendor orderVendor = itemMenu.getItemCategory().getVendor();
+//                if (orderVendor.equals(vendor)) {
+//                    foodDataResponses.add(FoodDataResponse.builder()
+//                            .itemId(itemMenu.getItemId())
+//                            .itemName(itemMenu.getItemName())
+//                            .price(itemMenu.getItemPrice())
+//                            .vendorName(vendor.getBusinessName())
+//                            .build());
+//                }
+//            }
+//
+//            if (!foodDataResponses.isEmpty()) {
+//                orderResponses.add(OrderResponse.builder()
+//                        .orderId(order.getOrderId())
+//                        .items(foodDataResponses)
+//                        .totalAmount(order.getTotalAmount())
+//                        .build());
+//            }
+//        }
+//        return orderResponses;
+//    }
 
-        List<OrderResponse> orderResponses = new ArrayList<>();
 
-        for (Order order : orders) {
-            List<FoodDataResponse> foodDataResponses = new ArrayList<>();
+    public List<OrderDetailsResponse> viewAllOrdersToVendor(TimeFrame timeFrame) {
+        Vendor authenticatedVendor = getAuthenticatedVendor();
+        List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
+        LocalDateTime now = LocalDateTime.now();
+        List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
 
-            for (ItemMenu itemMenu : order.getItemMenu()) {
-                Vendor orderVendor = itemMenu.getItemCategory().getVendor();
-                if (orderVendor.equals(vendor)) {
-                    foodDataResponses.add(FoodDataResponse.builder()
-                            .itemId(itemMenu.getItemId())
-                            .itemName(itemMenu.getItemName())
-                            .price(itemMenu.getItemPrice())
-                            .vendorName(vendor.getBusinessName())
-                            .build());
-                }
+        for (Order order : ordersByVendor) {
+            LocalDateTime orderDate = order.getCreatedAt();
+            boolean isInTimeFrame = false;
+
+            switch (timeFrame) {
+                case TODAY:
+                    isInTimeFrame = orderDate.toLocalDate().equals(LocalDate.now());
+                    break;
+                case THIS_WEEK:
+                    LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                    LocalDateTime endOfWeek = startOfWeek.plusWeeks(1);
+                    isInTimeFrame = orderDate.isAfter(startOfWeek) && orderDate.isBefore(endOfWeek);
+                    break;
+                case THIS_MONTH:
+                    LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
+                    LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+                    isInTimeFrame = orderDate.isAfter(startOfMonth) && orderDate.isBefore(endOfMonth);
+                    break;
+                default:
+                    timeFrame = null;
             }
 
-            if (!foodDataResponses.isEmpty()) {
-                orderResponses.add(OrderResponse.builder()
-                        .orderId(order.getOrderId())
-                        .items(foodDataResponses)
-                        .totalAmount(order.getTotalAmount())
-                        .build());
+            if (isInTimeFrame) {
+                OrderDetailsResponse orderDetails = new OrderDetailsResponse();
+                orderDetails.setOrderId(order.getOrderId());
+                orderDetails.setOrderDate(orderDate);
+                orderDetails.setCustomerName(getCustomerName(order));
+                orderDetails.setProfilePic(getCustomerProfilePic(order));
+                orderDetails.setAmount(order.getTotalAmount());
+                orderDetails.setDeliveryStatus(order.getDeliveryStatus());
+                orderDetails.setPaymentStatus(order.getPaymentStatus());
+
+                orderDetailsResponses.add(orderDetails);
             }
         }
-        return orderResponses;
+        return orderDetailsResponses;
     }
+
+    /*
+    public AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId) {
+        // Check if the provided ID belongs to a Vendor
+        Vendor vendor = getAuthenticatedVendor();
+        User user = userRepository.findById(userIdOrCompanyId).orElse(null);
+        Company company = companyRepository.findById(userIdOrCompanyId).orElse(null);
+
+        Vendor existingVendor = vendorRepository.findById(vendor.getId()).orElse(null);
+
+        if (existingVendor != null) {
+            if (user != null) {
+                Order order = orderRepository.findOrderByOrderIdAndVendorId(orderId, vendor.getId());
+                return addOrdersToResponse(order, OrderType.INDIVIDUAL, order.getUser().getFirstName()+" "
+                        +order.getUser().getFirstName(), order.getUser().getProfilePictureUrl(), order.getUser().getPhone(),
+                        order.getUser().getEmail());
+            } else if (company != null) {
+                Order order = orderRepository.findOrderByOrderIdAndVendorId(orderId, vendor.getId());
+                return addOrdersToResponse(order, OrderType.INDIVIDUAL, order.getCompany().getCompanyName(),
+                        order.getCompany().getImageUrl(), order.getCompany().getPhoneNumber(),
+                        order.getCompany().getCompanyEmail());
+            } else {
+                    throw new CustomException("Order not found with ID: " + orderId + " for Vendor ID: " + vendor.getId());
+                }
+        } else {
+            throw new CustomException("Vendor not found with ID: " + vendor.getId());
+        }
+    }
+     */
+
+    public AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId) {
+
+        Vendor vendor = getAuthenticatedVendor();
+        User user = userRepository.findById(userIdOrCompanyId).orElse(null);
+        Company company = companyRepository.findById(userIdOrCompanyId).orElse(null);
+
+        Order order = orderRepository.findAnOrdersByVendor(vendor, orderId);
+        if (order != null) {
+            // Check if the order belongs to the specified user or company
+            if ((user != null && order.getUser().getId().equals(userIdOrCompanyId)) ||
+                    (company != null && order.getCompany() != null && order.getCompany().getId().equals(userIdOrCompanyId))) {
+                if (user != null) {
+                    return addOrdersToResponse(order, OrderType.INDIVIDUAL, order.getUser().getFirstName() + " " +
+                                    order.getUser().getLastName(), order.getUser().getProfilePictureUrl(),
+                            order.getUser().getPhone(), order.getUser().getEmail());
+                } else {
+                    return addOrdersToResponse(order, OrderType.INDIVIDUAL, order.getCompany().getCompanyName(),
+                            order.getCompany().getImageUrl(), order.getCompany().getPhoneNumber(),
+                            order.getCompany().getCompanyEmail());
+                }
+            } else {
+                throw new CustomException("Order with ID " + orderId + " does not belong to User/Company with ID " + userIdOrCompanyId);
+            }
+        } else {
+            throw new CustomException("Order not found with ID: " + orderId + " for Vendor ID: " + vendor.getId());
+        }
+        //throw new CustomException("ERROR");
+    }
+
 
     public BusinessRegistrationResponse viewVendorProfile() {
         Vendor existingVendor = getAuthenticatedVendor();
@@ -257,6 +368,7 @@ public class VendorServiceImpl implements VendorService {
         return company;
     }
 
+    /*
     public OrderSummary calculateOrderSummary(List<OrderResponse> orders) {
         int totalItems = 0;
         BigDecimal totalSum = BigDecimal.ZERO;
@@ -266,5 +378,53 @@ public class VendorServiceImpl implements VendorService {
             totalSum = totalSum.add(orderResponse.getTotalAmount());
         }
         return new OrderSummary(totalItems, totalSum);
+    }
+
+     */
+
+    private String getCustomerName(Order order) {
+        if (order.getUser() != null) {
+            return order.getUser().getFirstName() + " " + order.getUser().getLastName();
+        } else if (order.getCompany() != null) {
+            return order.getCompany().getCompanyName();
+        } else {
+            return "Unknown Customer";
+        }
+    }
+
+    private String getCustomerProfilePic(Order order) {
+        if (order.getUser() != null) {
+            return order.getUser().getProfilePictureUrl();
+        } else if (order.getCompany() != null) {
+            return order.getCompany().getImageUrl();
+        } else {
+            return "Unknown Customer";
+        }
+    }
+
+    private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email) {
+        List<FoodDataResponse> foodDataResponses = new ArrayList<>();
+        for (ItemMenu itemMenu : order.getItemMenu()) {
+            Vendor vendor = itemMenu.getItemCategory().getVendor();
+            foodDataResponses.add(FoodDataResponse.builder()
+                    .itemId(itemMenu.getItemId())
+                    .itemName(itemMenu.getItemName())
+                    .price(itemMenu.getItemPrice())
+                    .vendorName(vendor.getBusinessName())
+                    .build());
+        }
+
+        return AdminOrderResponse.builder()
+                .orderId(order.getOrderId())
+                .items(foodDataResponses)
+                .orderType(orderType)
+                .customerName(customerName)
+                .profilePic(profilePic)
+                .phone(phone)
+                .email(email)
+                .totalAmount(order.getTotalAmount())
+                .deliveryStatus(order.getDeliveryStatus())
+                .createdAt(order.getCreatedAt())
+                .build();
     }
 }

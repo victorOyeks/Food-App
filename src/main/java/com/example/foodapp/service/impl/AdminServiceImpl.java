@@ -534,6 +534,7 @@ public class AdminServiceImpl implements AdminService {
         return orderDetailsResponses;
     }
 
+    /*
     public List<AdminOrderResponse> viewAllOrdersByUserOrCompany(String userIdOrCompanyId) {
         List<Order> orderList;
         List<AdminOrderResponse> orderResponses = new ArrayList<>();
@@ -554,6 +555,26 @@ public class AdminServiceImpl implements AdminService {
         }
 
         return orderResponses;
+    }
+     */
+
+    public AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId) {
+        // Check if the provided ID belongs to a User or a Company
+        User user = userRepository.findById(userIdOrCompanyId).orElse(null);
+        Company company = companyRepository.findById(userIdOrCompanyId).orElse(null);
+
+        if (user != null) {
+            Order order = orderRepository.findOrderByOrderIdAndUserId(orderId, userIdOrCompanyId);
+            if (order != null) {
+                return addOrdersToResponse(order, OrderType.INDIVIDUAL, user.getFirstName() + " " + user.getLastName(), user.getProfilePictureUrl(), user.getPhone(), user.getEmail(), user.getActive());
+            }
+        } else if (company != null) {
+            Order order = orderRepository.findOrderByOrderIdAndCompanyId(orderId, userIdOrCompanyId);
+            if (order != null) {
+                return addOrdersToResponse(order, OrderType.COMPANY, company.getCompanyName(), company.getImageUrl(), company.getPhoneNumber(), company.getCompanyEmail(), company.getActive());
+            }
+        }
+        throw new CustomException("Order not found with ID: " + orderId + " for User or Company ID: " + userIdOrCompanyId);
     }
 
     public String changePassword(ChangePasswordRequest request) {
@@ -630,8 +651,7 @@ public class AdminServiceImpl implements AdminService {
     }
     */
 
-    private void addOrdersToResponse(List<Order> orderList, List<AdminOrderResponse> orderResponses, OrderType orderType, String customerName, String profilePic, String phone, String email, Boolean active) {
-        for (Order order : orderList) {
+    private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email, Boolean active) {
             List<FoodDataResponse> foodDataResponses = new ArrayList<>();
             for (ItemMenu itemMenu : order.getItemMenu()) {
                 Vendor vendor = itemMenu.getItemCategory().getVendor();
@@ -643,7 +663,7 @@ public class AdminServiceImpl implements AdminService {
                         .build());
             }
 
-            orderResponses.add(AdminOrderResponse.builder()
+           return AdminOrderResponse.builder()
                     .orderId(order.getOrderId())
                     .items(foodDataResponses)
                     .orderType(orderType)
@@ -655,8 +675,7 @@ public class AdminServiceImpl implements AdminService {
                     .deliveryStatus(order.getDeliveryStatus())
                     .createdAt(order.getCreatedAt())
                     .customerStatus(active)
-                    .build());
-        }
+                    .build();
     }
 
     private String getCustomerName(Order order) {
@@ -668,6 +687,7 @@ public class AdminServiceImpl implements AdminService {
             return "Unknown Customer";
         }
     }
+
     private String getCustomerProfilePic(Order order) {
         if (order.getUser() != null) {
             return order.getUser().getProfilePictureUrl();

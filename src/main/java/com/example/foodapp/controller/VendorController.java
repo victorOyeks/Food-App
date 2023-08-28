@@ -1,5 +1,6 @@
 package com.example.foodapp.controller;
 
+import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.service.VendorService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -19,11 +21,12 @@ public class VendorController {
     private final VendorService vendorService;
 
     @GetMapping("orders")
-    public ResponseEntity<OrderViewResponse> viewAllOrdersToVendor() {
-        List<OrderResponse> orders = vendorService.viewAllOrdersToVendor();
-        OrderSummary orderSummary = vendorService.calculateOrderSummary(orders);
-        OrderViewResponse orderViewResponse = new OrderViewResponse(orders, orderSummary);
-        return ResponseEntity.ok(orderViewResponse);
+    public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllOrdersToVendor(@RequestParam(required = false) TimeFrame timeFrame) {
+        List<OrderDetailsResponse> orders = vendorService.viewAllOrdersToVendor(timeFrame);
+        ApiResponse<List<OrderDetailsResponse>> apiResponse = new ApiResponse<>(orders);
+//        OrderSummary orderSummary = vendorService.calculateOrderSummary(orders);
+//        OrderViewResponse orderViewResponse = new OrderViewResponse(orders, orderSummary);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @PutMapping("update-profile")
@@ -37,6 +40,14 @@ public class VendorController {
         ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(
                 vendorService.updateVendorProfile(firstName, lastName, phone, businessName, domainName,
                         businessAddress, file));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/users/orders")
+    public ResponseEntity<ApiResponse<AdminOrderResponse>> viewOrdersByUserOrCompany(@RequestParam String orderId,
+                                                                                     @RequestParam String userIdOrCompanyId) {
+        AdminOrderResponse order = vendorService.viewOrderByUserOrCompany(orderId, userIdOrCompanyId);
+        ApiResponse<AdminOrderResponse> apiResponse = new ApiResponse<>(order);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

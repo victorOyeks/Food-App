@@ -1,9 +1,8 @@
 package com.example.foodapp.service;
 
+import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.payloads.request.VendorRegistrationRequest;
-import com.example.foodapp.payloads.response.BusinessRegistrationResponse;
-import com.example.foodapp.payloads.response.OrderResponse;
-import com.example.foodapp.payloads.response.OrderSummary;
+import com.example.foodapp.payloads.response.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -14,7 +13,8 @@ public interface VendorService {
     BusinessRegistrationResponse updateVendorProfile(String firstName, String lastName,
                                                      String phone, String businessName, String domainName,
                                                      String businessAddress, MultipartFile file) throws IOException;
-    List<OrderResponse> viewAllOrdersToVendor();
+    List<OrderDetailsResponse> viewAllOrdersToVendor(TimeFrame timeFrame);
+    AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId);
     BusinessRegistrationResponse viewVendorProfile();
-    OrderSummary calculateOrderSummary(List<OrderResponse> orders);
+    //OrderSummary calculateOrderSummary(List<OrderDetailsResponse> orders);
 }

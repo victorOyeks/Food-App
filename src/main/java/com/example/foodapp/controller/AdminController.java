@@ -182,10 +182,11 @@ public class AdminController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping("/user/{id}/orders")
-    public ResponseEntity<ApiResponse<List<AdminOrderResponse>>> viewAllOrdersByCompany(@PathVariable String id) {
-        List<AdminOrderResponse> orders = adminService.viewAllOrdersByUserOrCompany(id);
-        ApiResponse<List<AdminOrderResponse>> apiResponse = new ApiResponse<>(orders);
+    @GetMapping("/users/orders")
+    public ResponseEntity<ApiResponse<AdminOrderResponse>> viewOrdersByUserOrCompany(@RequestParam String orderId,
+                                                                                  @RequestParam String userIdOrCompanyId) {
+        AdminOrderResponse order = adminService.viewOrderByUserOrCompany(orderId, userIdOrCompanyId);
+        ApiResponse<AdminOrderResponse> apiResponse = new ApiResponse<>(order);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 }
