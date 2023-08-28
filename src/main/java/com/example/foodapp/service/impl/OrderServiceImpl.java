@@ -55,17 +55,18 @@ public class OrderServiceImpl implements OrderService {
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new CustomException("Vendor not found!!!"));
         User user = getAuthenticatedUser();
-        ItemMenu itemMenu = findFoodMenuById(vendor.getId(), menuId);
 
-        if (itemMenu != null) {
+        ItemMenu selectedItemMenu = findFoodMenuById(vendor.getId(), menuId);
+
+        if (selectedItemMenu != null) {
             Order existingOpenOrder = orderRepository.findOpenOrderByUser(user.getId());
 
             if (existingOpenOrder != null) {
                 List<ItemMenu> selectedItemMenus = existingOpenOrder.getItemMenu();
-                selectedItemMenus.add(itemMenu);
+                selectedItemMenus.add(selectedItemMenu);
                 existingOpenOrder.setItemMenu(selectedItemMenus);
 
-                BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(itemMenu.getItemPrice());
+                BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(selectedItemMenu.getItemPrice());
                 existingOpenOrder.setTotalAmount(totalAmount);
 
                 orderRepository.save(existingOpenOrder);
@@ -74,10 +75,10 @@ public class OrderServiceImpl implements OrderService {
                 newOrder.setUser(user);
 
                 List<ItemMenu> selectedItemMenus = new ArrayList<>();
-                selectedItemMenus.add(itemMenu);
+                selectedItemMenus.add(selectedItemMenu);
                 newOrder.setItemMenu(selectedItemMenus);
 
-                BigDecimal totalAmount = itemMenu.getItemPrice();
+                BigDecimal totalAmount = selectedItemMenu.getItemPrice();
                 newOrder.setTotalAmount(totalAmount);
                 newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
                 newOrder.setPaymentStatus(PaymentStatus.PENDING);
@@ -95,12 +96,12 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    /*
     public String selectItemWithSupplementForIndividual(String vendorId, String menuId, List<String> supplementIds) {
 
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new CustomException("Vendor not found!!!"));
         User user = getAuthenticatedUser();
-        //ItemMenu itemMenu = findFoodMenuById(vendor.getId(), menuId);
 
         ItemMenu selectedMenu = findFoodMenuById(vendor.getId(), menuId);
 
@@ -147,6 +148,61 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomException("Item menu not found!!!");
         }
     }
+
+     */
+
+    public String selectItemWithSupplementsForIndividual(String vendorId, String menuId, List<String> supplementIds) {
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found!!!"));
+        User user = getAuthenticatedUser();
+
+        ItemMenu selectedMenu = findFoodMenuById(vendor.getId(), menuId);
+
+
+        if (selectedMenu != null) {
+
+            BigDecimal totalAmount = selectedMenu.getItemPrice();
+
+            //BigDecimal totalAmount = selectedMenu.getItemPrice();
+            Order existingOpenOrder = orderRepository.findOpenOrderByUser(user.getId());
+            if (existingOpenOrder != null) {
+
+                totalAmount = existingOpenOrder.getTotalAmount().add(selectedMenu.getItemPrice());
+
+                for (String supplementId : supplementIds) {
+                    Supplement selectedSupplement = new Supplement(supplementId);
+                    selectedMenu.getSelectedSupplements().add(selectedSupplement);
+                    totalAmount = totalAmount.add(selectedSupplement.getSupplementPrice());
+                    existingOpenOrder.setTotalAmount(existingOpenOrder.getTotalAmount().add(totalAmount));
+
+                    orderRepository.save(existingOpenOrder);
+                }
+            }
+            else {
+                Order newOrder = new Order();
+                newOrder.setUser(user);
+
+                List<ItemMenu> selectedItemMenus = new ArrayList<>();
+                selectedItemMenus.add(selectedMenu);
+                newOrder.setItemMenu(selectedItemMenus);
+
+                newOrder.setTotalAmount(totalAmount);
+                newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
+                newOrder.setPaymentStatus(PaymentStatus.PENDING);
+
+                orderRepository.save(newOrder);
+            }
+
+            if (user.getOrderList() == null) {
+                user.setOrderList(new ArrayList<>());
+            }
+
+            return "Food selected successfully!!!";
+        } else {
+            throw new CustomException("Item menu not found!!!");
+        }
+    }
+
 
     public String selectItemForCompany(String vendorId, String menuId) {
         Vendor vendor = vendorRepository.findById(vendorId)

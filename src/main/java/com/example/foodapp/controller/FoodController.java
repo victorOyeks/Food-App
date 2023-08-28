@@ -1,9 +1,11 @@
 package com.example.foodapp.controller;
 
 import com.example.foodapp.payloads.request.CategoryRequest;
+import com.example.foodapp.payloads.request.SupplementRequest;
 import com.example.foodapp.payloads.response.ApiResponse;
 import com.example.foodapp.payloads.response.CategoryResponse;
 import com.example.foodapp.payloads.response.ItemMenuResponse;
+import com.example.foodapp.payloads.response.SupplementResponse;
 import com.example.foodapp.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -37,8 +39,15 @@ public class FoodController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
+    @PostMapping("/add-supplements")
+    public ResponseEntity<ApiResponse<SupplementResponse>> addSupplement (@RequestBody SupplementRequest supplementRequest,
+                                                                          @RequestParam String itemId){
+        ApiResponse<SupplementResponse> apiResponse = new ApiResponse<>(itemService.addSupplementToItemMenu(itemId, supplementRequest));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
 
-    @PutMapping("/category/{categoryId}/edit-item-menu/{itemId}")
+
+    @PutMapping("/category/edit-item-menu")
     public ResponseEntity<ApiResponse<ItemMenuResponse>> editFoodMenu(@RequestParam String itemId,
                                                                       @RequestParam String itemName,
                                                                       @RequestParam BigDecimal itemPrice,

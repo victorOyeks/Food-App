@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -40,7 +39,7 @@ public class OrderController {
         ApiResponse<String> apiResponse;
         //user selects supplements
         if (supplementIds != null) {
-            apiResponse = new ApiResponse<>(orderService.selectItemWithSupplementForIndividual(vendorId, menuId, supplementIds));
+            apiResponse = new ApiResponse<>(orderService.selectItemWithSupplementsForIndividual(vendorId, menuId, supplementIds));
         } else {
             // User didn't select a supplement
             apiResponse = new ApiResponse<>(orderService.selectItemForIndividual(vendorId, menuId));

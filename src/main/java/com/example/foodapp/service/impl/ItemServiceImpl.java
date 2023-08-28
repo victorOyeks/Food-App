@@ -3,12 +3,15 @@ package com.example.foodapp.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.foodapp.payloads.request.CategoryRequest;
+import com.example.foodapp.payloads.request.SupplementRequest;
 import com.example.foodapp.payloads.response.CategoryResponse;
 import com.example.foodapp.payloads.response.ItemMenuResponse;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
+import com.example.foodapp.payloads.response.SupplementResponse;
 import com.example.foodapp.repository.ItemCategoryRepository;
 import com.example.foodapp.repository.ItemMenuRepository;
+import com.example.foodapp.repository.SupplementRepository;
 import com.example.foodapp.repository.VendorRepository;
 import com.example.foodapp.service.ItemService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemCategoryRepository itemCategoryRepository;
     private final ItemMenuRepository itemMenuRepository;
     private final Cloudinary cloudinary;
+    private final SupplementRepository supplementRepository;
 
     public CategoryResponse addItemCategory(CategoryRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -82,6 +86,34 @@ public class ItemServiceImpl implements ItemService {
             throw new CustomException("Image file is required");
         }
     }
+
+    public SupplementResponse addSupplementToItemMenu(String itemId, SupplementRequest supplementRequest) {
+        Vendor vendor = getAuthenticatedVendor();
+
+        String supplementName = supplementRequest.getSupplementName();
+        BigDecimal supplementPrice = supplementRequest.getSupplementPrice();
+
+        ItemMenu itemMenu = itemMenuRepository.findByItemIdAndVendorId(itemId, vendor.getId())
+                .orElseThrow(() -> new CustomException("Item menu not found for the vendor"));
+
+        Supplement supplement = new Supplement();
+        supplement.setSupplementName(supplementName);
+        supplement.setSupplementPrice(supplementPrice);
+        supplement.setItemMenu(itemMenu);
+        supplementRepository.save(supplement);
+
+        itemMenu.getSelectedSupplements().add(supplement);
+
+        itemMenuRepository.save(itemMenu);
+
+        return SupplementResponse.builder()
+                .supplementId(supplement.getSupplementId())
+                .supplementName(supplement.getSupplementName())
+                .supplementPrice(supplement.getSupplementPrice())
+                .itemMenuName(supplement.getItemMenu().getItemName())
+                .build();
+    }
+
 
     public ItemMenuResponse editItemMenu(String itemId, String itemName, BigDecimal itemPrice, Boolean breakfast, Boolean lunch, Boolean dinner, String categoryId, MultipartFile file) throws IOException {
 
