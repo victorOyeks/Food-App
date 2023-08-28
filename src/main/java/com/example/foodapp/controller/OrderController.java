@@ -35,13 +35,12 @@ public class OrderController {
     @PostMapping("/vendors/{vendorId}/select-item-individual")
     public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId,
                                                                          @RequestParam String menuId,
-                                                                         @RequestParam(required = false) String supplementId,
-                                                                         @RequestParam(required = false) BigDecimal supplementPrice) {
+                                                                         @RequestParam(required = false) List<String>  supplementIds) {
 
         ApiResponse<String> apiResponse;
         //user selects supplements
-        if (supplementId != null && supplementPrice != null) {
-            apiResponse = new ApiResponse<>(orderService.selectItemWithSupplementForIndividual(vendorId, menuId, supplementId, supplementPrice));
+        if (supplementIds != null) {
+            apiResponse = new ApiResponse<>(orderService.selectItemWithSupplementForIndividual(vendorId, menuId, supplementIds));
         } else {
             // User didn't select a supplement
             apiResponse = new ApiResponse<>(orderService.selectItemForIndividual(vendorId, menuId));

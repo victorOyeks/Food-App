@@ -1,9 +1,6 @@
 package com.example.foodapp.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -20,9 +17,11 @@ public class Supplement {
     private String supplementId;
     private String supplementName;
     private BigDecimal supplementPrice;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "itemMenu_id")
+    private ItemMenu itemMenu;
 
-    public Supplement(String supplementName, BigDecimal supplementPrice) {
-        this.supplementName = supplementName;
-        this.supplementPrice = supplementPrice;
+    public Supplement (String supplementId) {
+        this.supplementId = supplementId;
     }
 }

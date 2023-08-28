@@ -37,8 +37,9 @@ public class ItemMenu implements Serializable {
     private ItemCategory itemCategory;
     @ElementCollection
     private List<String> availableSupplements;
-    @Transient
-    private Supplement selectedSupplement;
+    @JsonIgnore
+    @OneToMany(mappedBy = "itemMenu", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Supplement> selectedSupplements = new ArrayList<>();
     private Double averageRating;
     private Long totalRatings;
     @JsonIgnore

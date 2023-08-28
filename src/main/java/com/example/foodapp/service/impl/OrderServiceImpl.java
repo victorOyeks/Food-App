@@ -95,7 +95,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    public String selectItemWithSupplementForIndividual(String vendorId, String menuId, String supplementName,  BigDecimal supplementPrice) {
+    public String selectItemWithSupplementForIndividual(String vendorId, String menuId, List<String> supplementIds) {
 
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new CustomException("Vendor not found!!!"));
@@ -105,11 +105,16 @@ public class OrderServiceImpl implements OrderService {
         ItemMenu selectedMenu = findFoodMenuById(vendor.getId(), menuId);
 
         if (selectedMenu != null) {
-            Supplement selectedSupplement = new Supplement(supplementName, supplementPrice);
-            selectedMenu.setSelectedSupplement(selectedSupplement);
+            BigDecimal totalAmount = selectedMenu.getItemPrice();
 
-            // Calculate total price including supplement
-            BigDecimal totalAmount = selectedMenu.getItemPrice().add(supplementPrice);
+            for (String supplementId : supplementIds) {
+
+                Supplement selectedSupplement = new Supplement(supplementId);
+                selectedMenu.getSelectedSupplements().add(selectedSupplement);
+
+                // Calculate total price including supplement
+                totalAmount = selectedMenu.getItemPrice().add(selectedSupplement.getSupplementPrice());
+            }
 
             Order existingOpenOrder = orderRepository.findOpenOrderByUser(user.getId());
 

@@ -294,7 +294,6 @@ public class VendorServiceImpl implements VendorService {
         } else {
             throw new CustomException("Order not found with ID: " + orderId + " for Vendor ID: " + vendor.getId());
         }
-        //throw new CustomException("ERROR");
     }
 
 
