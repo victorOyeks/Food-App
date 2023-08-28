@@ -33,17 +33,17 @@ public class OrderController {
 
     @PostMapping("/vendors/{vendorId}/select-item-individual")
     public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId,
-                                                                         @RequestParam String menuId,
-                                                                         @RequestParam(required = false) List<String>  supplementIds) {
+                                                                         @RequestParam String menuId) {
+        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectItemForIndividual(vendorId, menuId));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
 
-        ApiResponse<String> apiResponse;
-        //user selects supplements
-        if (supplementIds != null) {
-            apiResponse = new ApiResponse<>(orderService.selectItemWithSupplementsForIndividual(vendorId, menuId, supplementIds));
-        } else {
-            // User didn't select a supplement
-            apiResponse = new ApiResponse<>(orderService.selectItemForIndividual(vendorId, menuId));
-        }
+    @PostMapping("/vendors/{vendorId}/select-supplement-individual")
+    public ResponseEntity<ApiResponse<String>> selectSupplementForIndividuals(@PathVariable String vendorId,
+                                                                         @RequestParam String menuId,
+                                                                         @RequestParam List<String>  supplementIds) {
+
+        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectSupplementsForItemForIndividual(vendorId, menuId, supplementIds));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

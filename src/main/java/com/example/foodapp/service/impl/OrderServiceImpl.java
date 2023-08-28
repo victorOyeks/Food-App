@@ -6,10 +6,7 @@ import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.entities.Order;
 import com.example.foodapp.exception.CustomException;
-import com.example.foodapp.repository.CompanyRepository;
-import com.example.foodapp.repository.OrderRepository;
-import com.example.foodapp.repository.UserRepository;
-import com.example.foodapp.repository.VendorRepository;
+import com.example.foodapp.repository.*;
 import com.example.foodapp.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -29,6 +26,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
+    private final SupplementRepository supplementRepository;
 
     public List<FoodDataResponse> viewAllItemMenus() {
         List<FoodDataResponse> foodDataResponse = new ArrayList<>();
@@ -151,58 +149,63 @@ public class OrderServiceImpl implements OrderService {
 
      */
 
-    public String selectItemWithSupplementsForIndividual(String vendorId, String menuId, List<String> supplementIds) {
+    public String selectSupplementsForItemForIndividual(String vendorId, String menuId, List<String> supplementIds) {
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new CustomException("Vendor not found!!!"));
         User user = getAuthenticatedUser();
 
         ItemMenu selectedMenu = findFoodMenuById(vendor.getId(), menuId);
 
-
         if (selectedMenu != null) {
-
-            BigDecimal totalAmount = selectedMenu.getItemPrice();
-
-            //BigDecimal totalAmount = selectedMenu.getItemPrice();
+            // Check if there is an open order for the user
             Order existingOpenOrder = orderRepository.findOpenOrderByUser(user.getId());
-            if (existingOpenOrder != null) {
 
-                totalAmount = existingOpenOrder.getTotalAmount().add(selectedMenu.getItemPrice());
+            if (existingOpenOrder == null) {
+                // If there is no open order, create a new one
+                existingOpenOrder = new Order();
+                existingOpenOrder.setUser(user);
+                existingOpenOrder.setTotalAmount(BigDecimal.ZERO); // Initialize total amount
+                existingOpenOrder.setDeliveryStatus(DeliveryStatus.PENDING);
+                existingOpenOrder.setPaymentStatus(PaymentStatus.PENDING);
+                existingOpenOrder.setItemMenu(new ArrayList<>()); // Initialize item menu list
+            }
 
-                for (String supplementId : supplementIds) {
-                    Supplement selectedSupplement = new Supplement(supplementId);
-                    selectedMenu.getSelectedSupplements().add(selectedSupplement);
-                    totalAmount = totalAmount.add(selectedSupplement.getSupplementPrice());
-                    existingOpenOrder.setTotalAmount(existingOpenOrder.getTotalAmount().add(totalAmount));
+            // Calculate the total amount with item price
+            BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(selectedMenu.getItemPrice());
 
-                    orderRepository.save(existingOpenOrder);
+            // Add selected supplements to the item menu and update item price
+            for (String supplementId : supplementIds) {
+                Supplement selectedSupplement = supplementRepository.findById(supplementId)
+                        .orElseThrow(() -> new CustomException("Supplement not found!!!"));
+
+                // Check if the supplement belongs to the selected menu
+                if (!selectedSupplement.getItemMenu().equals(selectedMenu)) {
+                    throw new CustomException("Supplement does not belong to the selected menu!!!");
                 }
-            }
-            else {
-                Order newOrder = new Order();
-                newOrder.setUser(user);
 
-                List<ItemMenu> selectedItemMenus = new ArrayList<>();
-                selectedItemMenus.add(selectedMenu);
-                newOrder.setItemMenu(selectedItemMenus);
+                selectedMenu.getSelectedSupplements().add(selectedSupplement);
+                totalAmount = totalAmount.add(selectedSupplement.getSupplementPrice());
 
-                newOrder.setTotalAmount(totalAmount);
-                newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
-                newOrder.setPaymentStatus(PaymentStatus.PENDING);
-
-                orderRepository.save(newOrder);
+                // Add supplement price to item price
+                selectedMenu.setItemPrice(selectedMenu.getItemPrice().add(selectedSupplement.getSupplementPrice()));
             }
 
+            existingOpenOrder.getItemMenu().add(selectedMenu);
+
+            existingOpenOrder.setTotalAmount(totalAmount);
+
+            orderRepository.save(existingOpenOrder);
+
+            // If user's order list is null, initialize it
             if (user.getOrderList() == null) {
                 user.setOrderList(new ArrayList<>());
             }
 
-            return "Food selected successfully!!!";
+            return "Supplements selected successfully!!!";
         } else {
-            throw new CustomException("Item menu not found!!!");
+            throw new  CustomException("Item menu not found!!!");
         }
     }
-
 
     public String selectItemForCompany(String vendorId, String menuId) {
         Vendor vendor = vendorRepository.findById(vendorId)
