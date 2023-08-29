@@ -7,12 +7,12 @@ import java.util.List;
 public interface OrderService {
     List<FoodDataResponse> viewAllItemMenus();
     String selectItemForIndividual (String vendorId, String menuId);
-    String selectSupplementsForItemForIndividual(String vendorId, String menuId, List<String>  supplementIds);
+    OrderResponse selectSupplementsForItemForIndividual(String vendorId, String menuId, List<String>  supplementIds);
     String selectItemForCompany(String vendorId, String menuId);
     OrderViewResponse viewCompanyCart();
-    UserOrderDetailsResponse viewOrderByOrderIdForUser(String orderId);
-    UserOrderDetailsResponse viewOrderByOrderIdForCompany(String orderId);
-    OrderViewResponse viewAllOrdersByUser();
+    OrderResponse viewOrderByOrderIdForUser(String orderId);
+    OrderResponse viewOrderByOrderIdForCompany(String orderId);
+    //OrderViewResponse viewAllOrdersByUser();
     UserOrderViewResponse viewSimplifiedOrdersByUser();
 //    UserOrderDetailsResponse viewOrderById(String orderId);
     OrderViewResponse viewUserCart();

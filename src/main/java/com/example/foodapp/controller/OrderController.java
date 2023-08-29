@@ -39,11 +39,11 @@ public class OrderController {
     }
 
     @PostMapping("/vendors/{vendorId}/select-supplement-individual")
-    public ResponseEntity<ApiResponse<String>> selectSupplementForIndividuals(@PathVariable String vendorId,
+    public ResponseEntity<ApiResponse<OrderResponse>> selectSupplementForIndividuals(@PathVariable String vendorId,
                                                                          @RequestParam String menuId,
                                                                          @RequestParam List<String>  supplementIds) {
 
-        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectSupplementsForItemForIndividual(vendorId, menuId, supplementIds));
+        ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(orderService.selectSupplementsForItemForIndividual(vendorId, menuId, supplementIds));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -86,8 +86,8 @@ public class OrderController {
 
 
     @GetMapping("order-details")
-    public ResponseEntity<UserOrderDetailsResponse> viewOrderDetails(@RequestParam String orderId) {
-        UserOrderDetailsResponse orderDetailsResponse;
+    public ResponseEntity<OrderResponse> viewOrderDetails(@RequestParam String orderId) {
+        OrderResponse orderDetailsResponse;
         try {
             // Attempt to view the order as a user
             orderDetailsResponse = orderService.viewOrderByOrderIdForUser(orderId);

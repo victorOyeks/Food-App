@@ -1,11 +1,14 @@
 package com.example.foodapp.payloads.response;
 
+import com.example.foodapp.entities.Supplement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,6 +17,7 @@ import java.math.BigDecimal;
 public class FoodDataResponse {
     private String itemId;
     private String itemName;
+    private List<SupplementResponse> supplementResponses = new ArrayList<>();
     private BigDecimal price;
     private String imageUri;
     private String vendorName;
