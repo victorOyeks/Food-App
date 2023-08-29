@@ -18,10 +18,6 @@ public class Supplement {
     private String supplementName;
     private BigDecimal supplementPrice;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "itemMenu_id")
-    private ItemMenu itemMenu;
-
-    public Supplement (String supplementId) {
-        this.supplementId = supplementId;
-    }
+    @JoinColumn(name = "supplement_category_id")
+    private SupplementCategory supplementCategory;
 }

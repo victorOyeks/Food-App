@@ -88,34 +88,6 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    public SupplementResponse addSupplementToItemMenu(String itemId, SupplementRequest supplementRequest) {
-        Vendor vendor = getAuthenticatedVendor();
-
-        String supplementName = supplementRequest.getSupplementName();
-        BigDecimal supplementPrice = supplementRequest.getSupplementPrice();
-
-        ItemMenu itemMenu = itemMenuRepository.findByItemIdAndVendorId(itemId, vendor.getId())
-                .orElseThrow(() -> new CustomException("Item menu not found for the vendor"));
-
-        Supplement supplement = new Supplement();
-        supplement.setSupplementName(supplementName);
-        supplement.setSupplementPrice(supplementPrice);
-        supplement.setItemMenu(itemMenu);
-        supplementRepository.save(supplement);
-
-        itemMenu.getSelectedSupplements().add(supplement);
-
-        itemMenuRepository.save(itemMenu);
-
-        return SupplementResponse.builder()
-                .supplementId(supplement.getSupplementId())
-                .supplementName(supplement.getSupplementName())
-                .supplementPrice(supplement.getSupplementPrice())
-                .itemMenuName(supplement.getItemMenu().getItemName())
-                .build();
-    }
-
-
     public ItemMenuResponse editItemMenu(String itemId, String itemName, BigDecimal itemPrice, Boolean breakfast, Boolean lunch, Boolean dinner, String categoryId, MultipartFile file) throws IOException {
 
         Vendor vendor = getAuthenticatedVendor();
