@@ -27,21 +27,27 @@ public class ItemMenu implements Serializable {
     private String itemName;
     private BigDecimal itemPrice;
     private String imageUrl;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
+
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_category_id")
     private ItemCategory itemCategory;
+
     @ElementCollection
     private List<String> availableSupplements;
-    @JsonIgnore
-    @OneToMany(mappedBy = "itemMenu", cascade = CascadeType.ALL, orphanRemoval = true)
+
+    @ManyToMany(mappedBy = "itemMenus", fetch = FetchType.LAZY)
     private List<Supplement> selectedSupplements = new ArrayList<>();
+
     private Double averageRating;
     private Long totalRatings;
+
     @JsonIgnore
     @OneToMany(mappedBy = "itemMenu", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemMenuReview> itemMenuReviews = new ArrayList<>();

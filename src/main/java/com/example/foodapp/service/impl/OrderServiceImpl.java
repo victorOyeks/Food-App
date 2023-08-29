@@ -165,40 +165,62 @@ public class OrderServiceImpl implements OrderService {
                 // If there is no open order, create a new one
                 existingOpenOrder = new Order();
                 existingOpenOrder.setUser(user);
-                existingOpenOrder.setTotalAmount(BigDecimal.ZERO); // Initialize total amount
+                existingOpenOrder.setTotalAmount(BigDecimal.ZERO);
                 existingOpenOrder.setDeliveryStatus(DeliveryStatus.PENDING);
                 existingOpenOrder.setPaymentStatus(PaymentStatus.PENDING);
-                existingOpenOrder.setItemMenu(new ArrayList<>()); // Initialize item menu list
+                existingOpenOrder.setItemMenu(new ArrayList<>());
+                existingOpenOrder.setSupplements(new ArrayList<>());
             }
 
             // Calculate the total amount with item price and supplements
-            BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(selectedMenu.getItemPrice());
-
-            // Calculate temporary total price with supplements
-            BigDecimal tempTotalAmount = totalAmount;
             BigDecimal updatedItemPrice = selectedMenu.getItemPrice(); // Initialize updated item price
 
-            for (String supplementId : supplementIds) {
-                Supplement selectedSupplement = supplementRepository.findById(supplementId)
-                        .orElseThrow(() -> new CustomException("Supplement not found!!!"));
+            // Check if the item is already in the cart
+            boolean itemAlreadyInCart = false;
+            for (ItemMenu item : existingOpenOrder.getItemMenu()) {
+                if (item.getItemId().equals(selectedMenu.getItemId())) {
+                    // Item is already in the cart, update supplements
+                    itemAlreadyInCart = true;
 
-                // Check if the supplement belongs to the selected menu
-                if (!selectedSupplement.getItemMenu().equals(selectedMenu)) {
-                    throw new CustomException("Supplement does not belong to the selected menu!!!");
+                    for (String supplementId : supplementIds) {
+                        Supplement selectedSupplement = supplementRepository.findById(supplementId)
+                                .orElseThrow(() -> new CustomException("Supplement not found!!!"));
+
+                        // Check if the supplement belongs to the selected menu
+                        if (!selectedSupplement.getItemMenu().equals(selectedMenu)) {
+                            throw new CustomException("Supplement does not belong to the selected menu!!!");
+                        }
+
+                        // Add the supplement to the item's selectedSupplements list
+                        item.getSelectedSupplements().add(selectedSupplement);
+                        updatedItemPrice = updatedItemPrice.add(selectedSupplement.getSupplementPrice());
+                    }
                 }
-
-                tempTotalAmount = tempTotalAmount.add(selectedSupplement.getSupplementPrice());
-                updatedItemPrice = updatedItemPrice.add(selectedSupplement.getSupplementPrice());
             }
 
-            existingOpenOrder.getItemMenu().add(selectedMenu);
+            if (!itemAlreadyInCart) {
+                // The item is not in the cart, add it along with supplements
+                existingOpenOrder.getItemMenu().add(selectedMenu);
+                for (String supplementId : supplementIds) {
+                    Supplement selectedSupplement = supplementRepository.findById(supplementId)
+                            .orElseThrow(() -> new CustomException("Supplement not found!!!"));
 
-            existingOpenOrder.setTotalAmount(tempTotalAmount);
+                    // Check if the supplement belongs to the selected menu
+                    if (!selectedSupplement.getItemMenu().equals(selectedMenu)) {
+                        throw new CustomException("Supplement does not belong to the selected menu!!!");
+                    }
 
-            // If user's order list is null, initialize it
-            if (user.getOrderList() == null) {
-                user.setOrderList(new ArrayList<>());
+                    // Add the supplement to the item's selectedSupplements list
+                    selectedMenu.getSelectedSupplements().add(selectedSupplement);
+                    updatedItemPrice = updatedItemPrice.add(selectedSupplement.getSupplementPrice());
+                }
             }
+
+            // Calculate the total amount with supplements
+            BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(updatedItemPrice);
+            existingOpenOrder.setTotalAmount(totalAmount);
+
+            orderRepository.save(existingOpenOrder);
 
             // Build and return the response
             OrderResponse orderResponse = buildOrderResponse(existingOpenOrder, updatedItemPrice);
@@ -207,6 +229,7 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomException("Item menu not found!!!");
         }
     }
+
 
 
     public String selectItemForCompany(String vendorId, String menuId) {
@@ -422,10 +445,10 @@ public class OrderServiceImpl implements OrderService {
 
             for (ItemMenu itemMenu : order.getItemMenu()) {
                 Vendor vendor = itemMenu.getItemCategory().getVendor();
-                List<SupplementResponse> supplementResponses = new ArrayList<>();
+                List<Supplement> supplementResponses = new ArrayList<>();
 
                 for (Supplement supplement : itemMenu.getSelectedSupplements()) {
-                    supplementResponses.add(SupplementResponse.builder()
+                    supplementResponses.add(Supplement.builder()
                             .supplementName(supplement.getSupplementName())
                             .supplementPrice(supplement.getSupplementPrice())
                             .build());
@@ -504,13 +527,19 @@ public class OrderServiceImpl implements OrderService {
         for (ItemMenu itemMenu : order.getItemMenu()) {
             Vendor vendor = itemMenu.getItemCategory().getVendor();
 
+            // Filter and include only selected supplements in the response
+            List<Supplement> selectedSupplements = new ArrayList<>();
+            for (Supplement supplement : itemMenu.getSelectedSupplements()) {
+                selectedSupplements.add(supplement);
+            }
+
             foodDataResponses.add(FoodDataResponse.builder()
                     .itemId(itemMenu.getItemId())
                     .itemName(itemMenu.getItemName())
                     .price(updatedItemPrice) // Display updated item price
                     .imageUri(itemMenu.getImageUrl())
                     .vendorName(vendor.getBusinessName())
-                    .supplementResponses(buildSupplementResponses(itemMenu.getSelectedSupplements()))
+                    .supplementResponses(selectedSupplements)
                     .build());
         }
 
@@ -521,6 +550,7 @@ public class OrderServiceImpl implements OrderService {
 
         return new OrderResponse(order.getOrderId(), foodDataResponses, orderSummary.getTotalSum());
     }
+
 
     private OrderResponse buildOrderResponse(Order order) {
         List<FoodDataResponse> foodDataResponses = new ArrayList<>();
@@ -541,7 +571,7 @@ public class OrderServiceImpl implements OrderService {
                     .price(displayedItemPrice) // Display updated item price
                     .imageUri(itemMenu.getImageUrl())
                     .vendorName(vendor.getBusinessName())
-                    .supplementResponses(buildSupplementResponses(itemMenu.getSelectedSupplements()))
+                    .supplementResponses((itemMenu.getSelectedSupplements()))
                     .build());
         }
 
@@ -551,35 +581,6 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         return new OrderResponse(order.getOrderId(), foodDataResponses, orderSummary.getTotalSum());
-    }
-
-    // Add this method to your OrderServiceImpl class
-    private List<SupplementResponse> buildSupplementResponses(List<Supplement> selectedSupplements) {
-        List<SupplementResponse> supplementResponses = new ArrayList<>();
-
-        for (Supplement supplement : selectedSupplements) {
-            supplementResponses.add(SupplementResponse.builder()
-                    .supplementId(supplement.getSupplementId())
-                    .supplementName(supplement.getSupplementName())
-                    .supplementPrice(supplement.getSupplementPrice())
-                    .itemMenuName(supplement.getItemMenu().getItemName())
-                    .build());
-        }
-        return supplementResponses;
-    }
-
-    private List<SupplementResponse> extractSupplementInfo(Order order) {
-        List<SupplementResponse> supplementResponses = new ArrayList<>();
-        for (ItemMenu itemMenu : order.getItemMenu()) {
-            for (Supplement supplement : itemMenu.getSelectedSupplements()) {
-                SupplementResponse supplementResponse = new SupplementResponse();
-                supplementResponse.setSupplementId(supplement.getSupplementId());
-                supplementResponse.setSupplementName(supplement.getSupplementName());
-                supplementResponse.setSupplementPrice(supplement.getSupplementPrice());
-                supplementResponses.add(supplementResponse);
-            }
-        }
-        return supplementResponses;
     }
 
 }

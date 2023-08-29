@@ -33,6 +33,9 @@ public class Order {
     @ManyToMany
     private List<ItemMenu> itemMenu;
 
+    @ManyToMany
+    private List<Supplement> supplements;
+
     private BigDecimal totalAmount;
 
     private PaymentStatus paymentStatus;
