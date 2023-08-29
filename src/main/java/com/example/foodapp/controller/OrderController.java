@@ -1,5 +1,6 @@
 package com.example.foodapp.controller;
 
+import com.example.foodapp.entities.Supplement;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.service.OrderService;
@@ -35,15 +36,6 @@ public class OrderController {
     public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId,
                                                                          @RequestParam String menuId) {
         ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectItemForIndividual(vendorId, menuId));
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
-
-    @PostMapping("/vendors/{vendorId}/select-supplement-individual")
-    public ResponseEntity<ApiResponse<OrderResponse>> selectSupplementForIndividuals(@PathVariable String vendorId,
-                                                                         @RequestParam String menuId,
-                                                                         @RequestParam List<String>  supplementIds) {
-
-        ApiResponse<OrderResponse> apiResponse = new ApiResponse<>(orderService.selectSupplementsForItemForIndividual(vendorId, menuId, supplementIds));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -84,10 +76,9 @@ public class OrderController {
 //        return new ResponseEntity<>(orderDetailsResponse, HttpStatus.OK);
 //    }
 
-
     @GetMapping("order-details")
-    public ResponseEntity<OrderResponse> viewOrderDetails(@RequestParam String orderId) {
-        OrderResponse orderDetailsResponse;
+    public ResponseEntity<UserOrderDetailsResponse> viewOrderDetails(@RequestParam String orderId) {
+        UserOrderDetailsResponse orderDetailsResponse;
         try {
             // Attempt to view the order as a user
             orderDetailsResponse = orderService.viewOrderByOrderIdForUser(orderId);

@@ -653,7 +653,7 @@ public class AdminServiceImpl implements AdminService {
 
     private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email, Boolean active) {
             List<FoodDataResponse> foodDataResponses = new ArrayList<>();
-            for (ItemMenu itemMenu : order.getItemMenu()) {
+            for (ItemMenu itemMenu : order.getItemMenus()) {
                 Vendor vendor = itemMenu.getItemCategory().getVendor();
                 foodDataResponses.add(FoodDataResponse.builder()
                         .itemId(itemMenu.getItemId())
@@ -713,7 +713,7 @@ public class AdminServiceImpl implements AdminService {
         Map<String, Long> itemMenuOrdersCountMap = new HashMap<>();
 
         for (Order order : allOrders) {
-            for (ItemMenu itemMenu : order.getItemMenu()) {
+            for (ItemMenu itemMenu : order.getItemMenus()) {
                 String itemName = itemMenu.getItemName();
                 itemMenuOrdersCountMap.put(itemName, itemMenuOrdersCountMap.getOrDefault(itemName, 0L) + 1);
             }

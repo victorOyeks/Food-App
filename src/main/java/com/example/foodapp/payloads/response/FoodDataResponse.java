@@ -17,7 +17,6 @@ import java.util.List;
 public class FoodDataResponse {
     private String itemId;
     private String itemName;
-    private List<Supplement> supplementResponses = new ArrayList<>();
     private BigDecimal price;
     private String imageUri;
     private String vendorName;

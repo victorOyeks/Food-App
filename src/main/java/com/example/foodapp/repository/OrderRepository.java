@@ -15,10 +15,10 @@ public interface OrderRepository extends JpaRepository <Order, String> {
     Order findOrderByOrderIdAndUserId (String orderId, String userId);
     List<Order> findOrdersByCompanyId (String companyId);
     Order findOrderByOrderIdAndCompanyId (String orderId, String companyId);
-    @Query("SELECT o FROM Order o JOIN o.itemMenu i JOIN i.itemCategory c WHERE c.vendor = ?1")
+    @Query("SELECT o FROM Order o JOIN o.itemMenus i JOIN i.itemCategory c WHERE c.vendor = ?1")
     List<Order> findOrdersByVendor (Vendor vendor);
 
-    @Query("SELECT o FROM Order o JOIN o.itemMenu i JOIN i.itemCategory c WHERE c.vendor = ?1 and o.orderId = ?2")
+    @Query("SELECT o FROM Order o JOIN o.itemMenus i JOIN i.itemCategory c WHERE c.vendor = ?1 and o.orderId = ?2")
     Order findAnOrdersByVendor (Vendor vendor, String orderId);
 
     @Query("SELECT o FROM Order o WHERE o.user.id = :userId AND o.paymentStatus = com.example.foodapp.constant.PaymentStatus.PENDING")
@@ -40,7 +40,7 @@ public interface OrderRepository extends JpaRepository <Order, String> {
 //    @Query("SELECT o FROM Order o join o.itemMenu i JOIN i.itemCategory c WHERE c.vendor.id = ?1")
 //    Order findOrderByOrderIdAndVendorId(String orderId, String vendorId);
 
-    @Query("SELECT o FROM Order o JOIN o.itemMenu i JOIN i.itemCategory c WHERE c.vendor.id = ?1 AND o.orderId = ?2")
+    @Query("SELECT o FROM Order o JOIN o.itemMenus i JOIN i.itemCategory c WHERE c.vendor.id = ?1 AND o.orderId = ?2")
     Order findOrderByOrderIdAndVendorId(String vendorId, String orderId);
 
 }

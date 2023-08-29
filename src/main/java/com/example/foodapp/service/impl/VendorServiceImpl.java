@@ -20,13 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -403,7 +401,7 @@ public class VendorServiceImpl implements VendorService {
 
     private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email) {
         List<FoodDataResponse> foodDataResponses = new ArrayList<>();
-        for (ItemMenu itemMenu : order.getItemMenu()) {
+        for (ItemMenu itemMenu : order.getItemMenus()) {
             Vendor vendor = itemMenu.getItemCategory().getVendor();
             foodDataResponses.add(FoodDataResponse.builder()
                     .itemId(itemMenu.getItemId())

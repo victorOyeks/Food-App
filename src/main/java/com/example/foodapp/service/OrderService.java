@@ -1,17 +1,18 @@
 package com.example.foodapp.service;
 
+import com.example.foodapp.entities.Supplement;
 import com.example.foodapp.payloads.response.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface OrderService {
     List<FoodDataResponse> viewAllItemMenus();
     String selectItemForIndividual (String vendorId, String menuId);
-    OrderResponse selectSupplementsForItemForIndividual(String vendorId, String menuId, List<String>  supplementIds);
     String selectItemForCompany(String vendorId, String menuId);
     OrderViewResponse viewCompanyCart();
-    OrderResponse viewOrderByOrderIdForUser(String orderId);
-    OrderResponse viewOrderByOrderIdForCompany(String orderId);
+    UserOrderDetailsResponse viewOrderByOrderIdForUser(String orderId);
+    UserOrderDetailsResponse viewOrderByOrderIdForCompany(String orderId);
     //OrderViewResponse viewAllOrdersByUser();
     UserOrderViewResponse viewSimplifiedOrdersByUser();
 //    UserOrderDetailsResponse viewOrderById(String orderId);

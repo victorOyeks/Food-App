@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
@@ -19,9 +17,9 @@ public class Supplement {
     private String supplementId;
     private String supplementName;
     private BigDecimal supplementPrice;
-
-    @ManyToMany(mappedBy = "selectedSupplements", fetch = FetchType.LAZY)
-    private List<ItemMenu> itemMenus = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "itemMenu_id")
+    private ItemMenu itemMenu;
 
     public Supplement (String supplementId) {
         this.supplementId = supplementId;

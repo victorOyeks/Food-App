@@ -42,7 +42,8 @@ public class ItemMenu implements Serializable {
     @ElementCollection
     private List<String> availableSupplements;
 
-    @ManyToMany(mappedBy = "itemMenus", fetch = FetchType.LAZY)
+    @JsonIgnore
+    @OneToMany(mappedBy = "itemMenu", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Supplement> selectedSupplements = new ArrayList<>();
 
     private Double averageRating;

@@ -31,7 +31,7 @@ public class Order {
     private Company company;
 
     @ManyToMany
-    private List<ItemMenu> itemMenu;
+    private List<ItemMenu> itemMenus;
 
     @ManyToMany
     private List<Supplement> supplements;
