@@ -5,14 +5,12 @@ import com.cloudinary.utils.ObjectUtils;
 import com.example.foodapp.payloads.request.CategoryRequest;
 import com.example.foodapp.payloads.request.SupplementRequest;
 import com.example.foodapp.payloads.response.CategoryResponse;
+import com.example.foodapp.payloads.response.ItemDetailsResponse;
 import com.example.foodapp.payloads.response.ItemMenuResponse;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.payloads.response.SupplementResponse;
-import com.example.foodapp.repository.ItemCategoryRepository;
-import com.example.foodapp.repository.ItemMenuRepository;
-import com.example.foodapp.repository.SupplementRepository;
-import com.example.foodapp.repository.VendorRepository;
+import com.example.foodapp.repository.*;
 import com.example.foodapp.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -22,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,6 +34,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemMenuRepository itemMenuRepository;
     private final Cloudinary cloudinary;
     private final SupplementRepository supplementRepository;
+    private final OrderRepository orderRepository;
 
     public CategoryResponse addItemCategory(CategoryRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -72,6 +72,7 @@ public class ItemServiceImpl implements ItemService {
             itemMenu.setItemName(itemName);
             itemMenu.setItemPrice(itemPrice);
             itemMenu.setImageUrl(imageUrl);
+            itemMenu.setAvailableStatus(true);
             itemMenu.setItemCategory(itemCategory);
 
             itemCategory.getItemMenus().add(itemMenu);
@@ -107,18 +108,19 @@ public class ItemServiceImpl implements ItemService {
                 .build();
     }
 
-    public ItemMenuResponse editItemMenu(String itemId, String itemName, BigDecimal itemPrice, Boolean breakfast, Boolean lunch, Boolean dinner, String categoryId, MultipartFile file) throws IOException {
+    public ItemMenuResponse editItemMenu(String itemId, String itemName, BigDecimal itemPrice, String categoryId, Boolean availableStatus, MultipartFile file) throws IOException {
 
-        Vendor vendor = getAuthenticatedVendor();
+        String vendorId = getAuthenticatedVendor().getId();
 
-        ItemMenu itemMenu = itemMenuRepository.findByItemIdAndVendorId(itemId, vendor.getId())
+        ItemMenu itemMenu = itemMenuRepository.findByItemIdAndVendorId(itemId, vendorId)
                 .orElseThrow(() -> new CustomException("Item not found for the vendor"));
 
-        ItemCategory itemCategory = itemCategoryRepository.findByVendorIdAndCategoryId(vendor.getId(), categoryId)
+        ItemCategory itemCategory = itemCategoryRepository.findByVendorIdAndCategoryId(vendorId, categoryId)
                 .orElseThrow(() -> new CustomException("Food category not found for the vendor"));
 
         itemMenu.setItemName(itemName);
         itemMenu.setItemPrice(itemPrice);
+        itemMenu.setAvailableStatus(availableStatus);
 
         if (file != null && !file.isEmpty()) {
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
@@ -201,6 +203,34 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
+    public List<ItemDetailsResponse> getAllVendorItems() {
+        Vendor vendor = getAuthenticatedVendor();
+
+        List<ItemMenu> vendorItems = itemMenuRepository.findAllByVendorId(vendor.getId());
+
+        Map<String, Long> itemMenuOrdersCountMap = getOrderCountByItemMenuName();
+
+        return vendorItems.stream()
+                .map(itemMenu -> {
+                    String itemName = itemMenu.getItemName();
+                    Long orderCount = itemMenuOrdersCountMap.getOrDefault(itemName, 0L);
+
+                    return ItemDetailsResponse.builder()
+                            .itemId(itemMenu.getItemId())
+                            .itemName(itemMenu.getItemName())
+                            .itemCategory(itemMenu.getItemCategory().getCategoryName())
+                            .itemPrice(itemMenu.getItemPrice())
+                            .availableStatus(itemMenu.getAvailableStatus())
+                            .averageRating(itemMenu.getAverageRating())
+                            .createdAt(itemMenu.getCreatedAt())
+                            .updatedAt(itemMenu.getUpdatedAt())
+                            .orderCount(orderCount)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+
     public List<SupplementResponse> getAllSupplements() {
         Vendor vendor = getAuthenticatedVendor();
 
@@ -228,7 +258,7 @@ public class ItemServiceImpl implements ItemService {
         return itemMenuRepository.findByItemId(id);
     }
 
-    // Other methods **************************************************************
+    /*************************** HELPER METHODS ***********************/
 
     private ItemCategory mapItemCategoryRequestToEntity(CategoryRequest categoryRequest) {
         ItemCategory itemCategory = new ItemCategory();
@@ -244,5 +274,30 @@ public class ItemServiceImpl implements ItemService {
             throw new CustomException("Vendor not found");
         }
         return vendor;
+    }
+
+    private Map<String, Long> getOrderCountByItemMenuName() {
+
+        Vendor vendor = getAuthenticatedVendor();
+
+        List<Order> allOrders = orderRepository.findOrdersByVendor(vendor);
+
+        Map<String, Long> itemMenuOrdersCountMap = new HashMap<>();
+
+        for (Order order : allOrders) {
+            // Iterate through the cartItems map
+            for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
+                String itemId = entry.getKey();
+                int quantity = entry.getValue();
+
+                // Retrieve the ItemMenu object from your data source using itemId
+                ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
+                String itemName = itemMenu.getItemName();
+
+                // Increment the count by the quantity
+                itemMenuOrdersCountMap.put(itemName, itemMenuOrdersCountMap.getOrDefault(itemName, 0L) + quantity);
+            }
+        }
+        return itemMenuOrdersCountMap;
     }
 }

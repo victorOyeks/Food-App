@@ -19,11 +19,12 @@ public interface OrderRepository extends JpaRepository <Order, String> {
 //    @Query("SELECT o FROM Order o JOIN o.itemMenus i JOIN i.itemCategory c WHERE c.vendor = ?1")
 //    List<Order> findOrdersByVendor (Vendor vendor);
 
-    @Query("SELECT o FROM Order o JOIN o.itemMenus c WHERE KEY(c) = ?1")
+    @Query("SELECT o FROM Order o WHERE o.vendor = ?1")
     List<Order> findOrdersByVendor(Vendor vendor);
 
-    @Query("SELECT o FROM Order o JOIN o.itemMenus c WHERE KEY(c) = ?1 AND o.orderId = ?2")
-    Order findAnOrderByVendor(Vendor vendor, String orderId);
+//    @Query("SELECT o FROM Order o JOIN o.company c WHERE c.id = ?1 AND o.orderId = ?2")
+    Order findByOrderIdAndVendorId(String orderId, String vendorId);
+
 
 //    @Query("SELECT o FROM Order o JOIN o.itemMenus i JOIN i.itemCategory c WHERE c.vendor = ?1 and o.orderId = ?2")
 //    Order findAnOrdersByVendor (Vendor vendor, String orderId);

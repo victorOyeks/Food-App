@@ -31,6 +31,10 @@ public class Order {
     @JoinColumn(name = "company_id")
     private Company company;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vendor_id")
+    private Vendor vendor;
+
     @ElementCollection
     @CollectionTable(name = "order_item_menus", joinColumns = @JoinColumn(name = "order_id"))
     @MapKeyJoinColumn(name = "item_menu_id") // Map key column for itemMenu IDs

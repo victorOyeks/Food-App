@@ -58,6 +58,10 @@ public class Vendor{
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Supplement> supplements = new ArrayList<>();
 
+    @JsonIgnoreProperties("vendor")
+    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Order> orders = new ArrayList<>();
+
     private Double averageRating;
     private Long totalRatings;
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)

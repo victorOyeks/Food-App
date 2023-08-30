@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface OrderService {
     List<FoodDataResponse> viewAllItemMenus();
+    List<SupplementResponse> viewAllSupplements(String vendorId);
     String addFoodToCartForIndividual(String vendorId, String menuId);
     String addFoodToCartForCompany(String vendorId, String menuId);
     //String selectItemForCompany(String vendorId, String menuId);
@@ -16,6 +17,7 @@ public interface OrderService {
     UserOrderDetailsResponse viewOrderByOrderIdForCompany(String orderId);
     //OrderViewResponse viewAllOrdersByUser();
     UserOrderViewResponse viewSimplifiedOrdersByUser();
+    UserOrderViewResponse viewSimplifiedOrdersByCompany();
 //    UserOrderDetailsResponse viewOrderById(String orderId);
     OrderViewResponse viewUserCart();
     String deleteItem(String orderId, String foodItemId);

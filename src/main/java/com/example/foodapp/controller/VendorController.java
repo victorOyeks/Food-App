@@ -1,6 +1,7 @@
 package com.example.foodapp.controller;
 
 import com.example.foodapp.constant.TimeFrame;
+import com.example.foodapp.payloads.request.ChangePasswordRequest;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.service.VendorService;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,6 @@ public class VendorController {
     public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllOrdersToVendor(@RequestParam(required = false) TimeFrame timeFrame) {
         List<OrderDetailsResponse> orders = vendorService.viewAllOrdersToVendor(timeFrame);
         ApiResponse<List<OrderDetailsResponse>> apiResponse = new ApiResponse<>(orders);
-//        OrderSummary orderSummary = vendorService.calculateOrderSummary(orders);
-//        OrderViewResponse orderViewResponse = new OrderViewResponse(orders, orderSummary);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -40,6 +39,12 @@ public class VendorController {
         ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(
                 vendorService.updateVendorProfile(firstName, lastName, phone, businessName, domainName,
                         businessAddress, file));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PutMapping("change-password")
+    public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+        ApiResponse<String> apiResponse = new ApiResponse<>(vendorService.changePassword(changePasswordRequest));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

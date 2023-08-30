@@ -24,6 +24,13 @@ public class OrderController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
+    @GetMapping("supplements")
+    public ResponseEntity<ApiResponse<List<SupplementResponse>>> viewAllSupplements(@RequestParam String vendorId) {
+        List<SupplementResponse> supplementResponses = orderService.viewAllSupplements(vendorId);
+        ApiResponse<List<SupplementResponse>> apiResponse = new ApiResponse<>(supplementResponses);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
     /*
     @PostMapping("/vendors/{vendorId}/select-item-individual")
     public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId, @RequestParam String menuId) {
@@ -43,14 +50,6 @@ public class OrderController {
         ApiResponse<String> apiResponse = new ApiResponse<>(selectedItem);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
-    /* @PostMapping("/vendors/{vendorId}/select-item-company")
-    public ResponseEntity<ApiResponse<String>> selectItemsForCompany(@PathVariable String vendorId,
-                                                                         @RequestParam String menuId) {
-        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.addFoodToCartForCompany(vendorId, menuId));
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
-     */
 
     @PostMapping("/vendors/{vendorId}/add-supplement-to-cart")
     public ResponseEntity<ApiResponse<String>> selectSupplementForIndividuals(@PathVariable String vendorId,
@@ -79,8 +78,15 @@ public class OrderController {
 
     @GetMapping()
     public ResponseEntity<ApiResponse<UserOrderViewResponse>> viewSimplifiedOrdersByUser() {
-        ApiResponse<UserOrderViewResponse> orderViewResponse = new ApiResponse<>(orderService.viewSimplifiedOrdersByUser());
-        return new ResponseEntity<>(orderViewResponse, HttpStatus.OK);
+
+        UserOrderViewResponse orderViewResponse;
+        try{
+            orderViewResponse = orderService.viewSimplifiedOrdersByUser();
+        } catch (CustomException customException){
+            orderViewResponse = orderService.viewSimplifiedOrdersByCompany();
+        }
+        ApiResponse<UserOrderViewResponse> apiResponse = new ApiResponse<>(orderViewResponse);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @DeleteMapping("{orderId}/itemMenu")
@@ -100,14 +106,11 @@ public class OrderController {
     public ResponseEntity<UserOrderDetailsResponse> viewOrderDetails(@RequestParam String orderId) {
         UserOrderDetailsResponse orderDetailsResponse;
         try {
-            // Attempt to view the order as a user
             orderDetailsResponse = orderService.viewOrderByOrderIdForUser(orderId);
         } catch (CustomException userException) {
             try {
-                // If not found for the user, attempt to view as a company
                 orderDetailsResponse = orderService.viewOrderByOrderIdForCompany(orderId);
             } catch (CustomException companyException) {
-                // If not found for both, return a not found response
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         }

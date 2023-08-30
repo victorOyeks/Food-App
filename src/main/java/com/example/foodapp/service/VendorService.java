@@ -1,6 +1,7 @@
 package com.example.foodapp.service;
 
 import com.example.foodapp.constant.TimeFrame;
+import com.example.foodapp.payloads.request.ChangePasswordRequest;
 import com.example.foodapp.payloads.request.VendorRegistrationRequest;
 import com.example.foodapp.payloads.response.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +14,7 @@ public interface VendorService {
     BusinessRegistrationResponse updateVendorProfile(String firstName, String lastName,
                                                      String phone, String businessName, String domainName,
                                                      String businessAddress, MultipartFile file) throws IOException;
+    String changePassword(ChangePasswordRequest request);
     List<OrderDetailsResponse> viewAllOrdersToVendor(TimeFrame timeFrame);
     AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId);
     BusinessRegistrationResponse viewVendorProfile();

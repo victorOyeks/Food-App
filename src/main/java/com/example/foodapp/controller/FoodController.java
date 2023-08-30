@@ -2,10 +2,7 @@ package com.example.foodapp.controller;
 
 import com.example.foodapp.payloads.request.CategoryRequest;
 import com.example.foodapp.payloads.request.SupplementRequest;
-import com.example.foodapp.payloads.response.ApiResponse;
-import com.example.foodapp.payloads.response.CategoryResponse;
-import com.example.foodapp.payloads.response.ItemMenuResponse;
-import com.example.foodapp.payloads.response.SupplementResponse;
+import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,11 +27,11 @@ public class FoodController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PostMapping("category/{categoryId}/add-item-menu")
+    @PostMapping("category/add-item-menu")
     public ResponseEntity<ApiResponse<ItemMenuResponse>> addFoodMenu(@RequestParam String itemName,
                                                                      @RequestParam BigDecimal itemPrice,
                                                                      @RequestParam (required = false) MultipartFile file,
-                                                                     @PathVariable  String categoryId) throws IOException {
+                                                                     @RequestParam  String categoryId) throws IOException {
         ApiResponse<ItemMenuResponse> apiResponse = new ApiResponse<>(itemService.addItemMenu(itemName, itemPrice, categoryId, file));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
@@ -45,16 +42,14 @@ public class FoodController {
             return new ResponseEntity<>(apiResponse, HttpStatus.OK);
         }
 
-    @PutMapping("/category/edit-item-menu")
+    @PutMapping("/edit-item-menu")
     public ResponseEntity<ApiResponse<ItemMenuResponse>> editFoodMenu(@RequestParam String itemId,
                                                                       @RequestParam String itemName,
                                                                       @RequestParam BigDecimal itemPrice,
-                                                                      @RequestParam Boolean breakfast,
-                                                                      @RequestParam Boolean lunch,
-                                                                      @RequestParam Boolean dinner,
                                                                       @RequestParam String categoryId,
+                                                                      @RequestParam Boolean availableStatus,
                                                                       @RequestParam(required = false) MultipartFile file) throws IOException {
-        ApiResponse<ItemMenuResponse> apiResponse = new ApiResponse<>(itemService.editItemMenu(itemId, itemName, itemPrice, breakfast, lunch, dinner, categoryId, file));
+        ApiResponse<ItemMenuResponse> apiResponse = new ApiResponse<>(itemService.editItemMenu(itemId, itemName, itemPrice, categoryId, availableStatus, file));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -80,6 +75,12 @@ public class FoodController {
     @GetMapping("item-category")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllItemsCategory() {
         ApiResponse<List<CategoryResponse>> apiResponse = new ApiResponse<>(itemService.getAllItemCategory());
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("item-list")
+    public ResponseEntity<ApiResponse<List<ItemDetailsResponse>>> getAllItemsForVendors() {
+        ApiResponse<List<ItemDetailsResponse>> apiResponse = new ApiResponse<>(itemService.getAllVendorItems());
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

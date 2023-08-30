@@ -48,6 +48,24 @@ public class OrderServiceImpl implements OrderService {
         return foodDataResponse;
     }
 
+    public List<SupplementResponse> viewAllSupplements(String vendorId) {
+        List<SupplementResponse> supplementResponses = new ArrayList<>();
+
+        List<Supplement> supplements = supplementRepository.findByVendorId(vendorId);
+
+        for (Supplement supplement : supplements) {
+
+            supplementResponses.add(SupplementResponse.builder()
+                    .supplementId(supplement.getSupplementId())
+                    .supplementName(supplement.getSupplementName())
+                    .supplementPrice(supplement.getSupplementPrice())
+                    .supplementCategory(supplement.getSupplementCategory())
+                    .build());
+        }
+
+        return supplementResponses;
+    }
+
 
     public String addFoodToCartForIndividual(String vendorId, String menuId) {
 
@@ -79,6 +97,7 @@ public class OrderServiceImpl implements OrderService {
             } else {
                 Order newOrder = new Order();
                 newOrder.setUser(user);
+                newOrder.setVendor(vendor);
 
                 // Initialize cart with the selected item and quantity 1
                 Map<String, Integer> cartItems = new HashMap<>();
@@ -132,6 +151,7 @@ public class OrderServiceImpl implements OrderService {
             } else {
                 Order newOrder = new Order();
                 newOrder.setCompany(company);
+                newOrder.setVendor(vendor);
 
                 // Initialize cart with the selected item and quantity 1
                 Map<String, Integer> cartItems = new HashMap<>();
@@ -187,6 +207,7 @@ public class OrderServiceImpl implements OrderService {
         } else {
             Order newOrder = new Order();
             newOrder.setUser(user);
+            newOrder.setVendor(vendor);
 
             // Initialize cart with the selected supplement and quantity 1
             Map<String, Integer> cartSupplements = new HashMap<>();
@@ -239,6 +260,7 @@ public class OrderServiceImpl implements OrderService {
         } else {
             Order newOrder = new Order();
             newOrder.setCompany(company);
+            newOrder.setVendor(vendor);
 
             // Initialize cart with the selected supplement and quantity 1
             Map<String, Integer> cartSupplements = new HashMap<>();
@@ -296,16 +318,16 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    /*
-    public OrderViewResponse viewAllOrdersByUser() {
-        String userId = getAuthenticatedUser().getId();
-        return viewAllOrdersInternal(orderRepository.findOrdersByUserId(userId));
-    }
-     */
-
     public UserOrderViewResponse viewSimplifiedOrdersByUser() {
         String userId = getAuthenticatedUser().getId();
         List<Order> userOrders = orderRepository.findOrdersByUserId(userId);
+        List<SimplifiedOrderResponse> simplifiedOrders = viewSimplifiedOrdersInternal(userOrders);
+        return new UserOrderViewResponse(simplifiedOrders, null);
+    }
+
+    public UserOrderViewResponse viewSimplifiedOrdersByCompany() {
+        String companyId = getAuthenticatedCompany().getId();
+        List<Order> userOrders = orderRepository.findOrdersByCompanyId(companyId);
         List<SimplifiedOrderResponse> simplifiedOrders = viewSimplifiedOrdersInternal(userOrders);
         return new UserOrderViewResponse(simplifiedOrders, null);
     }
@@ -337,7 +359,6 @@ public class OrderServiceImpl implements OrderService {
         }
         throw new CustomException("Food item not found in the order!!!");
     }
-
      */
 
     public String deleteItem(String orderId, String foodItemId) {
@@ -378,16 +399,6 @@ public class OrderServiceImpl implements OrderService {
 
     /*********************** HELPER METHODS ************************/
 
-    /* private BigDecimal calculateTotalAmount(Order order) {
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        for (ItemMenu itemMenu : order.getItemMenus()) {
-            totalAmount = totalAmount.add(itemMenu.getItemPrice());
-        }
-        return totalAmount;
-    }
-
-     */
-
     private BigDecimal calculateTotalAmount(Order order) {
         BigDecimal totalAmount = BigDecimal.ZERO;
         Map<String, Integer> cartItems = order.getItemMenus();
@@ -426,46 +437,6 @@ public class OrderServiceImpl implements OrderService {
         }
         return company;
     }
-
-
-    /* private OrderViewResponse viewAllOrdersInternal(List<Order> orderList) {
-        List<OrderResponse> orderResponses = new ArrayList<>();
-        int totalFoodItems = 0;
-        BigDecimal totalSum = BigDecimal.ZERO;
-
-        for (Order order : orderList) {
-            List<FoodDataResponse> foodDataResponses = new ArrayList<>();
-
-            for (ItemMenu itemMenu : order.getItemMenus()) {
-                Vendor vendor = itemMenu.getItemCategory().getVendor();
-                foodDataResponses.add(FoodDataResponse.builder()
-                        .itemId(itemMenu.getItemId())
-//                        .recipient(order.getUser().getFirstName())
-                        .itemName(itemMenu.getItemName())
-                        .price(itemMenu.getItemPrice())
-                        .imageUri(itemMenu.getImageUrl())
-                        .vendorName(vendor.getBusinessName())
-                        .build());
-                totalFoodItems++;
-            }
-            orderResponses.add(OrderResponse.builder()
-                    .orderId(order.getOrderId())
-                    .items(foodDataResponses)
-                    .totalAmount(order.getTotalAmount())
-                    .build());
-
-            totalSum = totalSum.add(order.getTotalAmount());
-        }
-
-        OrderSummary orderSummary = OrderSummary.builder()
-                .totalItems(totalFoodItems)
-                .totalSum(totalSum)
-                .build();
-
-        return new OrderViewResponse(orderResponses, orderSummary);
-    }
-
-     */
 
     private OrderViewResponse viewAllOrdersInternal(List<Order> orderList) {
         List<OrderResponse> orderResponses = new ArrayList<>();
@@ -532,7 +503,6 @@ public class OrderServiceImpl implements OrderService {
         return new OrderViewResponse(orderResponses, orderSummary);
     }
 
-
     private List<SimplifiedOrderResponse> viewSimplifiedOrdersInternal(List<Order> orderList) {
         List<SimplifiedOrderResponse> simplifiedOrderResponses = new ArrayList<>();
 
@@ -547,36 +517,23 @@ public class OrderServiceImpl implements OrderService {
         return simplifiedOrderResponses;
     }
 
-/*    private UserOrderDetailsResponse buildOrderResponse(Order order) {
-        List<FoodDataResponse> foodDataResponses = new ArrayList<>();
-
-        for (ItemMenu itemMenu : order.getItemMenus()) {
-            Vendor vendor = itemMenu.getItemCategory().getVendor();
-            foodDataResponses.add(FoodDataResponse.builder()
-                    .itemId(itemMenu.getItemId())
-                    .itemName(itemMenu.getItemName())
-                    .price(itemMenu.getItemPrice())
-                    .imageUri(itemMenu.getImageUrl())
-                    .vendorName(vendor.getBusinessName())
-                    .build());
-        }
-
-        return UserOrderDetailsResponse.builder()
-                .orderId(order.getOrderId())
-                .itemMenu(order.getItemMenus())
-                .totalAmount(order.getTotalAmount())
-                .paymentStatus(order.getPaymentStatus())
-                .deliveryStatus(order.getDeliveryStatus())
-                .build();
-    }
-
- */
-
     private UserOrderDetailsResponse buildOrderResponse(Order order) {
         List<FoodDataResponse> foodDataResponses = new ArrayList<>();
 
-        // Iterate through the cartItems map
+        // Accumulate quantities for each item menu
+        Map<String, Integer> accumulatedQuantities = new HashMap<>();
+
+        // Iterate through the itemMenus map
         for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
+            String itemId = entry.getKey();
+            int quantity = entry.getValue();
+
+            // Accumulate quantities for each item menu
+            accumulatedQuantities.put(itemId, accumulatedQuantities.getOrDefault(itemId, 0) + quantity);
+        }
+
+        // Iterate through the accumulated quantities map
+        for (Map.Entry<String, Integer> entry : accumulatedQuantities.entrySet()) {
             String itemId = entry.getKey();
             int quantity = entry.getValue();
 
@@ -584,21 +541,39 @@ public class OrderServiceImpl implements OrderService {
             ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
             Vendor vendor = itemMenu.getItemCategory().getVendor();
 
-            // Create multiple FoodDataResponse objects based on the quantity
-            for (int i = 0; i < quantity; i++) {
-                foodDataResponses.add(FoodDataResponse.builder()
-                        .itemId(itemId)
-                        .itemName(itemMenu.getItemName())
-                        .price(itemMenu.getItemPrice())
-                        .imageUri(itemMenu.getImageUrl())
-                        .vendorName(vendor.getBusinessName())
-                        .build());
-            }
+            // Create a FoodDataResponse object for each item menu
+            foodDataResponses.add(FoodDataResponse.builder()
+                    .itemId(itemId)
+                    .itemName(itemMenu.getItemName())
+                    .price(itemMenu.getItemPrice())
+                    .quantity(quantity)
+                    .imageUri(itemMenu.getImageUrl())
+                    .vendorName(vendor.getBusinessName())
+                    .build());
+        }
+
+        // Iterate through the supplements map
+        for (Map.Entry<String, Integer> entry : order.getSupplements().entrySet()) {
+            String supplementId = entry.getKey();
+            int quantity = entry.getValue();
+
+            // Retrieve the Supplement object from your data source using supplementId
+            Supplement supplement = supplementRepository.findBySupplementId(supplementId);
+
+            // Create a FoodDataResponse object for each supplement
+            foodDataResponses.add(FoodDataResponse.builder()
+                    .itemId(supplement.getSupplementId())
+                    .itemName(supplement.getSupplementName())
+                    .price(supplement.getSupplementPrice())
+                    .quantity(quantity)
+                    .imageUri(null)
+                    .vendorName(supplement.getVendor().getBusinessName())
+                    .build());
         }
 
         return UserOrderDetailsResponse.builder()
                 .orderId(order.getOrderId())
-                .itemMenu(foodDataResponses) // Use foodDataResponses instead of order.getItemMenus()
+                .itemMenu(foodDataResponses)
                 .totalAmount(order.getTotalAmount())
                 .paymentStatus(order.getPaymentStatus())
                 .deliveryStatus(order.getDeliveryStatus())

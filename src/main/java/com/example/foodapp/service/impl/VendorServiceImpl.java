@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.foodapp.constant.OrderType;
 import com.example.foodapp.constant.TimeFrame;
+import com.example.foodapp.payloads.request.ChangePasswordRequest;
 import com.example.foodapp.payloads.request.EmailDetails;
 import com.example.foodapp.payloads.request.VendorRegistrationRequest;
 import com.example.foodapp.payloads.response.*;
@@ -37,8 +38,8 @@ public class VendorServiceImpl implements VendorService {
     private final CompanyRepository companyRepository;
     private final OrderRepository orderRepository;
     private final Cloudinary cloudinary;
-    private final VendorReviewRepository vendorReviewRepository;
     private final ItemMenuRepository itemMenuRepository;
+    private final SupplementRepository supplementRepository;
 
     @Override
     public BusinessRegistrationResponse vendorSignup(VendorRegistrationRequest request) {
@@ -161,37 +162,26 @@ public class VendorServiceImpl implements VendorService {
                 .build();
     }
 
-//    public List<OrderResponse> viewAllOrdersToVendor() {
-//        Vendor vendor = getAuthenticatedVendor();
-//        List<Order> orders = orderRepository.findOrdersByVendor(vendor);
-//
-//        List<OrderResponse> orderResponses = new ArrayList<>();
-//
-//        for (Order order : orders) {
-//            List<FoodDataResponse> foodDataResponses = new ArrayList<>();
-//
-//            for (ItemMenu itemMenu : order.getItemMenu()) {
-//                Vendor orderVendor = itemMenu.getItemCategory().getVendor();
-//                if (orderVendor.equals(vendor)) {
-//                    foodDataResponses.add(FoodDataResponse.builder()
-//                            .itemId(itemMenu.getItemId())
-//                            .itemName(itemMenu.getItemName())
-//                            .price(itemMenu.getItemPrice())
-//                            .vendorName(vendor.getBusinessName())
-//                            .build());
-//                }
-//            }
-//
-//            if (!foodDataResponses.isEmpty()) {
-//                orderResponses.add(OrderResponse.builder()
-//                        .orderId(order.getOrderId())
-//                        .items(foodDataResponses)
-//                        .totalAmount(order.getTotalAmount())
-//                        .build());
-//            }
-//        }
-//        return orderResponses;
-//    }
+    public String changePassword(ChangePasswordRequest request) {
+        Vendor existingVendor = getAuthenticatedVendor();
+
+        if (!passwordEncoder.matches(request.getOldPassword(), existingVendor.getPassword())) {
+            throw new CustomException("Incorrect old password");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            System.out.println("New password: " + request.getNewPassword());
+            System.out.println("Confirm password: " + request.getConfirmNewPassword());
+            throw new CustomException("New password and confirm password do not match");
+        }
+
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+        existingVendor.setPassword(encodedPassword);
+
+        vendorRepository.save(existingVendor);
+
+        return "Password changed successfully!!!";
+    }
 
 
     public List<OrderDetailsResponse> viewAllOrdersToVendor(TimeFrame timeFrame) {
@@ -273,7 +263,7 @@ public class VendorServiceImpl implements VendorService {
         User user = userRepository.findById(userIdOrCompanyId).orElse(null);
         Company company = companyRepository.findById(userIdOrCompanyId).orElse(null);
 
-        Order order = orderRepository.findAnOrderByVendor(vendor, orderId);
+        Order order = orderRepository.findByOrderIdAndVendorId(orderId, vendor.getId());
         if (order != null) {
             // Check if the order belongs to the specified user or company
             if ((user != null && order.getUser().getId().equals(userIdOrCompanyId)) ||
@@ -403,23 +393,56 @@ public class VendorServiceImpl implements VendorService {
     private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email) {
         List<FoodDataResponse> foodDataResponses = new ArrayList<>();
 
-        for(Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
+        // Accumulate quantities for each item menu
+        Map<String, Integer> accumulatedQuantities = new HashMap<>();
+
+        // Iterate through the itemMenus map
+        for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
             String itemId = entry.getKey();
-            Integer quantity = entry.getValue();
+            int quantity = entry.getValue();
+
+            // Accumulate quantities for each item menu
+            accumulatedQuantities.put(itemId, accumulatedQuantities.getOrDefault(itemId, 0) + quantity);
+        }
+
+        // Iterate through the accumulated quantities map
+        for (Map.Entry<String, Integer> entry : accumulatedQuantities.entrySet()) {
+            String itemId = entry.getKey();
+            int quantity = entry.getValue();
 
             ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
             Vendor vendor = itemMenu.getItemCategory().getVendor();
 
-            for(int i = 0; i < quantity; i++) {
-
+            for (int i = 0; i < quantity; i++) {
                 foodDataResponses.add(FoodDataResponse.builder()
-                        .itemId(itemMenu.getItemId())
+                        .itemId(itemId)
                         .itemName(itemMenu.getItemName())
                         .price(itemMenu.getItemPrice())
                         .vendorName(vendor.getBusinessName())
                         .build());
             }
         }
+
+        // Iterate through the supplements map
+        for (Map.Entry<String, Integer> entry : order.getSupplements().entrySet()) {
+            String supplementId = entry.getKey();
+            int quantity = entry.getValue();
+
+            Supplement supplement = supplementRepository.findBySupplementId(supplementId);
+
+            // If the supplement was found, create FoodDataResponse objects for it
+            if (supplement != null) {
+                for (int i = 0; i < quantity; i++) {
+                    foodDataResponses.add(FoodDataResponse.builder()
+                            .itemId(supplement.getSupplementId())
+                            .itemName(supplement.getSupplementName())
+                            .price(supplement.getSupplementPrice())
+                            .vendorName(supplement.getVendor().getBusinessName())
+                            .build());
+                }
+            }
+        }
+
         return AdminOrderResponse.builder()
                 .orderId(order.getOrderId())
                 .items(foodDataResponses)
@@ -433,4 +456,5 @@ public class VendorServiceImpl implements VendorService {
                 .createdAt(order.getCreatedAt())
                 .build();
     }
+
 }
