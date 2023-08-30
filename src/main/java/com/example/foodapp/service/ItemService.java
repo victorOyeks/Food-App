@@ -15,11 +15,13 @@ import java.util.List;
 public interface ItemService {
     CategoryResponse addItemCategory(CategoryRequest request);
     ItemMenuResponse addItemMenu(String itemName, BigDecimal itemPrice, String categoryId, MultipartFile file) throws IOException;
+    SupplementResponse addSupplement(SupplementRequest supplementRequest);
     ItemMenuResponse editItemMenu(String itemId, String itemName, BigDecimal itemPrice, Boolean breakfast, Boolean lunch, Boolean dinner, String categoryId, MultipartFile file) throws IOException;
     CategoryResponse editItemCategory(String categoryId, CategoryRequest request);
     CategoryResponse getItemCategory(String categoryId);
     void deleteItemMenu(String itemId, String categoryId);
     List<CategoryResponse> getAllItemCategory();
+    List<SupplementResponse> getAllSupplements();
     void deleteItemCategory(String categoryId);
     ItemMenu getFile(String id);
     }

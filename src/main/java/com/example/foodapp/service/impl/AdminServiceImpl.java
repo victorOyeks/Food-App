@@ -528,6 +528,7 @@ public class AdminServiceImpl implements AdminService {
                 orderDetails.setOrderType(getOrderType(order));
                 orderDetails.setAmount(order.getTotalAmount());
                 orderDetails.setDeliveryStatus(order.getDeliveryStatus());
+                orderDetails.setPaymentStatus(order.getPaymentStatus());
                 orderDetailsResponses.add(orderDetails);
             }
         }
@@ -651,7 +652,7 @@ public class AdminServiceImpl implements AdminService {
     }
     */
 
-    private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email, Boolean active) {
+    /* private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email, Boolean active) {
             List<FoodDataResponse> foodDataResponses = new ArrayList<>();
             for (ItemMenu itemMenu : order.getItemMenus()) {
                 Vendor vendor = itemMenu.getItemCategory().getVendor();
@@ -677,6 +678,57 @@ public class AdminServiceImpl implements AdminService {
                     .customerStatus(active)
                     .build();
     }
+     */
+
+    private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email, Boolean active) {
+        Map<String, FoodDataResponse> foodDataResponseMap = new HashMap<>();
+
+        // Iterate through the cartItems map
+        for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
+            String itemId = entry.getKey();
+            int quantity = entry.getValue();
+
+            // Retrieve the ItemMenu object from your data source using itemId
+            ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
+            Vendor vendor = itemMenu.getItemCategory().getVendor();
+
+            // Check if a FoodDataResponse already exists for the item
+            if (foodDataResponseMap.containsKey(itemId)) {
+                // If yes, update the quantity
+                FoodDataResponse existingResponse = foodDataResponseMap.get(itemId);
+                existingResponse.setQuantity(existingResponse.getQuantity() + quantity);
+            } else {
+                // If no, create a new FoodDataResponse
+                FoodDataResponse newResponse = FoodDataResponse.builder()
+                        .itemId(itemId)
+                        .itemName(itemMenu.getItemName())
+                        .price(itemMenu.getItemPrice())
+                        .quantity(quantity)
+                        .imageUri(itemMenu.getImageUrl())
+                        .vendorName(vendor.getBusinessName())
+                        .build();
+                foodDataResponseMap.put(itemId, newResponse);
+            }
+        }
+
+        List<FoodDataResponse> foodDataResponses = new ArrayList<>(foodDataResponseMap.values());
+
+        return AdminOrderResponse.builder()
+                .orderId(order.getOrderId())
+                .items(foodDataResponses)
+                .orderType(orderType)
+                .customerName(customerName)
+                .profilePic(profilePic)
+                .phone(phone)
+                .email(email)
+                .totalAmount(order.getTotalAmount())
+                .deliveryStatus(order.getDeliveryStatus())
+                .createdAt(order.getCreatedAt())
+                .customerStatus(active)
+                .build();
+    }
+
+
 
     private String getCustomerName(Order order) {
         if (order.getUser() != null) {
@@ -708,7 +760,7 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    private Map<String, Long> getOrderCountByItemMenuName() {
+    /* private Map<String, Long> getOrderCountByItemMenuName() {
         List<Order> allOrders = orderRepository.findAll();
         Map<String, Long> itemMenuOrdersCountMap = new HashMap<>();
 
@@ -716,6 +768,29 @@ public class AdminServiceImpl implements AdminService {
             for (ItemMenu itemMenu : order.getItemMenus()) {
                 String itemName = itemMenu.getItemName();
                 itemMenuOrdersCountMap.put(itemName, itemMenuOrdersCountMap.getOrDefault(itemName, 0L) + 1);
+            }
+        }
+        return itemMenuOrdersCountMap;
+    }
+
+     */
+
+    private Map<String, Long> getOrderCountByItemMenuName() {
+        List<Order> allOrders = orderRepository.findAll();
+        Map<String, Long> itemMenuOrdersCountMap = new HashMap<>();
+
+        for (Order order : allOrders) {
+            // Iterate through the cartItems map
+            for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
+                String itemId = entry.getKey();
+                int quantity = entry.getValue();
+
+                // Retrieve the ItemMenu object from your data source using itemId
+                ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
+                String itemName = itemMenu.getItemName();
+
+                // Increment the count by the quantity
+                itemMenuOrdersCountMap.put(itemName, itemMenuOrdersCountMap.getOrDefault(itemName, 0L) + quantity);
             }
         }
         return itemMenuOrdersCountMap;

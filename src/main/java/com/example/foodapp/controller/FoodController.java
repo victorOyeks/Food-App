@@ -39,6 +39,12 @@ public class FoodController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
+    @PostMapping("add-supplements")
+        public ResponseEntity<ApiResponse<SupplementResponse>> addSupplement(@RequestBody SupplementRequest supplementRequest){
+            ApiResponse<SupplementResponse> apiResponse = new ApiResponse<>(itemService.addSupplement(supplementRequest));
+            return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+        }
+
     @PutMapping("/category/edit-item-menu")
     public ResponseEntity<ApiResponse<ItemMenuResponse>> editFoodMenu(@RequestParam String itemId,
                                                                       @RequestParam String itemName,
@@ -74,6 +80,12 @@ public class FoodController {
     @GetMapping("item-category")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllItemsCategory() {
         ApiResponse<List<CategoryResponse>> apiResponse = new ApiResponse<>(itemService.getAllItemCategory());
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("supplements")
+    public ResponseEntity<ApiResponse<List<SupplementResponse>>> getAllSupplements() {
+        ApiResponse<List<SupplementResponse>> apiResponse = new ApiResponse<>(itemService.getAllSupplements());
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

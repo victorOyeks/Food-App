@@ -1,5 +1,8 @@
 package com.example.foodapp.entities;
 
+import com.example.foodapp.constant.SupplementCategory;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,7 +20,10 @@ public class Supplement {
     private String supplementId;
     private String supplementName;
     private BigDecimal supplementPrice;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "supplement_category_id")
     private SupplementCategory supplementCategory;
+    @JsonIgnore
+    @JsonIgnoreProperties("supplement")
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "vendor_id")
+    private Vendor vendor;
 }

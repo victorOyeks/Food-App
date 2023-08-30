@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,11 +31,19 @@ public class Order {
     @JoinColumn(name = "company_id")
     private Company company;
 
-    @ManyToMany
-    private List<ItemMenu> itemMenus;
+    @ElementCollection
+    @CollectionTable(name = "order_item_menus", joinColumns = @JoinColumn(name = "order_id"))
+    @MapKeyJoinColumn(name = "item_menu_id") // Map key column for itemMenu IDs
+    @Column(name = "quantity")
+    private Map<String, Integer> itemMenus;
+//    @ManyToMany
+//    private List<ItemMenu> itemMenus;
 
-    @ManyToMany
-    private List<Supplement> supplements;
+    @ElementCollection
+    @CollectionTable(name = "order_supplements", joinColumns = @JoinColumn(name = "order_id"))
+    @MapKeyJoinColumn(name = "supplement_id") // Map key column for itemMenu IDs
+    @Column(name = "quantity")
+    private Map<String, Integer> supplements;
 
     private BigDecimal totalAmount;
 

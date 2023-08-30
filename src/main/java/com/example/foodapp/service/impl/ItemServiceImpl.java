@@ -88,6 +88,25 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
+    public SupplementResponse addSupplement(SupplementRequest supplementRequest) {
+
+        Vendor vendor = getAuthenticatedVendor();
+        Supplement supplement = new Supplement();
+        supplement.setSupplementName(supplementRequest.getSupplementName());
+        supplement.setSupplementPrice(supplementRequest.getSupplementPrice());
+        supplement.setSupplementCategory(supplementRequest.getSupplementCategory());
+        supplement.setVendor(vendor);
+
+        Supplement savedSupplement = supplementRepository.save(supplement);
+
+        return SupplementResponse.builder()
+                .supplementId(savedSupplement.getSupplementId())
+                .supplementName(savedSupplement.getSupplementName())
+                .supplementPrice(savedSupplement.getSupplementPrice())
+                .supplementCategory(savedSupplement.getSupplementCategory())
+                .build();
+    }
+
     public ItemMenuResponse editItemMenu(String itemId, String itemName, BigDecimal itemPrice, Boolean breakfast, Boolean lunch, Boolean dinner, String categoryId, MultipartFile file) throws IOException {
 
         Vendor vendor = getAuthenticatedVendor();
@@ -178,6 +197,21 @@ public class ItemServiceImpl implements ItemService {
                         .categoryId(foodCategory.getCategoryId())
                         .categoryName(foodCategory.getCategoryName())
                         .itemMenus(foodCategory.getItemMenus())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public List<SupplementResponse> getAllSupplements() {
+        Vendor vendor = getAuthenticatedVendor();
+
+        List<Supplement> supplements = supplementRepository.findByVendorId(vendor.getId());
+
+        return supplements.stream()
+                .map(supplement -> SupplementResponse.builder()
+                        .supplementId(supplement.getSupplementId())
+                        .supplementName(supplement.getSupplementName())
+                        .supplementPrice(supplement.getSupplementPrice())
+                        .supplementCategory(supplement.getSupplementCategory())
                         .build())
                 .collect(Collectors.toList());
     }

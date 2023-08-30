@@ -1,6 +1,5 @@
 package com.example.foodapp.controller;
 
-import com.example.foodapp.entities.Supplement;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.service.OrderService;
@@ -35,15 +34,24 @@ public class OrderController {
     @PostMapping("/vendors/{vendorId}/select-item-individual")
     public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId,
                                                                          @RequestParam String menuId) {
-        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectItemForIndividual(vendorId, menuId));
+        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.addFoodToCartForIndividual(vendorId, menuId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PostMapping("/vendors/{vendorId}/select-item-company")
+    @PostMapping("/vendors/{vendorId}/select-supplement-individual")
+    public ResponseEntity<ApiResponse<String>> selectSupplementForIndividuals(@PathVariable String vendorId,
+                                                                         @RequestParam String supplementId) {
+        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.addSupplementToCartForIndividual(vendorId, supplementId));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    /* @PostMapping("/vendors/{vendorId}/select-item-company")
     public ResponseEntity<ApiResponse<String>> selectItemsForCompanies(@PathVariable String vendorId, @RequestParam String menuId) {
         ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectItemForCompany(vendorId, menuId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
+     */
 
     @GetMapping("carts")
     public ResponseEntity<ApiResponse<OrderViewResponse>> viewAllOrders() {

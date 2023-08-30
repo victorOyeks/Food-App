@@ -38,6 +38,7 @@ public class VendorServiceImpl implements VendorService {
     private final OrderRepository orderRepository;
     private final Cloudinary cloudinary;
     private final VendorReviewRepository vendorReviewRepository;
+    private final ItemMenuRepository itemMenuRepository;
 
     @Override
     public BusinessRegistrationResponse vendorSignup(VendorRegistrationRequest request) {
@@ -272,7 +273,7 @@ public class VendorServiceImpl implements VendorService {
         User user = userRepository.findById(userIdOrCompanyId).orElse(null);
         Company company = companyRepository.findById(userIdOrCompanyId).orElse(null);
 
-        Order order = orderRepository.findAnOrdersByVendor(vendor, orderId);
+        Order order = orderRepository.findAnOrderByVendor(vendor, orderId);
         if (order != null) {
             // Check if the order belongs to the specified user or company
             if ((user != null && order.getUser().getId().equals(userIdOrCompanyId)) ||
@@ -401,16 +402,24 @@ public class VendorServiceImpl implements VendorService {
 
     private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email) {
         List<FoodDataResponse> foodDataResponses = new ArrayList<>();
-        for (ItemMenu itemMenu : order.getItemMenus()) {
-            Vendor vendor = itemMenu.getItemCategory().getVendor();
-            foodDataResponses.add(FoodDataResponse.builder()
-                    .itemId(itemMenu.getItemId())
-                    .itemName(itemMenu.getItemName())
-                    .price(itemMenu.getItemPrice())
-                    .vendorName(vendor.getBusinessName())
-                    .build());
-        }
 
+        for(Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
+            String itemId = entry.getKey();
+            Integer quantity = entry.getValue();
+
+            ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
+            Vendor vendor = itemMenu.getItemCategory().getVendor();
+
+            for(int i = 0; i < quantity; i++) {
+
+                foodDataResponses.add(FoodDataResponse.builder()
+                        .itemId(itemMenu.getItemId())
+                        .itemName(itemMenu.getItemName())
+                        .price(itemMenu.getItemPrice())
+                        .vendorName(vendor.getBusinessName())
+                        .build());
+            }
+        }
         return AdminOrderResponse.builder()
                 .orderId(order.getOrderId())
                 .items(foodDataResponses)

@@ -19,7 +19,7 @@ import java.util.List;
 public class UserOrderDetailsResponse {
 
     private String orderId;
-    private List<ItemMenu> itemMenu;
+    private List<FoodDataResponse> itemMenu;
     private BigDecimal totalAmount;
     private PaymentStatus paymentStatus;
     private DeliveryStatus deliveryStatus;

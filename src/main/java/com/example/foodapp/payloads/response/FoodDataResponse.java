@@ -19,5 +19,6 @@ public class FoodDataResponse {
     private String itemName;
     private BigDecimal price;
     private String imageUri;
+    private int quantity;
     private String vendorName;
 }
