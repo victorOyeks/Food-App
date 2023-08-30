@@ -48,52 +48,6 @@ public class OrderServiceImpl implements OrderService {
         return foodDataResponse;
     }
 
-   /* public String addFoodToCartForIndividual(String vendorId, String menuId) {
-
-        Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new CustomException("Vendor not found!!!"));
-        User user = getAuthenticatedUser();
-
-        ItemMenu selectedItemMenu = findFoodMenuById(vendor.getId(), menuId);
-
-        if (selectedItemMenu != null) {
-            Order existingOpenOrder = orderRepository.findOpenOrderByUser(user.getId());
-
-            if (existingOpenOrder != null) {
-                List<ItemMenu> selectedItemMenus = existingOpenOrder.getItemMenus();
-                selectedItemMenus.add(selectedItemMenu);
-                existingOpenOrder.setItemMenus(selectedItemMenus);
-
-                BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(selectedItemMenu.getItemPrice());
-                existingOpenOrder.setTotalAmount(totalAmount);
-
-                orderRepository.save(existingOpenOrder);
-            } else {
-                Order newOrder = new Order();
-                newOrder.setUser(user);
-
-                List<ItemMenu> selectedItemMenus = new ArrayList<>();
-                selectedItemMenus.add(selectedItemMenu);
-                newOrder.setItemMenus(selectedItemMenus);
-
-                BigDecimal totalAmount = selectedItemMenu.getItemPrice();
-                newOrder.setTotalAmount(totalAmount);
-                newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
-                newOrder.setPaymentStatus(PaymentStatus.PENDING);
-
-                orderRepository.save(newOrder);
-            }
-            if (user.getOrderList() == null) {
-                user.setOrderList(new ArrayList<>());
-            }
-
-            return "Food selected successfully!!!";
-        } else {
-            throw new CustomException("Item menu not found!!!");
-        }
-    }
-
-    */
 
     public String addFoodToCartForIndividual(String vendorId, String menuId) {
 
@@ -147,79 +101,31 @@ public class OrderServiceImpl implements OrderService {
         } else {
             throw new CustomException("Item menu not found!!!");
         }
-    }
 
+    } public String addFoodToCartForCompany(String vendorId, String menuId) {
 
-    public String addSupplementToCartForIndividual(String vendorId, String supplementId) {
-        Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new CustomException("Vendor not found!!!"));
-        User user = getAuthenticatedUser();
-
-        Supplement selectedSupplement = supplementRepository.findById(supplementId)
-                .orElseThrow(() -> new CustomException("Supplement not found!!!"));
-
-        if (selectedSupplement != null) {
-            Order existingOpenOrder = orderRepository.findOpenOrderByUser(user.getId());
-
-            if (existingOpenOrder != null) {
-                // Check if the supplement is already in the cart
-                Map<String, Integer> cartItems = existingOpenOrder.getSupplements();
-                if (cartItems.containsKey(supplementId)) {
-                    int quantity = cartItems.get(supplementId);
-                    cartItems.put(supplementId, quantity + 1);
-                } else {
-                    // If not in cart, add it with quantity 1
-                    cartItems.put(supplementId, 1);
-                }
-
-                // Update total amount based on supplement price
-                BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(selectedSupplement.getSupplementPrice());
-                existingOpenOrder.setTotalAmount(totalAmount);
-
-                orderRepository.save(existingOpenOrder);
-            } else {
-                Order newOrder = new Order();
-                newOrder.setUser(user);
-
-                // Initialize cart with the selected supplement and quantity 1
-                Map<String, Integer> cartItems = new HashMap<>();
-                cartItems.put(supplementId, 1);
-                newOrder.setSupplements(cartItems);
-
-                // Set total amount to supplement price
-                BigDecimal totalAmount = selectedSupplement.getSupplementPrice();
-                newOrder.setTotalAmount(totalAmount);
-                newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
-                newOrder.setPaymentStatus(PaymentStatus.PENDING);
-
-                orderRepository.save(newOrder);
-            }
-            if (user.getOrderList() == null) {
-                user.setOrderList(new ArrayList<>());
-            }
-
-            return "Supplement selected successfully!!!";
-        } else {
-            throw new CustomException("Supplement not found!!!");
-        }
-    }
-
-
-    /* public String selectItemForCompany(String vendorId, String menuId) {
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new CustomException("Vendor not found!!!"));
         Company company = getAuthenticatedCompany();
-        ItemMenu itemMenu = findFoodMenuById(vendor.getId(), menuId);
 
-        if (itemMenu != null) {
+        ItemMenu selectedItemMenu = findFoodMenuById(vendor.getId(), menuId);
+
+        if (selectedItemMenu != null) {
             Order existingOpenOrder = orderRepository.findOpenOrderByCompany(company.getId());
 
             if (existingOpenOrder != null) {
-                List<ItemMenu> selectedItemMenus = existingOpenOrder.getItemMenus();
-                selectedItemMenus.add(itemMenu);
-                existingOpenOrder.setItemMenus(selectedItemMenus);
+                // Check if the item is already in the cart
+                Map<String, Integer> cartItems = existingOpenOrder.getItemMenus();
+                if (cartItems.containsKey(menuId)) {
+                    int quantity = cartItems.get(menuId);
+                    cartItems.put(menuId, quantity + 1);
+                } else {
+                    // If not in cart, add it with quantity 1
+                    cartItems.put(menuId, 1);
+                }
 
-                BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(itemMenu.getItemPrice());
+                // Update total amount based on item price
+                BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(selectedItemMenu.getItemPrice());
                 existingOpenOrder.setTotalAmount(totalAmount);
 
                 orderRepository.save(existingOpenOrder);
@@ -227,11 +133,13 @@ public class OrderServiceImpl implements OrderService {
                 Order newOrder = new Order();
                 newOrder.setCompany(company);
 
-                List<ItemMenu> selectedItemMenus = new ArrayList<>();
-                selectedItemMenus.add(itemMenu);
-                newOrder.setItemMenus(selectedItemMenus);
+                // Initialize cart with the selected item and quantity 1
+                Map<String, Integer> cartItems = new HashMap<>();
+                cartItems.put(menuId, 1);
+                newOrder.setItemMenus(cartItems);
 
-                BigDecimal totalAmount = itemMenu.getItemPrice();
+                // Set total amount to item price
+                BigDecimal totalAmount = selectedItemMenu.getItemPrice();
                 newOrder.setTotalAmount(totalAmount);
                 newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
                 newOrder.setPaymentStatus(PaymentStatus.PENDING);
@@ -241,13 +149,116 @@ public class OrderServiceImpl implements OrderService {
             if (company.getOrderList() == null) {
                 company.setOrderList(new ArrayList<>());
             }
+
             return "Food selected successfully!!!";
         } else {
             throw new CustomException("Item menu not found!!!");
         }
     }
 
-     */
+    public String addSupplementToCartForIndividual(String vendorId, String supplementId) {
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found!!!"));
+        User user = getAuthenticatedUser();
+
+        Supplement selectedSupplement = supplementRepository.findByVendorIdAndAndSupplementId(vendor.getId(), supplementId);
+
+        if (selectedSupplement == null) {
+            throw new CustomException("Supplement not found!!!");
+        }
+        Order existingOpenOrder = orderRepository.findOpenOrderByUser(user.getId());
+
+        if (existingOpenOrder != null) {
+            // Check if the supplement is already in the cart
+            Map<String, Integer> cartSupplements = existingOpenOrder.getSupplements();
+            if (cartSupplements.containsKey(supplementId)) {
+                int quantity = cartSupplements.get(supplementId);
+                cartSupplements.put(supplementId, quantity + 1);
+            } else {
+                // If not in cart, add it with quantity 1
+                cartSupplements.put(supplementId, 1);
+            }
+
+            // Update total amount based on supplement price
+            BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(selectedSupplement.getSupplementPrice());
+            existingOpenOrder.setTotalAmount(totalAmount);
+
+            orderRepository.save(existingOpenOrder);
+        } else {
+            Order newOrder = new Order();
+            newOrder.setUser(user);
+
+            // Initialize cart with the selected supplement and quantity 1
+            Map<String, Integer> cartSupplements = new HashMap<>();
+            cartSupplements.put(supplementId, 1);
+            newOrder.setSupplements(cartSupplements);
+
+            // Set total amount to supplement price
+            BigDecimal totalAmount = selectedSupplement.getSupplementPrice();
+            newOrder.setTotalAmount(totalAmount);
+            newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
+            newOrder.setPaymentStatus(PaymentStatus.PENDING);
+
+            orderRepository.save(newOrder);
+        }
+        if (user.getOrderList() == null) {
+            user.setOrderList(new ArrayList<>());
+        }
+
+        return "Supplement selected successfully!!!";
+    }
+
+    public String addSupplementToCartForCompany (String vendorId, String supplementId) {
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found!!!"));
+        Company company = getAuthenticatedCompany();
+
+        Supplement selectedSupplement = supplementRepository.findByVendorIdAndAndSupplementId(vendor.getId(), supplementId);
+
+        if (selectedSupplement == null) {
+            throw new CustomException("Supplement not found!!!");
+        }
+        Order existingOpenOrder = orderRepository.findOpenOrderByCompany(company.getId());
+
+        if (existingOpenOrder != null) {
+            // Check if the supplement is already in the cart
+            Map<String, Integer> cartSupplements = existingOpenOrder.getSupplements();
+            if (cartSupplements.containsKey(supplementId)) {
+                int quantity = cartSupplements.get(supplementId);
+                cartSupplements.put(supplementId, quantity + 1);
+            } else {
+                // If not in cart, add it with quantity 1
+                cartSupplements.put(supplementId, 1);
+            }
+
+            // Update total amount based on supplement price
+            BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(selectedSupplement.getSupplementPrice());
+            existingOpenOrder.setTotalAmount(totalAmount);
+
+            orderRepository.save(existingOpenOrder);
+        } else {
+            Order newOrder = new Order();
+            newOrder.setCompany(company);
+
+            // Initialize cart with the selected supplement and quantity 1
+            Map<String, Integer> cartSupplements = new HashMap<>();
+            cartSupplements.put(supplementId, 1);
+            newOrder.setSupplements(cartSupplements);
+
+            // Set total amount to supplement price
+            BigDecimal totalAmount = selectedSupplement.getSupplementPrice();
+            newOrder.setTotalAmount(totalAmount);
+            newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
+            newOrder.setPaymentStatus(PaymentStatus.PENDING);
+
+            orderRepository.save(newOrder);
+        }
+        if (company.getOrderList() == null) {
+            company.setOrderList(new ArrayList<>());
+        }
+
+        return "Supplement selected successfully!!!";
+    }
 
     private ItemMenu findFoodMenuById(String vendorId, String foodMenuId) {
         Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(()-> new CustomException("Vendor nor found!!!"));
@@ -458,13 +469,13 @@ public class OrderServiceImpl implements OrderService {
 
     private OrderViewResponse viewAllOrdersInternal(List<Order> orderList) {
         List<OrderResponse> orderResponses = new ArrayList<>();
-        int totalFoodItems = 0;
+        int totalItems = 0;
         BigDecimal totalSum = BigDecimal.ZERO;
 
         for (Order order : orderList) {
             List<FoodDataResponse> foodDataResponses = new ArrayList<>();
 
-            // Iterate through the cartItems map
+            // Iterate through the cart items
             for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
                 String itemId = entry.getKey();
                 int quantity = entry.getValue();
@@ -472,7 +483,7 @@ public class OrderServiceImpl implements OrderService {
                 // Retrieve the ItemMenu object from your data source using itemId
                 ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
 
-                totalFoodItems += quantity;
+                totalItems += quantity;
 
                 Vendor vendor = itemMenu.getItemCategory().getVendor();
                 foodDataResponses.add(FoodDataResponse.builder()
@@ -480,12 +491,30 @@ public class OrderServiceImpl implements OrderService {
                         .itemName(itemMenu.getItemName())
                         .price(itemMenu.getItemPrice())
                         .imageUri(itemMenu.getImageUrl())
-                                .quantity(quantity)
+                        .quantity(quantity)
                         .vendorName(vendor.getBusinessName())
                         .build());
-
-
             }
+
+            // Iterate through the cart supplements
+            for (Map.Entry<String, Integer> entry : order.getSupplements().entrySet()) {
+                String supplementId = entry.getKey();
+                int quantity = entry.getValue();
+
+                // Retrieve the Supplement object from your data source using supplementId
+                Supplement supplement = supplementRepository.findById(supplementId)
+                        .orElseThrow(() -> new CustomException("Supplement not found!!!"));
+
+                totalItems += quantity;
+
+                foodDataResponses.add(FoodDataResponse.builder()
+                        .itemId(supplementId)
+                        .itemName(supplement.getSupplementName())
+                        .price(supplement.getSupplementPrice())
+                        .quantity(quantity)
+                        .build());
+            }
+
             orderResponses.add(OrderResponse.builder()
                     .orderId(order.getOrderId())
                     .items(foodDataResponses)
@@ -494,8 +523,9 @@ public class OrderServiceImpl implements OrderService {
 
             totalSum = totalSum.add(order.getTotalAmount());
         }
+
         OrderSummary orderSummary = OrderSummary.builder()
-                .totalItems(totalFoodItems)
+                .totalItems(totalItems)
                 .totalSum(totalSum)
                 .build();
 

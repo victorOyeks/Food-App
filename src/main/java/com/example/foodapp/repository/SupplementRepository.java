@@ -9,5 +9,7 @@ import java.util.Optional;
 public interface SupplementRepository extends JpaRepository <Supplement, String> {
 
     List<Supplement> findByVendorId (String vendorId);
+    Supplement findByVendorIdAndAndSupplementId (String vendorId, String supplementId);
 
+    Supplement findBySupplementId(String supplementId);
 }

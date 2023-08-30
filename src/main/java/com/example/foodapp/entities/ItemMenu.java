@@ -39,9 +39,6 @@ public class ItemMenu implements Serializable {
     @JoinColumn(name = "item_category_id")
     private ItemCategory itemCategory;
 
-    @ElementCollection
-    private List<String> availableSupplements;
-
     private Double averageRating;
     private Long totalRatings;
 

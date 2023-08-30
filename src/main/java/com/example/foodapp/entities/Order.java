@@ -36,8 +36,6 @@ public class Order {
     @MapKeyJoinColumn(name = "item_menu_id") // Map key column for itemMenu IDs
     @Column(name = "quantity")
     private Map<String, Integer> itemMenus;
-//    @ManyToMany
-//    private List<ItemMenu> itemMenus;
 
     @ElementCollection
     @CollectionTable(name = "order_supplements", joinColumns = @JoinColumn(name = "order_id"))

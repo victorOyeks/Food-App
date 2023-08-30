@@ -31,27 +31,39 @@ public class OrderController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }*/
 
-    @PostMapping("/vendors/{vendorId}/select-item-individual")
+    @PostMapping("/vendors/{vendorId}/add-food-to-cart")
     public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId,
                                                                          @RequestParam String menuId) {
-        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.addFoodToCartForIndividual(vendorId, menuId));
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
-
-    @PostMapping("/vendors/{vendorId}/select-supplement-individual")
-    public ResponseEntity<ApiResponse<String>> selectSupplementForIndividuals(@PathVariable String vendorId,
-                                                                         @RequestParam String supplementId) {
-        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.addSupplementToCartForIndividual(vendorId, supplementId));
+        String selectedItem;
+        try{
+            selectedItem = orderService.addFoodToCartForIndividual(vendorId, menuId);
+        } catch (CustomException customException) {
+            selectedItem = orderService.addFoodToCartForCompany(vendorId, menuId);
+        }
+        ApiResponse<String> apiResponse = new ApiResponse<>(selectedItem);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     /* @PostMapping("/vendors/{vendorId}/select-item-company")
-    public ResponseEntity<ApiResponse<String>> selectItemsForCompanies(@PathVariable String vendorId, @RequestParam String menuId) {
-        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectItemForCompany(vendorId, menuId));
+    public ResponseEntity<ApiResponse<String>> selectItemsForCompany(@PathVariable String vendorId,
+                                                                         @RequestParam String menuId) {
+        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.addFoodToCartForCompany(vendorId, menuId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
      */
+
+    @PostMapping("/vendors/{vendorId}/add-supplement-to-cart")
+    public ResponseEntity<ApiResponse<String>> selectSupplementForIndividuals(@PathVariable String vendorId,
+                                                                         @RequestParam String supplementId) {
+        String selectedSupplement;
+        try{
+            selectedSupplement = orderService.addSupplementToCartForIndividual(vendorId, supplementId);
+        }catch (CustomException customException){
+            selectedSupplement = orderService.addSupplementToCartForCompany(vendorId, supplementId);
+        }
+        ApiResponse<String> apiResponse = new ApiResponse<>(selectedSupplement);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
 
     @GetMapping("carts")
     public ResponseEntity<ApiResponse<OrderViewResponse>> viewAllOrders() {

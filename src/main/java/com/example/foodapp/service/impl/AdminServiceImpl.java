@@ -48,6 +48,7 @@ public class AdminServiceImpl implements AdminService {
     private final ItemMenuRepository itemMenuRepository;
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SupplementRepository supplementRepository;
 
     private static final Logger logger = Logger.getLogger(AdminServiceImpl.class.getName());
 
@@ -318,7 +319,6 @@ public class AdminServiceImpl implements AdminService {
 
         return companyResponse;
     }
-
      */
 
     public List<CompanyResponse> getAllCompanyDetails(boolean active) {
@@ -652,35 +652,8 @@ public class AdminServiceImpl implements AdminService {
     }
     */
 
+
     /* private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email, Boolean active) {
-            List<FoodDataResponse> foodDataResponses = new ArrayList<>();
-            for (ItemMenu itemMenu : order.getItemMenus()) {
-                Vendor vendor = itemMenu.getItemCategory().getVendor();
-                foodDataResponses.add(FoodDataResponse.builder()
-                        .itemId(itemMenu.getItemId())
-                        .itemName(itemMenu.getItemName())
-                        .price(itemMenu.getItemPrice())
-                        .vendorName(vendor.getBusinessName())
-                        .build());
-            }
-
-           return AdminOrderResponse.builder()
-                    .orderId(order.getOrderId())
-                    .items(foodDataResponses)
-                    .orderType(orderType)
-                    .customerName(customerName)
-                    .profilePic(profilePic)
-                    .phone(phone)
-                    .email(email)
-                    .totalAmount(order.getTotalAmount())
-                    .deliveryStatus(order.getDeliveryStatus())
-                    .createdAt(order.getCreatedAt())
-                    .customerStatus(active)
-                    .build();
-    }
-     */
-
-    private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email, Boolean active) {
         Map<String, FoodDataResponse> foodDataResponseMap = new HashMap<>();
 
         // Iterate through the cartItems map
@@ -728,7 +701,81 @@ public class AdminServiceImpl implements AdminService {
                 .build();
     }
 
+     */
 
+    private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email, Boolean active) {
+        Map<String, FoodDataResponse> foodDataResponseMap = new HashMap<>();
+
+        // Iterate through the itemMenus map (items)
+        for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
+            String itemId = entry.getKey();
+            int quantity = entry.getValue();
+
+            // Retrieve the ItemMenu object from your data source using itemId
+            ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
+            Vendor vendor = itemMenu.getItemCategory().getVendor();
+
+            // Check if a FoodDataResponse already exists for the item
+            if (foodDataResponseMap.containsKey(itemId)) {
+                // If yes, update the quantity
+                FoodDataResponse existingResponse = foodDataResponseMap.get(itemId);
+                existingResponse.setQuantity(existingResponse.getQuantity() + quantity);
+            } else {
+                // If no, create a new FoodDataResponse
+                FoodDataResponse newResponse = FoodDataResponse.builder()
+                        .itemId(itemId)
+                        .itemName(itemMenu.getItemName())
+                        .price(itemMenu.getItemPrice())
+                        .quantity(quantity)
+                        .imageUri(itemMenu.getImageUrl())
+                        .vendorName(vendor.getBusinessName())
+                        .build();
+                foodDataResponseMap.put(itemId, newResponse);
+            }
+        }
+
+        // Iterate through the supplements map
+        for (Map.Entry<String, Integer> entry : order.getSupplements().entrySet()) {
+            String supplementId = entry.getKey();
+            int quantity = entry.getValue();
+
+            // Retrieve the Supplement object from your data source using supplementId
+            Supplement supplement = supplementRepository.findBySupplementId(supplementId);
+
+            // Check if a FoodDataResponse already exists for the supplement
+            if (foodDataResponseMap.containsKey(supplementId)) {
+                // If yes, update the quantity
+                FoodDataResponse existingResponse = foodDataResponseMap.get(supplementId);
+                existingResponse.setQuantity(existingResponse.getQuantity() + quantity);
+            } else {
+                // If no, create a new FoodDataResponse
+                FoodDataResponse newResponse = FoodDataResponse.builder()
+                        .itemId(supplementId)
+                        .itemName(supplement.getSupplementName())
+                        .price(supplement.getSupplementPrice())
+                        .quantity(quantity)
+                        .vendorName(supplement.getVendor().getBusinessName())
+                        .build();
+                foodDataResponseMap.put(supplementId, newResponse);
+            }
+        }
+
+        List<FoodDataResponse> foodDataResponses = new ArrayList<>(foodDataResponseMap.values());
+
+        return AdminOrderResponse.builder()
+                .orderId(order.getOrderId())
+                .items(foodDataResponses)
+                .orderType(orderType)
+                .customerName(customerName)
+                .profilePic(profilePic)
+                .phone(phone)
+                .email(email)
+                .totalAmount(order.getTotalAmount())
+                .deliveryStatus(order.getDeliveryStatus())
+                .createdAt(order.getCreatedAt())
+                .customerStatus(active)
+                .build();
+    }
 
     private String getCustomerName(Order order) {
         if (order.getUser() != null) {
