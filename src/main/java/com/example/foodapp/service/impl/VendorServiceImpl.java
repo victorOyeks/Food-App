@@ -2,6 +2,7 @@ package com.example.foodapp.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.example.foodapp.constant.DeliveryStatus;
 import com.example.foodapp.constant.OrderType;
 import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.payloads.request.ChangePasswordRequest;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -97,6 +99,7 @@ public class VendorServiceImpl implements VendorService {
         existingVendor.setDomainName(request.getDomainName());
         existingVendor.setActive(true);
         existingVendor.setEnabled(true);
+        existingVendor.setStoreStatus(true);
 
         vendorRepository.save(existingVendor);
 
@@ -184,78 +187,74 @@ public class VendorServiceImpl implements VendorService {
     }
 
 
-    public List<OrderDetailsResponse> viewAllOrdersToVendor(TimeFrame timeFrame) {
+    public List<OrderDetailsResponse> viewAllProcessedOrdersToVendor(TimeFrame timeFrame) {
         Vendor authenticatedVendor = getAuthenticatedVendor();
         List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
         LocalDateTime now = LocalDateTime.now();
         List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
 
         for (Order order : ordersByVendor) {
-            LocalDateTime orderDate = order.getCreatedAt();
-            boolean isInTimeFrame = false;
+            if (order.getDeliveryStatus() != DeliveryStatus.PENDING) {
+                LocalDateTime orderDate = order.getCreatedAt();
+                boolean isInTimeFrame = false;
 
-            switch (timeFrame) {
-                case TODAY:
-                    isInTimeFrame = orderDate.toLocalDate().equals(LocalDate.now());
-                    break;
-                case THIS_WEEK:
-                    LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-                    LocalDateTime endOfWeek = startOfWeek.plusWeeks(1);
-                    isInTimeFrame = orderDate.isAfter(startOfWeek) && orderDate.isBefore(endOfWeek);
-                    break;
-                case THIS_MONTH:
-                    LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
-                    LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
-                    isInTimeFrame = orderDate.isAfter(startOfMonth) && orderDate.isBefore(endOfMonth);
-                    break;
-                default:
-                    timeFrame = null;
-            }
+                switch (timeFrame) {
+                    case TODAY:
+                        isInTimeFrame = orderDate.toLocalDate().equals(LocalDate.now());
+                        break;
+                    case THIS_WEEK:
+                        LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                        LocalDateTime endOfWeek = startOfWeek.plusWeeks(1);
+                        isInTimeFrame = orderDate.isAfter(startOfWeek) && orderDate.isBefore(endOfWeek);
+                        break;
+                    case THIS_MONTH:
+                        LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
+                        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+                        isInTimeFrame = orderDate.isAfter(startOfMonth) && orderDate.isBefore(endOfMonth);
+                        break;
+                    default:
+                        timeFrame = null;
+                }
 
-            if (isInTimeFrame) {
-                OrderDetailsResponse orderDetails = new OrderDetailsResponse();
-                orderDetails.setOrderId(order.getOrderId());
-                orderDetails.setOrderDate(orderDate);
-                orderDetails.setCustomerName(getCustomerName(order));
-                orderDetails.setProfilePic(getCustomerProfilePic(order));
-                orderDetails.setAmount(order.getTotalAmount());
-                orderDetails.setDeliveryStatus(order.getDeliveryStatus());
-                orderDetails.setPaymentStatus(order.getPaymentStatus());
+                if (isInTimeFrame) {
+                    OrderDetailsResponse orderDetails = new OrderDetailsResponse();
+                    orderDetails.setOrderId(order.getOrderId());
+                    orderDetails.setOrderDate(orderDate);
+                    orderDetails.setCustomerName(getCustomerName(order));
+                    orderDetails.setProfilePic(getCustomerProfilePic(order));
+                    orderDetails.setAmount(order.getTotalAmount());
+                    orderDetails.setDeliveryStatus(order.getDeliveryStatus());
+                    orderDetails.setPaymentStatus(order.getPaymentStatus());
 
-                orderDetailsResponses.add(orderDetails);
+                    orderDetailsResponses.add(orderDetails);
+                }
             }
         }
         return orderDetailsResponses;
     }
 
-    /*
-    public AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId) {
-        // Check if the provided ID belongs to a Vendor
-        Vendor vendor = getAuthenticatedVendor();
-        User user = userRepository.findById(userIdOrCompanyId).orElse(null);
-        Company company = companyRepository.findById(userIdOrCompanyId).orElse(null);
+    public List<OrderDetailsResponse> viewAllLiveOrdersToVendor() {
+        Vendor authenticatedVendor = getAuthenticatedVendor();
+        List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
+        List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
 
-        Vendor existingVendor = vendorRepository.findById(vendor.getId()).orElse(null);
+        for (Order order : ordersByVendor) {
+            if (order.getDeliveryStatus() == DeliveryStatus.PENDING) {
 
-        if (existingVendor != null) {
-            if (user != null) {
-                Order order = orderRepository.findOrderByOrderIdAndVendorId(orderId, vendor.getId());
-                return addOrdersToResponse(order, OrderType.INDIVIDUAL, order.getUser().getFirstName()+" "
-                        +order.getUser().getFirstName(), order.getUser().getProfilePictureUrl(), order.getUser().getPhone(),
-                        order.getUser().getEmail());
-            } else if (company != null) {
-                Order order = orderRepository.findOrderByOrderIdAndVendorId(orderId, vendor.getId());
-                return addOrdersToResponse(order, OrderType.INDIVIDUAL, order.getCompany().getCompanyName(),
-                        order.getCompany().getImageUrl(), order.getCompany().getPhoneNumber(),
-                        order.getCompany().getCompanyEmail());
-            } else {
-                    throw new CustomException("Order not found with ID: " + orderId + " for Vendor ID: " + vendor.getId());
+                    OrderDetailsResponse orderDetails = new OrderDetailsResponse();
+                    orderDetails.setOrderId(order.getOrderId());
+                    orderDetails.setOrderDate(order.getCreatedAt());
+                    orderDetails.setCustomerName(getCustomerName(order));
+                    orderDetails.setProfilePic(getCustomerProfilePic(order));
+                    orderDetails.setAmount(order.getTotalAmount());
+                    orderDetails.setDeliveryStatus(order.getDeliveryStatus());
+                    orderDetails.setPaymentStatus(order.getPaymentStatus());
+
+                    orderDetailsResponses.add(orderDetails);
                 }
-        } else {
-            throw new CustomException("Vendor not found with ID: " + vendor.getId());
         }
+        return orderDetailsResponses;
     }
-     */
 
     public AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId) {
 
@@ -285,6 +284,25 @@ public class VendorServiceImpl implements VendorService {
         }
     }
 
+    public void changeDeliveryStatus(String orderId, DeliveryStatus deliveryStatus) {
+        Order order = orderRepository.findByOrderId(orderId);
+
+        if (order == null) {
+            throw new CustomException("Order not found with ID: " + orderId);
+        }
+        order.setDeliveryStatus(deliveryStatus);
+        orderRepository.save(order);
+    }
+
+    public void changeStoreStatus(Boolean storeStatus) {
+        String vendorId = getAuthenticatedVendor().getId();
+        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new CustomException("Vendor not found!!!"));
+
+        vendor.setStoreStatus(storeStatus);
+        vendorRepository.save(vendor);
+    }
+
+
 
     public BusinessRegistrationResponse viewVendorProfile() {
         Vendor existingVendor = getAuthenticatedVendor();
@@ -297,9 +315,42 @@ public class VendorServiceImpl implements VendorService {
                 .businessAddress(existingVendor.getBusinessAddress())
                 .imageUrl(existingVendor.getImageUrl())
                 .mapUri(existingVendor.getMapUri())
+                .status(existingVendor.getStoreStatus())
                 .coordinates(existingVendor.getCoordinates())
                 .build();
     }
+
+    public VendorDashboardSummaryResponse getVendorSummary(TimeFrame timeFrame) {
+        Vendor authenticatedVendor = getAuthenticatedVendor();
+
+        LocalDateTime startDate;
+        LocalDateTime endDate = LocalDateTime.now();
+
+        switch (timeFrame) {
+            case TODAY:
+                startDate = LocalDateTime.now();
+                break;
+            case LAST_7_DAYS:
+                startDate = endDate.minusDays(6);
+                break;
+            case LAST_30_DAYS:
+                startDate = endDate.minusDays(29);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid time frame");
+        }
+
+        Long totalOrders = orderRepository.countOrdersByVendorAndCreatedAtBetween(
+                authenticatedVendor, startDate, endDate);
+
+        Long totalMenus = itemMenuRepository.countMenusByVendor(authenticatedVendor, startDate, endDate);
+
+        BigDecimal totalSales = orderRepository.sumTotalAmountByVendorAndCreatedAtBetween(
+                authenticatedVendor, startDate, endDate);
+
+        return new VendorDashboardSummaryResponse(totalOrders, totalMenus, totalSales);
+    }
+
 
     private void sendVerificationEmail(String recipient, String verificationToken) throws IOException {
         String verificationLink = "http://localhost:9191/api/auth/verify?token=" + verificationToken;
@@ -334,26 +385,6 @@ public class VendorServiceImpl implements VendorService {
             throw new CustomException("Vendor not found");
         }
         return vendor;
-    }
-
-    private User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = authentication.getName();
-        User user = userRepository.findByEmail(userEmail);
-        if (user == null) {
-            throw new CustomException("User not found");
-        }
-        return user;
-    }
-
-    private Company getAuthenticatedCompany() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String companyEmail = authentication.getName();
-        Company company = companyRepository.findByCompanyEmail(companyEmail);
-        if (company == null) {
-            throw new CustomException("Company not found");
-        }
-        return company;
     }
 
     /*

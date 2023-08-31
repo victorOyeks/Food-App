@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,6 +47,16 @@ public interface OrderRepository extends JpaRepository <Order, String> {
     Optional<Order> findByOrderIdAndUserId(String orderId, String userId);
 
     Optional<Order> findByOrderIdAndCompanyId(String orderId, String companyId);
+
+    Order findByOrderId(String orderId);
+
+    // Total orders received by the vendor for a specific time frame
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.vendor = :vendor AND o.createdAt BETWEEN :startDate AND :endDate")
+    Long countOrdersByVendorAndCreatedAtBetween(Vendor vendor, LocalDateTime startDate, LocalDateTime endDate);
+
+    // Total amount of sales for the vendor for a specific time frame
+    @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.vendor = :vendor AND o.createdAt BETWEEN :startDate AND :endDate")
+    BigDecimal sumTotalAmountByVendorAndCreatedAtBetween(Vendor vendor, LocalDateTime startDate, LocalDateTime endDate);
 
 //    @Query("SELECT o FROM Order o join o.itemMenu i JOIN i.itemCategory c WHERE c.vendor.id = ?1")
 //    Order findOrderByOrderIdAndVendorId(String orderId, String vendorId);

@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,5 +25,9 @@ public interface ItemMenuRepository extends JpaRepository <ItemMenu, String> {
 
     @Query("SELECT i FROM ItemMenu i WHERE i.itemCategory.categoryId = :categoryId AND i.itemCategory.vendor.id = :vendorId")
     List<ItemMenu> findAllByCategoryIdAndVendorId(String categoryId, String vendorId);
+
+    // Total number of menus uploaded by the vendor
+    @Query("SELECT COUNT(DISTINCT i) FROM ItemMenu i JOIN i.itemCategory ic WHERE ic.vendor = :vendor AND ic.createdAt BETWEEN :startDate AND :endDate")
+    Long countMenusByVendor(Vendor vendor, LocalDateTime startDate, LocalDateTime  endDate);
 
 }

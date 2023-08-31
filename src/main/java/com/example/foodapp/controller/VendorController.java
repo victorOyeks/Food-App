@@ -1,5 +1,6 @@
 package com.example.foodapp.controller;
 
+import com.example.foodapp.constant.DeliveryStatus;
 import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.payloads.request.ChangePasswordRequest;
 import com.example.foodapp.payloads.response.*;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -21,9 +21,16 @@ public class VendorController {
 
     private final VendorService vendorService;
 
-    @GetMapping("orders")
-    public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllOrdersToVendor(@RequestParam(required = false) TimeFrame timeFrame) {
-        List<OrderDetailsResponse> orders = vendorService.viewAllOrdersToVendor(timeFrame);
+    @GetMapping("processed-orders")
+    public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllProcessedOrdersToVendor(@RequestParam(required = false) TimeFrame timeFrame) {
+        List<OrderDetailsResponse> orders = vendorService.viewAllProcessedOrdersToVendor(timeFrame);
+        ApiResponse<List<OrderDetailsResponse>> apiResponse = new ApiResponse<>(orders);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("live-orders")
+    public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllLiveOrdersToVendor() {
+        List<OrderDetailsResponse> orders = vendorService.viewAllLiveOrdersToVendor();
         ApiResponse<List<OrderDetailsResponse>> apiResponse = new ApiResponse<>(orders);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
@@ -48,6 +55,16 @@ public class VendorController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
+    @PutMapping("/{orderId}/delivery")
+    public void changeDeliveryStatus(@PathVariable String orderId, @RequestParam DeliveryStatus newStatus) {
+        vendorService.changeDeliveryStatus(orderId, newStatus);
+    }
+
+    @PutMapping("/change-store-status")
+    public void changeStoreStatus(@RequestParam Boolean newStatus) {
+        vendorService.changeStoreStatus(newStatus);
+    }
+
     @GetMapping("/users/orders")
     public ResponseEntity<ApiResponse<AdminOrderResponse>> viewOrdersByUserOrCompany(@RequestParam String orderId,
                                                                                      @RequestParam String userIdOrCompanyId) {
@@ -59,6 +76,12 @@ public class VendorController {
     @GetMapping("profile")
     public ResponseEntity<ApiResponse<BusinessRegistrationResponse>> profile() {
         ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(vendorService.viewVendorProfile());
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("dashboard-summary")
+    public ResponseEntity<ApiResponse<VendorDashboardSummaryResponse>> vendorDashboard(TimeFrame timeFrame) {
+        ApiResponse<VendorDashboardSummaryResponse> apiResponse = new ApiResponse<>(vendorService.getVendorSummary(timeFrame));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 }
