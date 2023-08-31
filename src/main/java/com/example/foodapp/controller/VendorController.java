@@ -3,15 +3,18 @@ package com.example.foodapp.controller;
 import com.example.foodapp.constant.DeliveryStatus;
 import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.payloads.request.ChangePasswordRequest;
+import com.example.foodapp.payloads.request.SalesReportDTO;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.service.VendorService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -83,5 +86,20 @@ public class VendorController {
     public ResponseEntity<ApiResponse<VendorDashboardSummaryResponse>> vendorDashboard(TimeFrame timeFrame) {
         ApiResponse<VendorDashboardSummaryResponse> apiResponse = new ApiResponse<>(vendorService.getVendorSummary(timeFrame));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+//    @GetMapping("/sales-report")
+//    public ResponseEntity<List<SalesReportDTO>> getSalesReport(@RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+//                                                               @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+//        List<SalesReportDTO> salesReport = vendorService.generateSalesReport(startDate, endDate);
+//        return ResponseEntity.ok(salesReport);
+//    }
+
+    @GetMapping("/sales-report")
+    public ResponseEntity<List<SalesReportDTO>> getSalesReport(@RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                                               @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+                                                               @RequestParam("timeFrame") TimeFrame timeFrame) {
+        List<SalesReportDTO> salesReport = vendorService.generateSalesReport(startDate, endDate, timeFrame);
+        return ResponseEntity.ok(salesReport);
     }
 }

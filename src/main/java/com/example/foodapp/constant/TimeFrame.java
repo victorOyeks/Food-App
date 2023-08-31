@@ -5,5 +5,8 @@ public enum TimeFrame {
     THIS_WEEK,
     THIS_MONTH,
     LAST_7_DAYS,
-    LAST_30_DAYS
+    LAST_30_DAYS,
+    DAILY,
+    WEEKLY,
+    MONTHLY
 }

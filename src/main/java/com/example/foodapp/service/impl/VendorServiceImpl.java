@@ -7,6 +7,7 @@ import com.example.foodapp.constant.OrderType;
 import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.payloads.request.ChangePasswordRequest;
 import com.example.foodapp.payloads.request.EmailDetails;
+import com.example.foodapp.payloads.request.SalesReportDTO;
 import com.example.foodapp.payloads.request.VendorRegistrationRequest;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.*;
@@ -26,6 +27,7 @@ import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
@@ -351,6 +353,81 @@ public class VendorServiceImpl implements VendorService {
         return new VendorDashboardSummaryResponse(totalOrders, totalMenus, totalSales);
     }
 
+    public List<SalesReportDTO> generateSalesReport(LocalDate startDate, LocalDate endDate, TimeFrame timeFrame) {
+        Vendor authenticatedVendor = getAuthenticatedVendor();
+        List<SalesReportDTO> salesReport = new ArrayList<>();
+
+        if (timeFrame == TimeFrame.DAILY) {
+            while (!startDate.isAfter(endDate)) {
+                BigDecimal totalSalesForDay = calculateTotalSalesForDay(authenticatedVendor, startDate);
+                salesReport.add(new SalesReportDTO(
+                        startDate.format(DateTimeFormatter.ofPattern("MMM dd")),
+                        totalSalesForDay
+                ));
+                startDate = startDate.plusDays(1);
+            }
+        } else if (timeFrame == TimeFrame.WEEKLY) {
+            startDate = startDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+            while (!startDate.isAfter(endDate)) {
+                BigDecimal totalSalesForWeek = calculateTotalSalesForWeek(authenticatedVendor, startDate);
+                salesReport.add(new SalesReportDTO(
+                        startDate.format(DateTimeFormatter.ofPattern("MMM dd")),
+                        totalSalesForWeek
+                ));
+                startDate = startDate.plusWeeks(1);
+            }
+        } else if (timeFrame == TimeFrame.MONTHLY) {
+            startDate = startDate.with(TemporalAdjusters.firstDayOfMonth());
+            while (!startDate.isAfter(endDate)) {
+                BigDecimal totalSalesForMonth = calculateTotalSalesForMonth(authenticatedVendor, startDate);
+                salesReport.add(new SalesReportDTO(
+                        startDate.format(DateTimeFormatter.ofPattern("MMM dd")),
+                        totalSalesForMonth
+                ));
+                startDate = startDate.plusMonths(1);
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid time frame");
+        }
+
+        return salesReport;
+    }
+
+
+    private BigDecimal calculateTotalSalesForDay(Vendor vendor, LocalDate date) {
+        // Calculate the total sales for the specified day
+        BigDecimal totalSales = orderRepository.sumTotalAmountByVendorAndCreatedAtBetween(
+                vendor,
+                date.atStartOfDay(),
+                date.atTime(23, 59, 59)
+        );
+
+        return totalSales != null ? totalSales : BigDecimal.ZERO;
+    }
+
+    private BigDecimal calculateTotalSalesForWeek(Vendor vendor, LocalDate startDate) {
+        // Calculate the total sales for the specified week
+        LocalDate endDate = startDate.plusDays(6);
+        BigDecimal totalSales = orderRepository.sumTotalAmountByVendorAndCreatedAtBetween(
+                vendor,
+                startDate.atStartOfDay(),
+                endDate.atTime(23, 59, 59)
+        );
+
+        return totalSales != null ? totalSales : BigDecimal.ZERO;
+    }
+
+    private BigDecimal calculateTotalSalesForMonth(Vendor vendor, LocalDate startDate) {
+        // Calculate the total sales for the specified month
+        LocalDate endDate = startDate.with(TemporalAdjusters.lastDayOfMonth());
+        BigDecimal totalSales = orderRepository.sumTotalAmountByVendorAndCreatedAtBetween(
+                vendor,
+                startDate.atStartOfDay(),
+                endDate.atTime(23, 59, 59)
+        );
+
+        return totalSales != null ? totalSales : BigDecimal.ZERO;
+    }
 
     private void sendVerificationEmail(String recipient, String verificationToken) throws IOException {
         String verificationLink = "http://localhost:9191/api/auth/verify?token=" + verificationToken;
@@ -398,7 +475,6 @@ public class VendorServiceImpl implements VendorService {
         }
         return new OrderSummary(totalItems, totalSum);
     }
-
      */
 
     private String getCustomerName(Order order) {
