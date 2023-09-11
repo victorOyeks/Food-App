@@ -66,7 +66,6 @@ public class OrderServiceImpl implements OrderService {
         return supplementResponses;
     }
 
-
     public String addFoodToCartForIndividual(String vendorId, String menuId) {
 
         Vendor vendor = vendorRepository.findById(vendorId)

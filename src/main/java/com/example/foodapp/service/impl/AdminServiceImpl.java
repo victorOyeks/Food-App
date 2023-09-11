@@ -229,7 +229,7 @@ public class AdminServiceImpl implements AdminService {
             vendor.setActive(true);
             vendorRepository.save(vendor);
 
-            String subject = "Account Deactivated!";
+            String subject = "Account Reactivated!";
             String messageBody = "Dear vendor, \n\n You account has been reactivated! Regards.";
             EmailDetails emailDetails = new EmailDetails(vendor.getEmail(), subject, messageBody);
 
