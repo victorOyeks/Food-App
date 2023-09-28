@@ -1,6 +1,6 @@
 package com.example.foodapp.constant;
 
-public enum PaymentStatus {
+public enum SubmitStatus {
     PENDING,
-    PAID
+    SUBMITTED
 }

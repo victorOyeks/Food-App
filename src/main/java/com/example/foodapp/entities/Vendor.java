@@ -14,7 +14,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString
+//@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -33,7 +33,6 @@ public class Vendor{
     private String verificationToken;
     private Boolean enabled;
     private String businessName;
-    private String domainName;
     private String businessAddress;
     private GeoLocation coordinates;
     private String mapUri;
@@ -61,4 +60,7 @@ public class Vendor{
     private Long totalRatings;
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VendorReview> vendorReviews = new ArrayList<>();
+
+    @ManyToMany (mappedBy = "vendors", cascade = CascadeType.ALL)
+    private List<Company> companies = new ArrayList<>();
 }

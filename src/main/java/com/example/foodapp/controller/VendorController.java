@@ -31,12 +31,14 @@ public class VendorController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
+    /*
     @GetMapping("live-orders")
     public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllLiveOrdersToVendor() {
         List<OrderDetailsResponse> orders = vendorService.viewAllLiveOrdersToVendor();
         ApiResponse<List<OrderDetailsResponse>> apiResponse = new ApiResponse<>(orders);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+     */
 
     @PutMapping("update-profile")
     public ResponseEntity<ApiResponse<BusinessRegistrationResponse>> updateVendorProfile(@RequestParam String firstName,

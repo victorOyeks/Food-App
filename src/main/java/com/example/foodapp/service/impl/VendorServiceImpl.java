@@ -98,7 +98,6 @@ public class VendorServiceImpl implements VendorService {
         existingVendor.setBusinessAddress(request.getBusinessAddress());
 //        existingVendor.setCoordinates(coordinates);
 //        existingVendor.setMapUri(mapUri);
-        existingVendor.setDomainName(request.getDomainName());
         existingVendor.setActive(true);
         existingVendor.setEnabled(true);
         existingVendor.setStoreStatus(true);
@@ -111,7 +110,6 @@ public class VendorServiceImpl implements VendorService {
                 .id(existingVendor.getId())
                 .email(existingVendor.getEmail())
                 .businessName(existingVendor.getBusinessName())
-                .domainName(existingVendor.getDomainName())
                 .businessAddress(existingVendor.getBusinessAddress())
                 .mapUri(existingVendor.getMapUri())
                 .build();
@@ -125,6 +123,7 @@ public class VendorServiceImpl implements VendorService {
         String actualLocation = extractActualLocation(geoDetails);
         GeoLocation coordinates = extractGeoLocation(geoDetails);
         */
+
 
         Vendor existingVendor = getAuthenticatedVendor();
 
@@ -151,7 +150,6 @@ public class VendorServiceImpl implements VendorService {
         existingVendor.setBusinessAddress(businessAddress);
 //        existingVendor.setCoordinates(coordinates);
 //        existingVendor.setMapUri(mapUri);
-        existingVendor.setDomainName(domainName);
         existingVendor.setImageUrl(imageUrl);
 
         vendorRepository.save(existingVendor);
@@ -160,7 +158,6 @@ public class VendorServiceImpl implements VendorService {
                 .id(existingVendor.getId())
                 .email(existingVendor.getEmail())
                 .businessName(existingVendor.getBusinessName())
-                .domainName(existingVendor.getDomainName())
                 .businessAddress(existingVendor.getBusinessAddress())
                 .mapUri(existingVendor.getMapUri())
                 .imageUrl(existingVendor.getImageUrl())
@@ -226,7 +223,7 @@ public class VendorServiceImpl implements VendorService {
                     orderDetails.setProfilePic(getCustomerProfilePic(order));
                     orderDetails.setAmount(order.getTotalAmount());
                     orderDetails.setDeliveryStatus(order.getDeliveryStatus());
-                    orderDetails.setPaymentStatus(order.getPaymentStatus());
+                    orderDetails.setSubmitStatus(order.getSubmitStatus());
 
                     orderDetailsResponses.add(orderDetails);
                 }
@@ -235,6 +232,7 @@ public class VendorServiceImpl implements VendorService {
         return orderDetailsResponses;
     }
 
+    /*
     public List<OrderDetailsResponse> viewAllLiveOrdersToVendor() {
         Vendor authenticatedVendor = getAuthenticatedVendor();
         List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
@@ -257,6 +255,7 @@ public class VendorServiceImpl implements VendorService {
         }
         return orderDetailsResponses;
     }
+     */
 
     public AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId) {
 
@@ -313,7 +312,6 @@ public class VendorServiceImpl implements VendorService {
                 .id(existingVendor.getId())
                 .email(existingVendor.getEmail())
                 .businessName(existingVendor.getBusinessName())
-                .domainName(existingVendor.getDomainName())
                 .businessAddress(existingVendor.getBusinessAddress())
                 .imageUrl(existingVendor.getImageUrl())
                 .mapUri(existingVendor.getMapUri())

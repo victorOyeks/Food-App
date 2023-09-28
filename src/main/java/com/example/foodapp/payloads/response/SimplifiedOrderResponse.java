@@ -1,7 +1,7 @@
 package com.example.foodapp.payloads.response;
 
 import com.example.foodapp.constant.DeliveryStatus;
-import com.example.foodapp.constant.PaymentStatus;
+import com.example.foodapp.constant.SubmitStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,5 +17,5 @@ public class SimplifiedOrderResponse {
     private String orderId;
     private BigDecimal totalAmount;
     private DeliveryStatus deliveryStatus;
-    private PaymentStatus paymentStatus;
+    private SubmitStatus submitStatus;
 }

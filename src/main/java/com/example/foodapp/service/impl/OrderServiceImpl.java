@@ -1,7 +1,7 @@
 package com.example.foodapp.service.impl;
 
 import com.example.foodapp.constant.DeliveryStatus;
-import com.example.foodapp.constant.PaymentStatus;
+import com.example.foodapp.constant.SubmitStatus;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.entities.Order;
@@ -29,8 +29,10 @@ public class OrderServiceImpl implements OrderService {
     private final ItemMenuRepository itemMenuRepository;
 
     public List<FoodDataResponse> viewAllItemMenus() {
+
+        User user = getAuthenticatedUser();
         List<FoodDataResponse> foodDataResponse = new ArrayList<>();
-        List<Vendor> vendors = vendorRepository.findAll();
+        List<Vendor> vendors = user.getCompany().getVendors(); //vendorRepository.findAll();
 
         for (Vendor vendor : vendors) {
             for (ItemCategory itemCategory : vendor.getItemCategory()) {
@@ -49,28 +51,47 @@ public class OrderServiceImpl implements OrderService {
     }
 
     public List<SupplementResponse> viewAllSupplements(String vendorId) {
-        List<SupplementResponse> supplementResponses = new ArrayList<>();
+
+        User user = getAuthenticatedUser();
+        Company userCompany = user.getCompany();
+        if (userCompany == null){
+            throw new CustomException("User is not associated with this company");
+        }
+
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found"));
+
+        if (!userCompany.getVendors().contains(vendor)){
+            throw new CustomException("Vendor not associated with this user's company");
+        }
 
         List<Supplement> supplements = supplementRepository.findByVendorId(vendorId);
-
-        for (Supplement supplement : supplements) {
-
-            supplementResponses.add(SupplementResponse.builder()
-                    .supplementId(supplement.getSupplementId())
-                    .supplementName(supplement.getSupplementName())
-                    .supplementPrice(supplement.getSupplementPrice())
-                    .supplementCategory(supplement.getSupplementCategory())
-                    .build());
-        }
+        List<SupplementResponse> supplementResponses = supplements.stream()
+                .map(supplement -> SupplementResponse.builder()
+                        .supplementId(supplement.getSupplementId())
+                        .supplementName(supplement.getSupplementName())
+                        .supplementPrice(supplement.getSupplementPrice())
+                        .supplementCategory(supplement.getSupplementCategory())
+                        .build())
+                .collect(Collectors.toList());
 
         return supplementResponses;
     }
 
     public String addFoodToCartForIndividual(String vendorId, String menuId) {
 
-        Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new CustomException("Vendor not found!!!"));
         User user = getAuthenticatedUser();
+        Company userCompany = user.getCompany();
+        if(userCompany == null){
+            throw new CustomException("User not found for this company");
+        }
+
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found"));
+
+        if (!userCompany.getVendors().contains(vendor)){
+            throw new CustomException("Vendor not associated with this user's company");
+        }
 
         ItemMenu selectedItemMenu = findFoodMenuById(vendor.getId(), menuId);
 
@@ -84,12 +105,12 @@ public class OrderServiceImpl implements OrderService {
                     int quantity = cartItems.get(menuId);
                     cartItems.put(menuId, quantity + 1);
                 } else {
-                    // If not in cart, add it with quantity 1
                     cartItems.put(menuId, 1);
                 }
-
-                // Update total amount based on item price
                 BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(selectedItemMenu.getItemPrice());
+                if(totalAmount.compareTo(userCompany.getPriceLimit()) > 0){
+                    throw new CustomException("You can not add items worth more than " + userCompany.getPriceLimit() + " to cart");
+                }
                 existingOpenOrder.setTotalAmount(totalAmount);
 
                 orderRepository.save(existingOpenOrder);
@@ -107,8 +128,11 @@ public class OrderServiceImpl implements OrderService {
                 BigDecimal totalAmount = selectedItemMenu.getItemPrice();
                 newOrder.setTotalAmount(totalAmount);
                 newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
-                newOrder.setPaymentStatus(PaymentStatus.PENDING);
+                newOrder.setSubmitStatus(SubmitStatus.PENDING);
 
+                if(totalAmount.compareTo(userCompany.getPriceLimit()) > 0){
+                    throw new CustomException("You can not add items worth more than " + userCompany.getPriceLimit() + " to cart");
+                }
                 orderRepository.save(newOrder);
             }
             if (user.getOrderList() == null) {
@@ -119,8 +143,9 @@ public class OrderServiceImpl implements OrderService {
         } else {
             throw new CustomException("Item menu not found!!!");
         }
+    }
 
-    } public String addFoodToCartForCompany(String vendorId, String menuId) {
+    /*public String addFoodToCartForCompany(String vendorId, String menuId) {
 
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new CustomException("Vendor not found!!!"));
@@ -174,11 +199,22 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomException("Item menu not found!!!");
         }
     }
+     */
 
     public String addSupplementToCartForIndividual(String vendorId, String supplementId) {
-        Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new CustomException("Vendor not found!!!"));
+
         User user = getAuthenticatedUser();
+        Company userCompany = user.getCompany();
+        if(userCompany == null){
+            throw new CustomException("User not found for this company");
+        }
+
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found"));
+
+        if (!userCompany.getVendors().contains(vendor)){
+            throw new CustomException("Vendor not associated with this user's company");
+        }
 
         Supplement selectedSupplement = supplementRepository.findByVendorIdAndAndSupplementId(vendor.getId(), supplementId);
 
@@ -197,11 +233,13 @@ public class OrderServiceImpl implements OrderService {
                 // If not in cart, add it with quantity 1
                 cartSupplements.put(supplementId, 1);
             }
-
             // Update total amount based on supplement price
             BigDecimal totalAmount = existingOpenOrder.getTotalAmount().add(selectedSupplement.getSupplementPrice());
             existingOpenOrder.setTotalAmount(totalAmount);
 
+            if(totalAmount.compareTo(userCompany.getPriceLimit()) > 0){
+                throw new CustomException("You can not add items worth more than " + userCompany.getPriceLimit() + " to cart");
+            }
             orderRepository.save(existingOpenOrder);
         } else {
             Order newOrder = new Order();
@@ -217,8 +255,11 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal totalAmount = selectedSupplement.getSupplementPrice();
             newOrder.setTotalAmount(totalAmount);
             newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
-            newOrder.setPaymentStatus(PaymentStatus.PENDING);
+            newOrder.setSubmitStatus(SubmitStatus.PENDING);
 
+            if(totalAmount.compareTo(userCompany.getPriceLimit()) > 0){
+                throw new CustomException("You can not add items worth more than " + userCompany.getPriceLimit() + " to cart");
+            }
             orderRepository.save(newOrder);
         }
         if (user.getOrderList() == null) {
@@ -228,7 +269,7 @@ public class OrderServiceImpl implements OrderService {
         return "Supplement selected successfully!!!";
     }
 
-    public String addSupplementToCartForCompany (String vendorId, String supplementId) {
+    /* public String addSupplementToCartForCompany (String vendorId, String supplementId) {
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new CustomException("Vendor not found!!!"));
         Company company = getAuthenticatedCompany();
@@ -280,6 +321,7 @@ public class OrderServiceImpl implements OrderService {
 
         return "Supplement selected successfully!!!";
     }
+     */
 
     private ItemMenu findFoodMenuById(String vendorId, String foodMenuId) {
         Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(()-> new CustomException("Vendor nor found!!!"));
@@ -337,13 +379,13 @@ public class OrderServiceImpl implements OrderService {
         return viewAllOrdersInternal(pendingOrders);
     }
 
-    public OrderViewResponse viewCompanyCart() {
+   /* public OrderViewResponse viewCompanyCart() {
         String companyId = getAuthenticatedCompany().getId();
         List<Order> pendingOrders = orderRepository.findPendingOrdersByCompanyId(companyId);
         return viewAllOrdersInternal(pendingOrders);
     }
 
-    /* public String deleteItem(String orderId, String foodItemId) {
+     public String deleteItem(String orderId, String foodItemId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new CustomException("Order not found!!!"));
         List<ItemMenu> foodItems = order.getItemMenus();
@@ -510,7 +552,7 @@ public class OrderServiceImpl implements OrderService {
                     order.getOrderId(),
                     order.getTotalAmount(),
                     order.getDeliveryStatus(),
-                    order.getPaymentStatus()
+                    order.getSubmitStatus()
             ));
         }
         return simplifiedOrderResponses;
@@ -574,7 +616,7 @@ public class OrderServiceImpl implements OrderService {
                 .orderId(order.getOrderId())
                 .itemMenu(foodDataResponses)
                 .totalAmount(order.getTotalAmount())
-                .paymentStatus(order.getPaymentStatus())
+                .submitStatus(order.getSubmitStatus())
                 .deliveryStatus(order.getDeliveryStatus())
                 .build();
     }

@@ -4,14 +4,9 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.foodapp.constant.CompanySize;
 import com.example.foodapp.constant.ROLE;
-import com.example.foodapp.payloads.request.CompanyRegistrationRequest;
-import com.example.foodapp.payloads.request.EmailDetails;
-import com.example.foodapp.payloads.request.ReviewRequest;
-import com.example.foodapp.payloads.request.StaffInvitation;
-import com.example.foodapp.payloads.response.BusinessRegistrationResponse;
-import com.example.foodapp.payloads.response.CompanyResponse;
-import com.example.foodapp.payloads.response.ItemMenuReviewResponse;
-import com.example.foodapp.payloads.response.VendorReviewResponse;
+import com.example.foodapp.exception.UserAlreadyExistException;
+import com.example.foodapp.payloads.request.*;
+import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.repository.*;
@@ -26,12 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -45,12 +38,12 @@ public class CompanyServiceImpl implements CompanyService {
     private final PasswordEncoder passwordEncoder;
     private final AdminRepository adminRepository;
     private final Cloudinary cloudinary;
-    private final VendorReviewRepository vendorReviewRepository;
-    private final ItemMenuRepository itemMenuRepository;
-    private final ItemMenuReviewRepository itemMenuReviewRepository;
+    //private final VendorReviewRepository vendorReviewRepository;
+    //private final ItemMenuRepository itemMenuRepository;
+    //private final ItemMenuReviewRepository itemMenuReviewRepository;
 
     @Override
-    public BusinessRegistrationResponse companySignup(CompanyRegistrationRequest request) throws IOException {
+    public BusinessRegistrationResponse companySignup(CompanyRegistrationRequest request) {
 
         String email = request.getCompanyEmail();
 
@@ -170,6 +163,50 @@ public class CompanyServiceImpl implements CompanyService {
         return "Staff onboarded successfully. Email sent to staff to complete registration";
     }
 
+    @Override
+    public String addVendor (String vendorId, String note) throws UserAlreadyExistException, IOException {
+
+        Company company = getAuthenticatedCompany();
+
+        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new CustomException("Vendor does not exist"));
+        String vendorEmail = vendor.getEmail();
+
+        company.getVendors().add(vendor);
+        companyRepository.save(company);
+
+        String subject = "Invitation";
+        String messageBody = "Dear Vendor,\n\nYou have been invited to service on our platform. \n\nNote from the admin: " + note;
+        EmailDetails emailDetails = new EmailDetails(vendorEmail, subject, messageBody);
+
+        emailService.sendEmail(emailDetails);
+
+        log.info("Vendor onboarded successfully. Email sent to " + vendor + " to complete registration --------------");
+
+        return "Vendor with " + vendor.getId() + " added to the list of vendors. Email sent to vendor";
+    }
+
+    @Override
+    public String removeVendor (String vendorId, String note) throws UserAlreadyExistException, IOException {
+
+        Company company = getAuthenticatedCompany();
+
+        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new CustomException("Vendor does not exist"));
+        String vendorEmail = vendor.getEmail();
+
+        company.getVendors().remove(vendor);
+        companyRepository.save(company);
+
+        String subject = "Deactivated";
+        String messageBody = "Dear Vendor,\n\nYou have been deactivated from our list of vendors. \n\nNote from the admin: " + note;
+        EmailDetails emailDetails = new EmailDetails(vendorEmail, subject, messageBody);
+
+        emailService.sendEmail(emailDetails);
+
+        log.info("Vendor removed successfully. Email sent to " + vendor + " --------------");
+
+        return "Vendor with " + vendor.getId() + " removed from the list of vendors. Email sent to vendor";
+    }
+
     private Company getAuthenticatedCompany() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String companyEmail = authentication.getName();
@@ -199,7 +236,8 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     public BusinessRegistrationResponse updateCompanyProfile(String companyName, String companyAddress,
-                                                             String phoneNumber, CompanySize companySize, MultipartFile file) throws IOException {
+                                                             String phoneNumber, CompanySize companySize, String domainName,
+                                                             BigDecimal priceLimit, MultipartFile file) throws IOException {
         Company existingCompany = getAuthenticatedCompany();
 
         String imageUrl = existingCompany.getImageUrl();
@@ -219,6 +257,8 @@ public class CompanyServiceImpl implements CompanyService {
         existingCompany.setCompanyAddress(companyAddress);
         existingCompany.setPhoneNumber(phoneNumber);
         existingCompany.setCompanySize(companySize);
+        existingCompany.setDomainName(domainName);
+        existingCompany.setPriceLimit(priceLimit);
         existingCompany.setImageUrl(imageUrl);
 
         companyRepository.save(existingCompany);
@@ -247,7 +287,7 @@ public class CompanyServiceImpl implements CompanyService {
                 .build();
     }
 
-    @Override
+   /* @Override
     public VendorReviewResponse addRatingAndReviewByCompany(VendorReview vendorReview, String vendorId, ReviewRequest reviewRequest) {
 
         Integer rating = reviewRequest.getRating();
@@ -321,6 +361,41 @@ public class CompanyServiceImpl implements CompanyService {
                 .imageUrl(itemMenu.getImageUrl())
                 .averageRating(itemMenu.getAverageRating())
                 .build();
+    }
+    */
+
+    @Override
+    public List<DetailsResponse> getCompanyVendors() {
+        Company company = getAuthenticatedCompany();
+        List<DetailsResponse> detailsResponses = new ArrayList<>();
+        List<Vendor> vendors = company.getVendors();
+
+        /*CustomFileHandler customFileHandler = new CustomFileHandler();
+        logger.addHandler(customFileHandler);
+
+        try {*/
+        for (Vendor vendor : vendors) {
+            DetailsResponse detailsResponse = new DetailsResponse();
+            detailsResponse.setId(vendor.getId());
+            detailsResponse.setVendorEmail(vendor.getEmail());
+            detailsResponse.setBusinessName(vendor.getBusinessName());
+            detailsResponse.setAddress(vendor.getBusinessAddress());
+            detailsResponse.setContactNumber(vendor.getPhone());
+            detailsResponse.setLastAccessed(vendor.getUpdatedAt());
+            detailsResponse.setTotalRatings(vendor.getTotalRatings());
+            detailsResponse.setAverageRating(vendor.getAverageRating());
+            detailsResponse.setActive(vendor.getActive());
+            //detailsResponse.setItemCategories(vendor.getItemCategory());
+            detailsResponses.add(detailsResponse);
+
+            //logger.info("Added details for vendor " + vendor);
+        }
+        //logger.info("Vendors details fetched successfully!!! -----------------------------------------\n");
+        //logger.removeHandler(customFileHandler);
+        return detailsResponses;
+        /*} finally {
+            logger.removeHandler(customFileHandler);
+        }*/
     }
 
     private String generateResetToken() {

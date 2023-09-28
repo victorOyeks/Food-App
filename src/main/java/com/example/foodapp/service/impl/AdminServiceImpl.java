@@ -14,10 +14,7 @@ import com.example.foodapp.exception.UserAlreadyExistException;
 import com.example.foodapp.repository.*;
 import com.example.foodapp.service.AdminService;
 import com.example.foodapp.service.EmailService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,9 +49,6 @@ public class AdminServiceImpl implements AdminService {
 
     private static final Logger logger = Logger.getLogger(AdminServiceImpl.class.getName());
 
-    @Transactional
-    @CreatedBy
-    @LastModifiedBy
     @Override
     public String inviteVendor(VendorInvitation vendorInvitation) throws UserAlreadyExistException, IOException {
 
@@ -248,7 +242,7 @@ public class AdminServiceImpl implements AdminService {
         /*CustomFileHandler customFileHandler = new CustomFileHandler();
         logger.addHandler(customFileHandler);
 
-        try {*/
+        try {*/ 
             for (Vendor vendor : vendors) {
                 DetailsResponse detailsResponse = new DetailsResponse();
                 detailsResponse.setId(vendor.getId());
@@ -282,7 +276,7 @@ public class AdminServiceImpl implements AdminService {
                 .id(vendor.getId())
                 .email(vendor.getEmail())
                 .businessName(vendor.getBusinessName())
-                .domainName(vendor.getDomainName())
+                .domainName("Not Applicable")
                 .phoneNumber(vendor.getPhone())
                 .businessAddress(vendor.getBusinessAddress())
                 .mapUri(vendor.getMapUri())
@@ -528,7 +522,7 @@ public class AdminServiceImpl implements AdminService {
                 orderDetails.setOrderType(getOrderType(order));
                 orderDetails.setAmount(order.getTotalAmount());
                 orderDetails.setDeliveryStatus(order.getDeliveryStatus());
-                orderDetails.setPaymentStatus(order.getPaymentStatus());
+                orderDetails.setSubmitStatus(order.getSubmitStatus());
                 orderDetailsResponses.add(orderDetails);
             }
         }

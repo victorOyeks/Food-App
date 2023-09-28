@@ -19,7 +19,7 @@ public interface VendorService {
                                                      String businessAddress, MultipartFile file) throws IOException;
     String changePassword(ChangePasswordRequest request);
     List<OrderDetailsResponse> viewAllProcessedOrdersToVendor(TimeFrame timeFrame);
-    List<OrderDetailsResponse> viewAllLiveOrdersToVendor();
+    //List<OrderDetailsResponse> viewAllLiveOrdersToVendor();
     AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId);
     void changeDeliveryStatus(String orderId, DeliveryStatus newStatus);
     void changeStoreStatus(Boolean storeStatus);

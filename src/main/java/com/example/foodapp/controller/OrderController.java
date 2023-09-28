@@ -38,15 +38,10 @@ public class OrderController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }*/
 
-    @PostMapping("/vendors/{vendorId}/add-food-to-cart")
+     @PostMapping("/vendors/{vendorId}/add-food-to-cart")
     public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId,
                                                                          @RequestParam String menuId) {
-        String selectedItem;
-        try{
-            selectedItem = orderService.addFoodToCartForIndividual(vendorId, menuId);
-        } catch (CustomException customException) {
-            selectedItem = orderService.addFoodToCartForCompany(vendorId, menuId);
-        }
+        String selectedItem = orderService.addFoodToCartForIndividual(vendorId, menuId);
         ApiResponse<String> apiResponse = new ApiResponse<>(selectedItem);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
@@ -54,24 +49,14 @@ public class OrderController {
     @PostMapping("/vendors/{vendorId}/add-supplement-to-cart")
     public ResponseEntity<ApiResponse<String>> selectSupplementForIndividuals(@PathVariable String vendorId,
                                                                          @RequestParam String supplementId) {
-        String selectedSupplement;
-        try{
-            selectedSupplement = orderService.addSupplementToCartForIndividual(vendorId, supplementId);
-        }catch (CustomException customException){
-            selectedSupplement = orderService.addSupplementToCartForCompany(vendorId, supplementId);
-        }
+        String selectedSupplement = orderService.addSupplementToCartForIndividual(vendorId, supplementId);
         ApiResponse<String> apiResponse = new ApiResponse<>(selectedSupplement);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @GetMapping("carts")
     public ResponseEntity<ApiResponse<OrderViewResponse>> viewAllOrders() {
-        OrderViewResponse orders;
-        try {
-            orders = orderService.viewUserCart();
-        } catch (CustomException userException) {
-            orders = orderService.viewCompanyCart();
-        }
+        OrderViewResponse orders = orderService.viewUserCart();
         ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(orders);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

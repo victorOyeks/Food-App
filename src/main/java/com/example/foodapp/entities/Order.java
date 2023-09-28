@@ -1,7 +1,7 @@
 package com.example.foodapp.entities;
 
 import com.example.foodapp.constant.DeliveryStatus;
-import com.example.foodapp.constant.PaymentStatus;
+import com.example.foodapp.constant.SubmitStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -9,7 +9,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 
 @AllArgsConstructor
@@ -43,13 +42,13 @@ public class Order {
 
     @ElementCollection
     @CollectionTable(name = "order_supplements", joinColumns = @JoinColumn(name = "order_id"))
-    @MapKeyJoinColumn(name = "supplement_id") // Map key column for itemMenu IDs
+    @MapKeyJoinColumn(name = "supplement_id")
     @Column(name = "quantity")
     private Map<String, Integer> supplements;
 
     private BigDecimal totalAmount;
 
-    private PaymentStatus paymentStatus;
+    private SubmitStatus submitStatus;
 
     private DeliveryStatus deliveryStatus;
 

@@ -32,16 +32,16 @@ public interface OrderRepository extends JpaRepository <Order, String> {
 //    @Query("SELECT o FROM Order o JOIN o.itemMenus i JOIN i.itemCategory c WHERE c.vendor = ?1 and o.orderId = ?2")
 //    Order findAnOrdersByVendor (Vendor vendor, String orderId);
 
-    @Query("SELECT o FROM Order o WHERE o.user.id = :userId AND o.paymentStatus = com.example.foodapp.constant.PaymentStatus.PENDING")
+    @Query("SELECT o FROM Order o WHERE o.user.id = :userId AND o.submitStatus = com.example.foodapp.constant.SubmitStatus.PENDING")
     Order findOpenOrderByUser(String userId);
 
-    @Query("SELECT o FROM Order o WHERE o.company.id = :companyId AND o.paymentStatus = com.example.foodapp.constant.PaymentStatus.PENDING")
+    @Query("SELECT o FROM Order o WHERE o.company.id = :companyId AND o.submitStatus = com.example.foodapp.constant.SubmitStatus.PENDING")
     Order findOpenOrderByCompany(String companyId);
 
-    @Query("SELECT o FROM Order o WHERE o.user.id = :userId AND o.paymentStatus =com.example.foodapp.constant.PaymentStatus.PENDING")
+    @Query("SELECT o FROM Order o WHERE o.user.id = :userId AND o.submitStatus =com.example.foodapp.constant.SubmitStatus.PENDING")
     List<Order> findPendingOrdersByUserId(String userId);
 
-    @Query("SELECT o FROM Order o WHERE o.company.id = :companyId AND o.paymentStatus =com.example.foodapp.constant.PaymentStatus.PENDING")
+    @Query("SELECT o FROM Order o WHERE o.company.id = :companyId AND o.submitStatus =com.example.foodapp.constant.SubmitStatus.PENDING")
     List<Order> findPendingOrdersByCompanyId(String companyId);
 
     Optional<Order> findByOrderIdAndUserId(String orderId, String userId);

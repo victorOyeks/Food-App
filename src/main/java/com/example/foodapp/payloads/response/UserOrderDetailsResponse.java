@@ -1,8 +1,7 @@
 package com.example.foodapp.payloads.response;
 
 import com.example.foodapp.constant.DeliveryStatus;
-import com.example.foodapp.constant.PaymentStatus;
-import com.example.foodapp.entities.ItemMenu;
+import com.example.foodapp.constant.SubmitStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,7 +20,7 @@ public class UserOrderDetailsResponse {
     private String orderId;
     private List<FoodDataResponse> itemMenu;
     private BigDecimal totalAmount;
-    private PaymentStatus paymentStatus;
+    private SubmitStatus submitStatus;
     private DeliveryStatus deliveryStatus;
 
 }

@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/company/")
@@ -30,15 +32,29 @@ public class CompanyController {
         return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     }
 
+    @PostMapping("add-vendor")
+    public ResponseEntity<ApiResponse<String>> addVendor (@RequestParam String vendorId, @RequestBody String note) throws IOException {
+        ApiResponse<String> apiResponse = new ApiResponse<>(companyService.addVendor(vendorId, note));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("remove-vendor")
+    public ResponseEntity<ApiResponse<String>> removeVendor (@RequestParam String vendorId, @RequestBody String note) throws IOException {
+        ApiResponse<String> apiResponse = new ApiResponse<>(companyService.removeVendor(vendorId, note));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
     @PutMapping("update-profile")
     public ResponseEntity<ApiResponse<BusinessRegistrationResponse>> updateCompanyProfile(
             @RequestParam String companyName,
             @RequestParam String companyAddress,
             @RequestParam String phoneNumber,
             @RequestParam CompanySize companySize,
-            @RequestParam(required = false) MultipartFile file
-    ) throws IOException {
-        ApiResponse<BusinessRegistrationResponse> response = new ApiResponse<>(companyService.updateCompanyProfile(companyName, companyAddress, phoneNumber, companySize, file));
+            @RequestParam String domainName,
+            @RequestParam BigDecimal priceLimit,
+            @RequestParam(required = false) MultipartFile file) throws IOException {
+        ApiResponse<BusinessRegistrationResponse> response = new ApiResponse<>(
+                companyService.updateCompanyProfile(companyName, companyAddress, phoneNumber, companySize, domainName, priceLimit, file));
         return ResponseEntity.ok(response);
     }
 
@@ -48,6 +64,13 @@ public class CompanyController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
+    @GetMapping("/company-vendors")
+    public ResponseEntity<ApiResponse<List<DetailsResponse>>> viewCompanyVendors(){
+        List<DetailsResponse> vendorDetails = companyService.getCompanyVendors();
+        ApiResponse<List<DetailsResponse>> apiResponse = new ApiResponse<>(vendorDetails);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+    /*
     @PostMapping("vendors/{vendorId}/company-reviews")
     public ResponseEntity<ApiResponse<VendorReviewResponse>> addVendorReview(@PathVariable String vendorId,
                                                                        @RequestBody ReviewRequest reviewRequest, VendorReview vendorReview) {
@@ -61,4 +84,6 @@ public class CompanyController {
         ApiResponse<ItemMenuReviewResponse> apiResponse = new ApiResponse<>(companyService.addRatingAndReviewToItemMenuByCompany(itemMenuReview, itemMenusId, reviewRequest));
         return  new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
+     */
 }
