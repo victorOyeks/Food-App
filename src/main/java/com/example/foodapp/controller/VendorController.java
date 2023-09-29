@@ -31,7 +31,16 @@ public class VendorController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
+
+    @GetMapping("pending-orders")
+    public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllPendingOrdersToVendor(@RequestParam(required = false) TimeFrame timeFrame) {
+        List<OrderDetailsResponse> orders = vendorService.viewAllPendingOrdersToVendor(timeFrame);
+        ApiResponse<List<OrderDetailsResponse>> apiResponse = new ApiResponse<>(orders);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
     /*
+
     @GetMapping("live-orders")
     public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllLiveOrdersToVendor() {
         List<OrderDetailsResponse> orders = vendorService.viewAllLiveOrdersToVendor();

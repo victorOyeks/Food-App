@@ -55,9 +55,16 @@ public class OrderController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     } */
 
+    @PostMapping("/add-to-cart")
+    public ResponseEntity<ApiResponse<OrderViewResponse>> addToCart(@RequestParam String vendorId, @RequestBody CartRequest cartRequest) {
+        OrderViewResponse message = orderService.addToCart(vendorId, cartRequest.getCartItems(), cartRequest.getSupplementItems());
+        ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(message);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
     @PostMapping("/submit-cart")
-    public ResponseEntity<ApiResponse<OrderViewResponse>> submitCart(@RequestParam String vendorId, @RequestBody CartRequest cartRequest) {
-        OrderViewResponse message = orderService.submitCart(vendorId, cartRequest.getCartItems(), cartRequest.getSupplementItems());
+    public ResponseEntity<ApiResponse<OrderViewResponse>> submitCart(@RequestParam String orderId) {
+        OrderViewResponse message = orderService.submitCart(orderId);
         ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(message);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
@@ -92,12 +99,6 @@ public class OrderController {
         ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(message);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
-//    @GetMapping("/{orderId}")
-//    public ResponseEntity<UserOrderDetailsResponse> viewOrderDetails(@PathVariable String orderId) {
-//        UserOrderDetailsResponse orderDetailsResponse = orderService.viewOrderById(orderId);
-//        return new ResponseEntity<>(orderDetailsResponse, HttpStatus.OK);
-//    }
 
     @GetMapping("order-details")
     public ResponseEntity<UserOrderDetailsResponse> viewOrderDetails(@RequestParam String orderId) {

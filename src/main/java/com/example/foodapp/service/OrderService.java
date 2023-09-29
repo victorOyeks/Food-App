@@ -13,9 +13,10 @@ public interface OrderService {
 //    String addFoodToCartForCompany(String vendorId, String menuId);
 //    //String selectItemForCompany(String vendorId, String menuId);
 //    String addSupplementToCartForIndividual(String vendorId, String supplementId);
-    OrderViewResponse submitCart(String vendorId,List<CartItem> cartItems, List<SupplementItem> supplementItems);
+    OrderViewResponse addToCart(String vendorId, List<CartItem> cartItems, List<SupplementItem> supplementItems);
 //    String addSupplementToCartForCompany (String vendorId, String supplementId);
 //    OrderViewResponse viewCompanyCart();
+    OrderViewResponse submitCart (String orderId);
     UserOrderDetailsResponse viewOrderByOrderIdForUser(String orderId);
     UserOrderDetailsResponse viewOrderByOrderIdForCompany(String orderId);
     //OrderViewResponse viewAllOrdersByUser();

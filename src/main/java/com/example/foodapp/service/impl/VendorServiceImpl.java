@@ -232,6 +232,52 @@ public class VendorServiceImpl implements VendorService {
         return orderDetailsResponses;
     }
 
+    public List<OrderDetailsResponse> viewAllPendingOrdersToVendor(TimeFrame timeFrame) {
+        Vendor authenticatedVendor = getAuthenticatedVendor();
+        List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
+        LocalDateTime now = LocalDateTime.now();
+        List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
+
+        for (Order order : ordersByVendor) {
+            if (order.getDeliveryStatus() == DeliveryStatus.PENDING) {
+                LocalDateTime orderDate = order.getCreatedAt();
+                boolean isInTimeFrame = false;
+
+                switch (timeFrame) {
+                    case TODAY:
+                        isInTimeFrame = orderDate.toLocalDate().equals(LocalDate.now());
+                        break;
+                    case THIS_WEEK:
+                        LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                        LocalDateTime endOfWeek = startOfWeek.plusWeeks(1);
+                        isInTimeFrame = orderDate.isAfter(startOfWeek) && orderDate.isBefore(endOfWeek);
+                        break;
+                    case THIS_MONTH:
+                        LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
+                        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+                        isInTimeFrame = orderDate.isAfter(startOfMonth) && orderDate.isBefore(endOfMonth);
+                        break;
+                    default:
+                        timeFrame = null;
+                }
+
+                if (isInTimeFrame) {
+                    OrderDetailsResponse orderDetails = new OrderDetailsResponse();
+                    orderDetails.setOrderId(order.getOrderId());
+                    orderDetails.setOrderDate(orderDate);
+                    orderDetails.setCustomerName(getCustomerName(order));
+                    orderDetails.setProfilePic(getCustomerProfilePic(order));
+                    orderDetails.setAmount(order.getTotalAmount());
+                    orderDetails.setDeliveryStatus(order.getDeliveryStatus());
+                    orderDetails.setSubmitStatus(order.getSubmitStatus());
+
+                    orderDetailsResponses.add(orderDetails);
+                }
+            }
+        }
+        return orderDetailsResponses;
+    }
+
     /*
     public List<OrderDetailsResponse> viewAllLiveOrdersToVendor() {
         Vendor authenticatedVendor = getAuthenticatedVendor();
