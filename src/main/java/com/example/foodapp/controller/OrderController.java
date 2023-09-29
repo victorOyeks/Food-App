@@ -1,5 +1,6 @@
 package com.example.foodapp.controller;
 
+import com.example.foodapp.payloads.request.CartRequest;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.service.OrderService;
@@ -38,7 +39,7 @@ public class OrderController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }*/
 
-     @PostMapping("/vendors/{vendorId}/add-food-to-cart")
+    /* @PostMapping("/vendors/{vendorId}/add-food-to-cart")
     public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId,
                                                                          @RequestParam String menuId) {
         String selectedItem = orderService.addFoodToCartForIndividual(vendorId, menuId);
@@ -51,6 +52,13 @@ public class OrderController {
                                                                          @RequestParam String supplementId) {
         String selectedSupplement = orderService.addSupplementToCartForIndividual(vendorId, supplementId);
         ApiResponse<String> apiResponse = new ApiResponse<>(selectedSupplement);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    } */
+
+    @PostMapping("/submit-cart")
+    public ResponseEntity<ApiResponse<OrderViewResponse>> submitCart(@RequestParam String vendorId, @RequestBody CartRequest cartRequest) {
+        OrderViewResponse message = orderService.submitCart(vendorId, cartRequest.getCartItems(), cartRequest.getSupplementItems());
+        ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(message);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -73,11 +81,15 @@ public class OrderController {
         ApiResponse<UserOrderViewResponse> apiResponse = new ApiResponse<>(orderViewResponse);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
     @DeleteMapping("{orderId}/itemMenu")
-    public ResponseEntity<ApiResponse<String>> deleteItem(@PathVariable("orderId") String orderId, @RequestParam String itemId) {
-        String message = orderService.deleteItem(orderId, itemId);
-        ApiResponse<String> apiResponse = new ApiResponse<>(message);
+    public ResponseEntity<ApiResponse<OrderViewResponse>> deleteItem(@PathVariable("orderId") String orderId, @RequestParam String itemId) {
+        OrderViewResponse message;
+        try {
+            message = orderService.deleteItem(orderId, itemId);
+        }catch (CustomException customException){
+            message = orderService.deleteSupplement(orderId, itemId);
+        }
+        ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(message);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
