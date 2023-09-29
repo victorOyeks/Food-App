@@ -24,13 +24,19 @@ public class VendorController {
 
     private final VendorService vendorService;
 
+    @GetMapping("all-orders")
+    public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllOrdersToVendor(@RequestParam(required = false) TimeFrame timeFrame) {
+        List<OrderDetailsResponse> orders = vendorService.viewAllOrdersToVendor(timeFrame);
+        ApiResponse<List<OrderDetailsResponse>> apiResponse = new ApiResponse<>(orders);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
     @GetMapping("processed-orders")
     public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllProcessedOrdersToVendor(@RequestParam(required = false) TimeFrame timeFrame) {
         List<OrderDetailsResponse> orders = vendorService.viewAllProcessedOrdersToVendor(timeFrame);
         ApiResponse<List<OrderDetailsResponse>> apiResponse = new ApiResponse<>(orders);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
 
     @GetMapping("pending-orders")
     public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllPendingOrdersToVendor(@RequestParam(required = false) TimeFrame timeFrame) {
@@ -40,7 +46,6 @@ public class VendorController {
     }
 
     /*
-
     @GetMapping("live-orders")
     public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewAllLiveOrdersToVendor() {
         List<OrderDetailsResponse> orders = vendorService.viewAllLiveOrdersToVendor();
@@ -70,19 +75,20 @@ public class VendorController {
     }
 
     @PutMapping("/{orderId}/delivery")
-    public void changeDeliveryStatus(@PathVariable String orderId, @RequestParam DeliveryStatus newStatus) {
-        vendorService.changeDeliveryStatus(orderId, newStatus);
+    public ResponseEntity<ApiResponse<String>> changeDeliveryStatus(@PathVariable String orderId, @RequestParam DeliveryStatus newStatus) {
+        ApiResponse<String> apiResponse = new ApiResponse<>(vendorService.changeDeliveryStatus(orderId, newStatus));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @PutMapping("/change-store-status")
-    public void changeStoreStatus(@RequestParam Boolean newStatus) {
-        vendorService.changeStoreStatus(newStatus);
+    public ResponseEntity<ApiResponse<String>> changeStoreStatus(@RequestParam Boolean newStatus) {
+        ApiResponse<String> apiResponse = new ApiResponse<>(vendorService.changeStoreStatus(newStatus));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @GetMapping("/users/orders")
-    public ResponseEntity<ApiResponse<AdminOrderResponse>> viewOrdersByUserOrCompany(@RequestParam String orderId,
-                                                                                     @RequestParam String userIdOrCompanyId) {
-        AdminOrderResponse order = vendorService.viewOrderByUserOrCompany(orderId, userIdOrCompanyId);
+    public ResponseEntity<ApiResponse<AdminOrderResponse>> viewOrdersByUserOrCompany(@RequestParam String orderId) {
+        AdminOrderResponse order = vendorService.viewOrderByUser(orderId);
         ApiResponse<AdminOrderResponse> apiResponse = new ApiResponse<>(order);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

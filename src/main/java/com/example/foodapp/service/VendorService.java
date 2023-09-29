@@ -18,12 +18,13 @@ public interface VendorService {
                                                      String phone, String businessName, String domainName,
                                                      String businessAddress, MultipartFile file) throws IOException;
     String changePassword(ChangePasswordRequest request);
+    List<OrderDetailsResponse> viewAllOrdersToVendor(TimeFrame timeFrame);
     List<OrderDetailsResponse> viewAllProcessedOrdersToVendor(TimeFrame timeFrame);
     List<OrderDetailsResponse> viewAllPendingOrdersToVendor(TimeFrame timeFrame);
     //List<OrderDetailsResponse> viewAllLiveOrdersToVendor();
-    AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId);
-    void changeDeliveryStatus(String orderId, DeliveryStatus newStatus);
-    void changeStoreStatus(Boolean storeStatus);
+    AdminOrderResponse viewOrderByUser(String orderId);
+    String changeDeliveryStatus(String orderId, DeliveryStatus newStatus);
+    String changeStoreStatus(Boolean storeStatus);
     BusinessRegistrationResponse viewVendorProfile();
     VendorDashboardSummaryResponse getVendorSummary(TimeFrame timeFrame);
     List<SalesReportDTO> generateSalesReport(LocalDate startDate, LocalDate endDate, TimeFrame timeFrame);

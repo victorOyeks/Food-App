@@ -185,6 +185,50 @@ public class VendorServiceImpl implements VendorService {
         return "Password changed successfully!!!";
     }
 
+    public List<OrderDetailsResponse> viewAllOrdersToVendor(TimeFrame timeFrame) {
+        Vendor authenticatedVendor = getAuthenticatedVendor();
+        List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
+        LocalDateTime now = LocalDateTime.now();
+        List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
+
+        for (Order order : ordersByVendor) {
+//            if (order.getDeliveryStatus() != DeliveryStatus.PENDING) {
+                LocalDateTime orderDate = order.getCreatedAt();
+                boolean isInTimeFrame = false;
+
+                switch (timeFrame) {
+                    case TODAY:
+                        isInTimeFrame = orderDate.toLocalDate().equals(LocalDate.now());
+                        break;
+                    case THIS_WEEK:
+                        LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                        LocalDateTime endOfWeek = startOfWeek.plusWeeks(1);
+                        isInTimeFrame = orderDate.isAfter(startOfWeek) && orderDate.isBefore(endOfWeek);
+                        break;
+                    case THIS_MONTH:
+                        LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
+                        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+                        isInTimeFrame = orderDate.isAfter(startOfMonth) && orderDate.isBefore(endOfMonth);
+                        break;
+                    default:
+                        timeFrame = null;
+                }
+
+                if (isInTimeFrame) {
+                    OrderDetailsResponse orderDetails = new OrderDetailsResponse();
+                    orderDetails.setOrderId(order.getOrderId());
+                    orderDetails.setOrderDate(orderDate);
+                    orderDetails.setCustomerName(getCustomerName(order));
+                    orderDetails.setProfilePic(getCustomerProfilePic(order));
+                    orderDetails.setAmount(order.getTotalAmount());
+                    orderDetails.setDeliveryStatus(order.getDeliveryStatus());
+                    orderDetails.setSubmitStatus(order.getSubmitStatus());
+
+                    orderDetailsResponses.add(orderDetails);
+                }
+            }
+        return orderDetailsResponses;
+    }
 
     public List<OrderDetailsResponse> viewAllProcessedOrdersToVendor(TimeFrame timeFrame) {
         Vendor authenticatedVendor = getAuthenticatedVendor();
@@ -303,7 +347,21 @@ public class VendorServiceImpl implements VendorService {
     }
      */
 
-    public AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId) {
+    public AdminOrderResponse viewOrderByUser(String orderId) {
+
+        Vendor vendor = getAuthenticatedVendor();
+
+        Order order = orderRepository.findByOrderIdAndVendorId(orderId, vendor.getId());
+        if (order != null) {
+            return addOrdersToResponse(order, OrderType.INDIVIDUAL, order.getUser().getFirstName() + " " +
+                                    order.getUser().getLastName(), order.getUser().getProfilePictureUrl(),
+                            order.getUser().getPhone(), order.getUser().getEmail());
+        } else {
+            throw new CustomException("Order not found with ID: " + orderId + " for Vendor ID: " + vendor.getId());
+        }
+    }
+
+    /* public AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId) {
 
         Vendor vendor = getAuthenticatedVendor();
         User user = userRepository.findById(userIdOrCompanyId).orElse(null);
@@ -329,9 +387,9 @@ public class VendorServiceImpl implements VendorService {
         } else {
             throw new CustomException("Order not found with ID: " + orderId + " for Vendor ID: " + vendor.getId());
         }
-    }
+    }*/
 
-    public void changeDeliveryStatus(String orderId, DeliveryStatus deliveryStatus) {
+    public String changeDeliveryStatus(String orderId, DeliveryStatus deliveryStatus) {
         Order order = orderRepository.findByOrderId(orderId);
 
         if (order == null) {
@@ -339,14 +397,16 @@ public class VendorServiceImpl implements VendorService {
         }
         order.setDeliveryStatus(deliveryStatus);
         orderRepository.save(order);
+        return "Delivery status changed to " + deliveryStatus;
     }
 
-    public void changeStoreStatus(Boolean storeStatus) {
+    public String changeStoreStatus(Boolean storeStatus) {
         String vendorId = getAuthenticatedVendor().getId();
         Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new CustomException("Vendor not found!!!"));
 
         vendor.setStoreStatus(storeStatus);
         vendorRepository.save(vendor);
+        return "Store status is changed to " + storeStatus;
     }
 
 

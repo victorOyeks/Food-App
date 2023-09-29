@@ -63,9 +63,9 @@ public class OrderController {
     }
 
     @PostMapping("/submit-cart")
-    public ResponseEntity<ApiResponse<OrderViewResponse>> submitCart(@RequestParam String orderId) {
-        OrderViewResponse message = orderService.submitCart(orderId);
-        ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(message);
+    public ResponseEntity<ApiResponse<String>> submitCart(@RequestParam String orderId) {
+        String message = orderService.submitCart(orderId);
+        ApiResponse<String> apiResponse = new ApiResponse<>(message);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

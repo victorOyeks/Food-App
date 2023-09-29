@@ -16,7 +16,7 @@ public interface OrderService {
     OrderViewResponse addToCart(String vendorId, List<CartItem> cartItems, List<SupplementItem> supplementItems);
 //    String addSupplementToCartForCompany (String vendorId, String supplementId);
 //    OrderViewResponse viewCompanyCart();
-    OrderViewResponse submitCart (String orderId);
+    String submitCart (String orderId);
     UserOrderDetailsResponse viewOrderByOrderIdForUser(String orderId);
     UserOrderDetailsResponse viewOrderByOrderIdForCompany(String orderId);
     //OrderViewResponse viewAllOrdersByUser();

@@ -183,7 +183,7 @@ public class OrderServiceImpl implements OrderService {
         return viewUserCart();
     }
 
-    public OrderViewResponse submitCart (String orderId){
+    public String submitCart (String orderId){
         User user = getAuthenticatedUser();
         Order order = orderRepository.findOrderByOrderIdAndUserId(orderId, user.getId());
 
@@ -197,7 +197,7 @@ public class OrderServiceImpl implements OrderService {
         order.setSubmitStatus(SubmitStatus.SUBMITTED);
         orderRepository.save(order);
 
-        return viewUserCart();
+        return "Order sent to vendor successfully";
     }
 
     /*
