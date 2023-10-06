@@ -22,9 +22,9 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("dashboard")
-    public ResponseEntity<ApiResponse<List<UserDashBoardResponse>>> dashboard() {
-        ApiResponse<List<UserDashBoardResponse>> apiResponse = new ApiResponse<>(userService.getUserDashBoard());
+    @GetMapping("company-vendors")
+    public ResponseEntity<ApiResponse<List<UserDashBoardResponse>>> userCompanyVendors() {
+        ApiResponse<List<UserDashBoardResponse>> apiResponse = new ApiResponse<>(userService.userCompanyVendors());
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

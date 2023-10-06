@@ -19,8 +19,9 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping("item-menus")
-    public ResponseEntity<ApiResponse<List<FoodDataResponse>>> viewAllItemMenus() {
-        List<FoodDataResponse> itemMenus = orderService.viewAllItemMenus();
+    public ResponseEntity<ApiResponse<List<FoodDataResponse>>> viewFoodItemsByVendorAndCategory(@RequestParam String vendorId,
+                                                                                                @RequestParam String categoryId) {
+        List<FoodDataResponse> itemMenus = orderService.viewFoodItemsByVendorAndCategory(vendorId, categoryId);
         ApiResponse<List<FoodDataResponse>> apiResponse = new ApiResponse<>(itemMenus);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
@@ -31,29 +32,6 @@ public class OrderController {
         ApiResponse<List<SupplementResponse>> apiResponse = new ApiResponse<>(supplementResponses);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
-    /*
-    @PostMapping("/vendors/{vendorId}/select-item-individual")
-    public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId, @RequestParam String menuId) {
-        ApiResponse<String> apiResponse = new ApiResponse<>(orderService.selectItemForIndividual(vendorId, menuId));
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }*/
-
-    /* @PostMapping("/vendors/{vendorId}/add-food-to-cart")
-    public ResponseEntity<ApiResponse<String>> selectItemsForIndividuals(@PathVariable String vendorId,
-                                                                         @RequestParam String menuId) {
-        String selectedItem = orderService.addFoodToCartForIndividual(vendorId, menuId);
-        ApiResponse<String> apiResponse = new ApiResponse<>(selectedItem);
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
-
-    @PostMapping("/vendors/{vendorId}/add-supplement-to-cart")
-    public ResponseEntity<ApiResponse<String>> selectSupplementForIndividuals(@PathVariable String vendorId,
-                                                                         @RequestParam String supplementId) {
-        String selectedSupplement = orderService.addSupplementToCartForIndividual(vendorId, supplementId);
-        ApiResponse<String> apiResponse = new ApiResponse<>(selectedSupplement);
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    } */
 
     @PostMapping("/add-to-cart")
     public ResponseEntity<ApiResponse<OrderViewResponse>> addToCart(@RequestParam String vendorId, @RequestBody CartRequest cartRequest) {
@@ -88,6 +66,7 @@ public class OrderController {
         ApiResponse<UserOrderViewResponse> apiResponse = new ApiResponse<>(orderViewResponse);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
     @DeleteMapping("{orderId}/itemMenu")
     public ResponseEntity<ApiResponse<OrderViewResponse>> deleteItem(@PathVariable("orderId") String orderId, @RequestParam String itemId) {
         OrderViewResponse message;

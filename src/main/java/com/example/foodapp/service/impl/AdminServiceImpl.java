@@ -233,9 +233,8 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-
     @Override
-    public List<DetailsResponse> getAllVendorDetails() throws IOException {
+    public List<DetailsResponse> getAllVendorDetails(){
         List<DetailsResponse> detailsResponses = new ArrayList<>();
         List<Vendor> vendors = vendorRepository.findAll();
 

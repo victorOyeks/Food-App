@@ -188,6 +188,48 @@ public class VendorServiceImpl implements VendorService {
     public List<OrderDetailsResponse> viewAllOrdersToVendor(TimeFrame timeFrame) {
         Vendor authenticatedVendor = getAuthenticatedVendor();
         List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
+        List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
+
+        for (Order order : ordersByVendor) {
+            if (timeFrame == null || isOrderInTimeFrame(order, timeFrame)) {
+                OrderDetailsResponse orderDetails = new OrderDetailsResponse();
+                orderDetails.setOrderId(order.getOrderId());
+                orderDetails.setOrderDate(order.getCreatedAt());
+                orderDetails.setCustomerName(getCustomerName(order));
+                orderDetails.setProfilePic(getCustomerProfilePic(order));
+                orderDetails.setAmount(order.getTotalAmount());
+                orderDetails.setDeliveryStatus(order.getDeliveryStatus());
+                orderDetails.setSubmitStatus(order.getSubmitStatus());
+
+                orderDetailsResponses.add(orderDetails);
+            }
+        }
+        return orderDetailsResponses;
+    }
+
+    private boolean isOrderInTimeFrame(Order order, TimeFrame timeFrame) {
+        LocalDateTime orderDate = order.getCreatedAt();
+        LocalDateTime now = LocalDateTime.now();
+
+        switch (timeFrame) {
+            case TODAY:
+                return orderDate.toLocalDate().equals(LocalDate.now());
+            case THIS_WEEK:
+                LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                LocalDateTime endOfWeek = startOfWeek.plusWeeks(1);
+                return orderDate.isAfter(startOfWeek) && orderDate.isBefore(endOfWeek);
+            case THIS_MONTH:
+                LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
+                LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+                return orderDate.isAfter(startOfMonth) && orderDate.isBefore(endOfMonth);
+            default:
+                return false;
+        }
+    }
+
+    /* public List<OrderDetailsResponse> viewAllOrdersToVendor(TimeFrame timeFrame) {
+        Vendor authenticatedVendor = getAuthenticatedVendor();
+        List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
         LocalDateTime now = LocalDateTime.now();
         List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
 
@@ -229,6 +271,8 @@ public class VendorServiceImpl implements VendorService {
             }
         return orderDetailsResponses;
     }
+
+     */
 
     public List<OrderDetailsResponse> viewAllProcessedOrdersToVendor(TimeFrame timeFrame) {
         Vendor authenticatedVendor = getAuthenticatedVendor();
@@ -432,19 +476,19 @@ public class VendorServiceImpl implements VendorService {
         LocalDateTime startDate;
         LocalDateTime endDate = LocalDateTime.now();
 
-        switch (timeFrame) {
-            case TODAY:
-                startDate = LocalDateTime.now();
-                break;
-            case LAST_7_DAYS:
-                startDate = endDate.minusDays(6);
-                break;
-            case LAST_30_DAYS:
-                startDate = endDate.minusDays(29);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid time frame");
-        }
+            switch (timeFrame) {
+                case TODAY:
+                    startDate = LocalDateTime.now();
+                    break;
+                case LAST_7_DAYS:
+                    startDate = endDate.minusDays(6);
+                    break;
+                case LAST_30_DAYS:
+                    startDate = endDate.minusDays(29);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid time frame");
+            }
 
         Long totalOrders = orderRepository.countOrdersByVendorAndCreatedAtBetween(
                 authenticatedVendor, startDate, endDate);

@@ -15,7 +15,8 @@ public interface UserService {
     String changePassword(ChangePasswordRequest request);
     String verifyAccount(String verificationToken);
     LoginResponse authenticate(LoginRequest loginRequest);
-    List<UserDashBoardResponse> getUserDashBoard();
+    List<UserDashBoardResponse> userLandingPage();
+    List<UserDashBoardResponse> userCompanyVendors();
     UserResponse viewUserProfile() throws IOException;
     String forgotPassword(String email) throws IOException;
     DetailsResponse getVendorDetails(String vendorId);

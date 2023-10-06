@@ -215,7 +215,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDashBoardResponse> getUserDashBoard() {
+    public List<UserDashBoardResponse> userLandingPage() {
         List<UserDashBoardResponse> detailsResponses = new ArrayList<>();
         List<Vendor> vendors = vendorRepository.findAll();
 
@@ -224,11 +224,34 @@ public class UserServiceImpl implements UserService {
             userDashBoardResponse.setId(vendor.getId());
             userDashBoardResponse.setVendorBusinessName(vendor.getBusinessName());
             userDashBoardResponse.setVendorImageUrl(vendor.getImageUrl());
+            userDashBoardResponse.setVendorRating(vendor.getAverageRating());
+            userDashBoardResponse.setTotalRatings(vendor.getTotalRatings());
 
             detailsResponses.add(userDashBoardResponse);
         }
         return detailsResponses;
     }
+
+    @Override
+    public List<UserDashBoardResponse> userCompanyVendors() {
+        List<UserDashBoardResponse> detailsResponses = new ArrayList<>();
+        User user = getAuthenticatedUser();
+        List<Vendor> vendors = user.getCompany().getVendors();
+
+
+        for (Vendor vendor : vendors) {
+            UserDashBoardResponse userDashBoardResponse = new UserDashBoardResponse();
+            userDashBoardResponse.setId(vendor.getId());
+            userDashBoardResponse.setVendorBusinessName(vendor.getBusinessName());
+            userDashBoardResponse.setVendorImageUrl(vendor.getImageUrl());
+            userDashBoardResponse.setVendorRating(vendor.getAverageRating());
+            userDashBoardResponse.setTotalRatings(vendor.getTotalRatings());
+
+            detailsResponses.add(userDashBoardResponse);
+        }
+        return detailsResponses;
+    }
+
 
     public UserResponse viewUserProfile() throws IOException {
         /*/CustomFileHandler customFileHandler = new CustomFileHandler();

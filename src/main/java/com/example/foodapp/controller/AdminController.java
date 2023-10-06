@@ -90,15 +90,6 @@ public class AdminController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    /*
-    @GetMapping("/all-companies")
-    public ResponseEntity<ApiResponse<List<CompanyResponse>>> viewAllCompanies() {
-        List<CompanyResponse> vendorDetails = adminService.getAllCompanyDetails();
-        ApiResponse<List<CompanyResponse>> apiResponse = new ApiResponse<>(vendorDetails);
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
-     */
-
     @GetMapping("/all-companies")
     public ResponseEntity<ApiResponse<List<CompanyResponse>>> viewAllCompanies(@RequestParam("status") String status) {
         List<CompanyResponse> companyDetails;
