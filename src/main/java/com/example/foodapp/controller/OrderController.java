@@ -56,13 +56,7 @@ public class OrderController {
 
     @GetMapping()
     public ResponseEntity<ApiResponse<UserOrderViewResponse>> viewSimplifiedOrdersByUser() {
-
-        UserOrderViewResponse orderViewResponse;
-        try{
-            orderViewResponse = orderService.viewSimplifiedOrdersByUser();
-        } catch (CustomException customException){
-            orderViewResponse = orderService.viewSimplifiedOrdersByCompany();
-        }
+        UserOrderViewResponse orderViewResponse = orderService.viewSimplifiedOrdersByUser();
         ApiResponse<UserOrderViewResponse> apiResponse = new ApiResponse<>(orderViewResponse);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
@@ -80,18 +74,8 @@ public class OrderController {
     }
 
     @GetMapping("order-details")
-    public ResponseEntity<UserOrderDetailsResponse> viewOrderDetails(@RequestParam String orderId) {
-        UserOrderDetailsResponse orderDetailsResponse;
-        try {
-            orderDetailsResponse = orderService.viewOrderByOrderIdForUser(orderId);
-        } catch (CustomException userException) {
-            try {
-                orderDetailsResponse = orderService.viewOrderByOrderIdForCompany(orderId);
-            } catch (CustomException companyException) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        }
-
+    public ResponseEntity<ApiResponse<UserOrderDetailsResponse>> viewOrderDetails(@RequestParam String orderId) {
+        ApiResponse<UserOrderDetailsResponse> orderDetailsResponse = new ApiResponse<>(orderService.viewOrderByOrderIdForUser(orderId));
         return new ResponseEntity<>(orderDetailsResponse, HttpStatus.OK);
     }
 

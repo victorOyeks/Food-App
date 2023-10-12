@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface UserService {
     UserResponse signup(RegistrationRequest request) throws IOException;
-    UserResponse updateUserProfile(String firstName, String lastName, String phone, MultipartFile profilePhoto) throws IOException;
+    UserResponse updateUserProfile(String firstName, String lastName, String phone, String position, MultipartFile profilePhoto) throws IOException;
     String changePassword(ChangePasswordRequest request);
     String verifyAccount(String verificationToken);
     LoginResponse authenticate(LoginRequest loginRequest);

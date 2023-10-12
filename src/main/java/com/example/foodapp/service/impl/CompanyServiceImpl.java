@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.foodapp.constant.CompanySize;
 import com.example.foodapp.constant.ROLE;
+import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.exception.UserAlreadyExistException;
 import com.example.foodapp.payloads.request.*;
 import com.example.foodapp.payloads.response.*;
@@ -24,6 +25,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 @Service
@@ -38,9 +43,9 @@ public class CompanyServiceImpl implements CompanyService {
     private final PasswordEncoder passwordEncoder;
     private final AdminRepository adminRepository;
     private final Cloudinary cloudinary;
-    //private final VendorReviewRepository vendorReviewRepository;
-    //private final ItemMenuRepository itemMenuRepository;
-    //private final ItemMenuReviewRepository itemMenuReviewRepository;
+    private final OrderRepository orderRepository;
+    private final SupplementRepository supplementRepository;
+    private final ItemMenuRepository itemMenuRepository;
 
     @Override
     public BusinessRegistrationResponse companySignup(CompanyRegistrationRequest request) {
@@ -185,14 +190,79 @@ public class CompanyServiceImpl implements CompanyService {
         return "Vendor with " + vendor.getId() + " added to the list of vendors. Email sent to vendor";
     }
 
+
     @Override
-    public String removeVendor (String vendorId, String note) throws UserAlreadyExistException, IOException {
+    public List<DetailsResponse> getAllVendorDetails(){
+        List<DetailsResponse> detailsResponses = new ArrayList<>();
+        List<Vendor> vendors = vendorRepository.findAll();
+
+        /*CustomFileHandler customFileHandler = new CustomFileHandler();
+        logger.addHandler(customFileHandler);
+
+        try {*/
+        for (Vendor vendor : vendors) {
+            DetailsResponse detailsResponse = new DetailsResponse();
+            detailsResponse.setId(vendor.getId());
+            detailsResponse.setVendorEmail(vendor.getEmail());
+            detailsResponse.setBusinessName(vendor.getBusinessName());
+            detailsResponse.setAddress(vendor.getBusinessAddress());
+            detailsResponse.setContactNumber(vendor.getPhone());
+            detailsResponse.setLastAccessed(vendor.getUpdatedAt());
+            detailsResponse.setTotalRatings(vendor.getTotalRatings());
+            detailsResponse.setAverageRating(vendor.getAverageRating());
+            detailsResponse.setActive(vendor.getActive());
+            //detailsResponse.setItemCategories(vendor.getItemCategory());
+            detailsResponses.add(detailsResponse);
+
+            //logger.info("Added details for vendor " + vendor);
+        }
+        //logger.info("Vendors details fetched successfully!!! -----------------------------------------\n");
+        //logger.removeHandler(customFileHandler);
+        return detailsResponses;
+        /*} finally {
+            logger.removeHandler(customFileHandler);
+        }*/
+    }
+
+
+    public List<OrderDetailsResponse> viewOrdersByCompanyStaff() {
+        Company company = getAuthenticatedCompany();
+        List<Order> allOrders = orderRepository.findAll();
+        List<Order> ordersByCompanyStaff = allOrders.stream()
+                .filter(order -> order.getUser().getCompany().equals(company))
+                .toList();
+
+        List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
+        for (Order order : ordersByCompanyStaff) {
+            OrderDetailsResponse orderDetails =new OrderDetailsResponse();
+            orderDetails.setOrderId(order.getOrderId());
+            orderDetails.setOrderDate(order.getCreatedAt());
+            orderDetails.setAmount(order.getTotalAmount());
+            orderDetails.setDeliveryStatus(order.getDeliveryStatus());
+            orderDetailsResponses.add(orderDetails);
+        }
+        return orderDetailsResponses;
+    }
+
+    public OrderViewResponse viewOrderDetailsByCompany(String orderId) {
 
         Company company = getAuthenticatedCompany();
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException("Order not found"));
 
+        if (!order.getUser().getCompany().equals(company)) {
+            throw new CustomException("This order does not belong to your company");
+        }
+        OrderViewResponse orderResponse = viewAllOrdersInternal(Collections.singletonList(order));
+        return orderResponse;
+    }
+
+
+    @Override
+    public String removeVendor (String vendorId, String note) throws UserAlreadyExistException, IOException {
+        Company company = getAuthenticatedCompany();
         Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new CustomException("Vendor does not exist"));
         String vendorEmail = vendor.getEmail();
-
         company.getVendors().remove(vendor);
         companyRepository.save(company);
 
@@ -273,7 +343,6 @@ public class CompanyServiceImpl implements CompanyService {
                 .build();
     }
 
-
     public CompanyResponse viewCompanyProfile() {
         Company existingCompany = getAuthenticatedCompany();
 
@@ -287,82 +356,131 @@ public class CompanyServiceImpl implements CompanyService {
                 .build();
     }
 
-   /* @Override
-    public VendorReviewResponse addRatingAndReviewByCompany(VendorReview vendorReview, String vendorId, ReviewRequest reviewRequest) {
-
-        Integer rating = reviewRequest.getRating();
-        String comment = reviewRequest.getComment();
-
-        Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new CustomException("Vendor not found"));
-
+    @Override
+    public CompanyDetailsResponse getCompanyDashboard() {
         Company company = getAuthenticatedCompany();
+        Integer numberOfStaff = userRepository.countByCompanyAndRole(company, ROLE.COMPANY_STAFF);
+        Integer numberOfVendors = company.getVendors().size();
 
-        List<VendorReview> existingCompanyVendorReviews = vendorReviewRepository.findByVendorAndCompany(vendor, company);
-        if (!existingCompanyVendorReviews.isEmpty()) {
-            throw new CustomException("Company has already reviewed this vendor!!!");
-        }
-        vendorReview.setRating(rating);
-        vendorReview.setComment(comment);
-        vendorReview.setVendor(vendor);
-        vendorReview.setCompany(company);
-        vendorReviewRepository.save(vendorReview);
+        List<Order> ordersByCompany = orderRepository.findByUserCompany(company);
+        BigDecimal totalAmountSpent = ordersByCompany.stream()
+                .map(Order::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        List<VendorReview> vendorReviews = vendor.getVendorReviews();
-        double sumRatings = vendorReviews.stream().mapToDouble(VendorReview::getRating).sum();
-        Double averageRating = vendorReviews.isEmpty() ? 0.0 : sumRatings / vendorReviews.size();
-
-        vendor.setAverageRating(averageRating);
-        vendor.setTotalRatings((long) vendorReviews.size());
-
-        vendorRepository.save(vendor);
-
-        return VendorReviewResponse.builder()
-                .id(vendor.getId())
-                .businessName(vendor.getBusinessName())
-                .averageRating(vendor.getAverageRating())
+        return CompanyDetailsResponse.builder()
+                .numberOfStaff(numberOfStaff)
+                .numberOfVendors(numberOfVendors)
+                .totalAmountSpent(totalAmountSpent)
                 .build();
+    }
+
+    public List<GraphReportDTO> generateCompanySpendingReport(LocalDate startDate, LocalDate endDate, TimeFrame timeFrame) {
+        Company authenticatedCompany = getAuthenticatedCompany();
+        List<GraphReportDTO> spendingReport = new ArrayList<>();
+
+        if (timeFrame == TimeFrame.DAILY) {
+            while (!startDate.isAfter(endDate)) {
+                BigDecimal totalSpendingForDay = orderRepository.sumTotalAmountByUserCompanyAndCreatedAtBetween(
+                        authenticatedCompany,
+                        startDate.atStartOfDay(),
+                        startDate.atTime(23, 59, 59)
+                );
+
+                spendingReport.add(new GraphReportDTO(
+                        startDate.format(DateTimeFormatter.ofPattern("MMM dd")),
+                        totalSpendingForDay != null ? totalSpendingForDay : BigDecimal.ZERO
+                ));
+
+                startDate = startDate.plusDays(1);
+            }
+        } else if (timeFrame == TimeFrame.WEEKLY) {
+            startDate = startDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+            while (!startDate.isAfter(endDate)) {
+                LocalDate endDateOfWeek = startDate.plusDays(6);
+                BigDecimal totalSpendingForWeek = orderRepository.sumTotalAmountByUserCompanyAndCreatedAtBetween(
+                        authenticatedCompany,
+                        startDate.atStartOfDay(),
+                        endDateOfWeek.atTime(23, 59, 59)
+                );
+
+                spendingReport.add(new GraphReportDTO(
+                        startDate.format(DateTimeFormatter.ofPattern("MMM dd")),
+                        totalSpendingForWeek != null ? totalSpendingForWeek : BigDecimal.ZERO
+                ));
+
+                startDate = startDate.plusWeeks(1);
+            }
+        } else if (timeFrame == TimeFrame.MONTHLY) {
+            startDate = startDate.with(TemporalAdjusters.firstDayOfMonth());
+            while (!startDate.isAfter(endDate)) {
+                LocalDate endDateOfMonth = startDate.with(TemporalAdjusters.lastDayOfMonth());
+                BigDecimal totalSpendingForMonth = orderRepository.sumTotalAmountByUserCompanyAndCreatedAtBetween(
+                        authenticatedCompany,
+                        startDate.atStartOfDay(),
+                        endDateOfMonth.atTime(23, 59, 59)
+                );
+
+                spendingReport.add(new GraphReportDTO(
+                        startDate.format(DateTimeFormatter.ofPattern("MMM dd")),
+                        totalSpendingForMonth != null ? totalSpendingForMonth : BigDecimal.ZERO
+                ));
+
+                startDate = startDate.plusMonths(1);
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid time frame");
+        }
+
+        return spendingReport;
     }
 
     @Override
-    public ItemMenuReviewResponse addRatingAndReviewToItemMenuByCompany(ItemMenuReview itemMenuReview, String itemMenuId, ReviewRequest reviewRequest) {
-
-        Integer rating = reviewRequest.getRating();
-        String comment = reviewRequest.getComment();
-
-        ItemMenu itemMenu = itemMenuRepository.findById(itemMenuId)
-                .orElseThrow(() -> new CustomException("Item menu not found"));
+    public UserResponse viewCompanyStaff(String staffId) {
 
         Company company = getAuthenticatedCompany();
+        User user = userRepository.findById(staffId).orElseThrow(()-> new CustomException("Staff not found"));
 
-        List<ItemMenuReview> existingCompanyItemMenuReviews = itemMenuReviewRepository.findByItemMenuAndCompany(itemMenu, company);
-        if (!existingCompanyItemMenuReviews.isEmpty()) {
-            throw new CustomException("Company has already reviewed this item!!!");
+        if (!company.getUserList().contains(user)){
+            throw new CustomException("Staff does not belong to company");
         }
 
-        itemMenuReview.setRating(rating);
-        itemMenuReview.setComment(comment);
-        itemMenuReview.setItemMenu(itemMenu);
-        itemMenuReview.setCompany(company);
-        itemMenuReviewRepository.save(itemMenuReview);
+        UserResponse userResponse = new UserResponse();
+        userResponse.setUserId(user.getId());
+        userResponse.setFirstName(user.getFirstName());
+        userResponse.setLastName(user.getLastName());
+        userResponse.setEmail(user.getEmail());
+        userResponse.setPhone(user.getPhone());
+        userResponse.setUserCompany(user.getCompany().getCompanyName());
+        userResponse.setCreatedAt(user.getCreatedAt());
+        userResponse.setTotalSpending(orderRepository.totalSpendingByUser(user));
+        userResponse.setLastOrder(orderRepository.lastOrderByUser(user));
+        userResponse.setProfilePictureUrl(user.getProfilePictureUrl());
 
-        List<ItemMenuReview> itemMenuReviews = itemMenu.getItemMenuReviews();
-        double sumRatings = itemMenuReviews.stream().mapToDouble(ItemMenuReview::getRating).sum();
-        Double averageRating = itemMenuReviews.isEmpty() ? 0.0 : sumRatings / itemMenuReviews.size();
-
-        itemMenu.setAverageRating(averageRating);
-        itemMenu.setTotalRatings((long) itemMenuReviews.size());
-
-        itemMenuRepository.save(itemMenu);
-
-        return ItemMenuReviewResponse.builder()
-                .id(itemMenu.getItemId())
-                .itemMenu(itemMenu.getItemName())
-                .imageUrl(itemMenu.getImageUrl())
-                .averageRating(itemMenu.getAverageRating())
-                .build();
+        return userResponse;
     }
-    */
+
+    @Override
+    public List<UserResponse> getCompanyStaff() {
+        Company company = getAuthenticatedCompany();
+        List<UserResponse> userResponses = new ArrayList<>();
+        List<User> users = company.getUserList();
+
+        for(User user : users){
+            UserResponse userResponse = new UserResponse();
+            userResponse.setUserId(user.getId());
+            userResponse.setFirstName(user.getFirstName());
+            userResponse.setLastName(user.getLastName());
+            userResponse.setEmail(user.getEmail());
+            userResponse.setPhone(user.getPhone());
+            userResponse.setCreatedAt(user.getCreatedAt());
+            userResponse.setTotalSpending(orderRepository.totalSpendingByUser(user));
+            userResponse.setLastOrder(orderRepository.lastOrderByUser(user));
+            userResponse.setProfilePictureUrl(user.getProfilePictureUrl());
+
+            userResponses.add(userResponse);
+        }
+        return userResponses;
+    }
 
     @Override
     public List<DetailsResponse> getCompanyVendors() {
@@ -413,5 +531,70 @@ public class CompanyServiceImpl implements CompanyService {
 
     private String generateToken() {
         return UUID.randomUUID().toString();
+    }
+
+    private OrderViewResponse viewAllOrdersInternal(List<Order> orderList) {
+        List<OrderResponse> orderResponses = new ArrayList<>();
+        int totalItems = 0;
+        BigDecimal totalSum = BigDecimal.ZERO;
+
+        for (Order order : orderList) {
+            List<FoodDataResponse> foodDataResponses = new ArrayList<>();
+
+            // Iterate through the cart items
+            for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
+                String itemId = entry.getKey();
+                int quantity = entry.getValue();
+
+                // Retrieve the ItemMenu object from your data source using itemId
+                ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
+
+                totalItems += quantity;
+
+                Vendor vendor = itemMenu.getItemCategory().getVendor();
+                foodDataResponses.add(FoodDataResponse.builder()
+                        .itemId(itemId)
+                        .itemName(itemMenu.getItemName())
+                        .price(itemMenu.getItemPrice())
+                        .imageUri(itemMenu.getImageUrl())
+                        .quantity(quantity)
+                        .vendorName(vendor.getBusinessName())
+                        .build());
+            }
+
+            // Iterate through the cart supplements
+            for (Map.Entry<String, Integer> entry : order.getSupplements().entrySet()) {
+                String supplementId = entry.getKey();
+                int quantity = entry.getValue();
+
+                // Retrieve the Supplement object from your data source using supplementId
+                Supplement supplement = supplementRepository.findById(supplementId)
+                        .orElseThrow(() -> new CustomException("Supplement not found!!!"));
+
+                totalItems += quantity;
+
+                foodDataResponses.add(FoodDataResponse.builder()
+                        .itemId(supplementId)
+                        .itemName(supplement.getSupplementName())
+                        .price(supplement.getSupplementPrice())
+                        .quantity(quantity)
+                        .build());
+            }
+
+            orderResponses.add(OrderResponse.builder()
+                    .orderId(order.getOrderId())
+                    .items(foodDataResponses)
+                    .totalAmount(order.getTotalAmount())
+                    .build());
+
+            totalSum = totalSum.add(order.getTotalAmount());
+        }
+
+        OrderSummary orderSummary = OrderSummary.builder()
+                .totalItems(totalItems)
+                .totalSum(totalSum)
+                .build();
+
+        return new OrderViewResponse(orderResponses, orderSummary);
     }
 }

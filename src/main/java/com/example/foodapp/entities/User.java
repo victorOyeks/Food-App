@@ -26,7 +26,7 @@ public class User {
     private String firstName;
     private String lastName;
     private String phone;
-    private String signupId;
+    private String position;
     private String password;
     private ROLE role;
     private String profilePictureUrl;

@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
                 .build();
         }
 
-    public UserResponse updateUserProfile(String firstName, String lastName, String phone, MultipartFile profilePhoto) throws IOException {
+    public UserResponse updateUserProfile(String firstName, String lastName, String phone, String position, MultipartFile profilePhoto) throws IOException {
 
         User existingUser = getAuthenticatedUser();
 
@@ -110,6 +110,7 @@ public class UserServiceImpl implements UserService {
         existingUser.setFirstName(firstName);
         existingUser.setLastName(lastName);
         existingUser.setPhone(phone);
+        existingUser.setPosition(position);
         existingUser.setProfilePictureUrl(imageUrl);
 
         userRepository.save(existingUser);
@@ -119,6 +120,7 @@ public class UserServiceImpl implements UserService {
                 .firstName(existingUser.getFirstName())
                 .lastName(existingUser.getLastName())
                 .email(existingUser.getEmail())
+                .position(existingUser.getPosition())
                 .profilePictureUrl(imageUrl)
                 .build();
     }
@@ -266,6 +268,7 @@ public class UserServiceImpl implements UserService {
                     .lastName(existingUser.getLastName())
                     .email(existingUser.getEmail())
                     .phone(existingUser.getPhone())
+                    .position(existingUser.getPosition())
                     .profilePictureUrl(existingUser.getProfilePictureUrl())
                     .build();
         /*}

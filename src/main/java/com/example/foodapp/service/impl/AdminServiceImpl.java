@@ -347,6 +347,8 @@ public class AdminServiceImpl implements AdminService {
                 userResponse.setFirstName(user.getFirstName());
                 userResponse.setLastName(user.getLastName());
                 userResponse.setEmail(user.getEmail());
+                userResponse.setTotalSpending(orderRepository.totalSpendingByUser(user));
+                userResponse.setLastOrder(orderRepository.lastOrderByUser(user));
 
                 userResponses.add(userResponse);
             }

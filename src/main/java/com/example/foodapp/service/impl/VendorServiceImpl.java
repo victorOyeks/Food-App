@@ -7,7 +7,7 @@ import com.example.foodapp.constant.OrderType;
 import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.payloads.request.ChangePasswordRequest;
 import com.example.foodapp.payloads.request.EmailDetails;
-import com.example.foodapp.payloads.request.SalesReportDTO;
+import com.example.foodapp.payloads.request.GraphReportDTO;
 import com.example.foodapp.payloads.request.VendorRegistrationRequest;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.*;
@@ -115,6 +115,7 @@ public class VendorServiceImpl implements VendorService {
                 .build();
     }
 
+    @Override
     public BusinessRegistrationResponse updateVendorProfile(String firstName, String lastName,
                                                             String phone, String businessName, String domainName,
                                                             String businessAddress, MultipartFile file) throws IOException {
@@ -164,19 +165,18 @@ public class VendorServiceImpl implements VendorService {
                 .build();
     }
 
+    @Override
     public String changePassword(ChangePasswordRequest request) {
         Vendor existingVendor = getAuthenticatedVendor();
 
         if (!passwordEncoder.matches(request.getOldPassword(), existingVendor.getPassword())) {
             throw new CustomException("Incorrect old password");
         }
-
         if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
             System.out.println("New password: " + request.getNewPassword());
             System.out.println("Confirm password: " + request.getConfirmNewPassword());
             throw new CustomException("New password and confirm password do not match");
         }
-
         String encodedPassword = passwordEncoder.encode(request.getNewPassword());
         existingVendor.setPassword(encodedPassword);
 
@@ -185,6 +185,7 @@ public class VendorServiceImpl implements VendorService {
         return "Password changed successfully!!!";
     }
 
+    @Override
     public List<OrderDetailsResponse> viewAllOrdersToVendor(TimeFrame timeFrame) {
         Vendor authenticatedVendor = getAuthenticatedVendor();
         List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
@@ -204,6 +205,34 @@ public class VendorServiceImpl implements VendorService {
                 orderDetailsResponses.add(orderDetails);
             }
         }
+        return orderDetailsResponses;
+    }
+
+    @Override
+    public List<OrderDetailsResponse> viewAllProcessedOrdersToVendor(TimeFrame timeFrame) {
+        Vendor authenticatedVendor = getAuthenticatedVendor();
+        List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
+
+        List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
+
+        for (Order order : ordersByVendor) {
+            LocalDateTime orderDate = order.getCreatedAt();
+            if (timeFrame == null || isOrderInTimeFrame(order, timeFrame)) {
+                if (order.getDeliveryStatus() != DeliveryStatus.PENDING) {
+
+                        OrderDetailsResponse orderDetails = new OrderDetailsResponse();
+                        orderDetails.setOrderId(order.getOrderId());
+                        orderDetails.setOrderDate(orderDate);
+                        orderDetails.setCustomerName(getCustomerName(order));
+                        orderDetails.setProfilePic(getCustomerProfilePic(order));
+                        orderDetails.setAmount(order.getTotalAmount());
+                        orderDetails.setDeliveryStatus(order.getDeliveryStatus());
+                        orderDetails.setSubmitStatus(order.getSubmitStatus());
+
+                        orderDetailsResponses.add(orderDetails);
+                    }
+                }
+            }
         return orderDetailsResponses;
     }
 
@@ -227,53 +256,8 @@ public class VendorServiceImpl implements VendorService {
         }
     }
 
-    /* public List<OrderDetailsResponse> viewAllOrdersToVendor(TimeFrame timeFrame) {
-        Vendor authenticatedVendor = getAuthenticatedVendor();
-        List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
-        LocalDateTime now = LocalDateTime.now();
-        List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
-
-        for (Order order : ordersByVendor) {
-//            if (order.getDeliveryStatus() != DeliveryStatus.PENDING) {
-                LocalDateTime orderDate = order.getCreatedAt();
-                boolean isInTimeFrame = false;
-
-                switch (timeFrame) {
-                    case TODAY:
-                        isInTimeFrame = orderDate.toLocalDate().equals(LocalDate.now());
-                        break;
-                    case THIS_WEEK:
-                        LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-                        LocalDateTime endOfWeek = startOfWeek.plusWeeks(1);
-                        isInTimeFrame = orderDate.isAfter(startOfWeek) && orderDate.isBefore(endOfWeek);
-                        break;
-                    case THIS_MONTH:
-                        LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
-                        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
-                        isInTimeFrame = orderDate.isAfter(startOfMonth) && orderDate.isBefore(endOfMonth);
-                        break;
-                    default:
-                        timeFrame = null;
-                }
-
-                if (isInTimeFrame) {
-                    OrderDetailsResponse orderDetails = new OrderDetailsResponse();
-                    orderDetails.setOrderId(order.getOrderId());
-                    orderDetails.setOrderDate(orderDate);
-                    orderDetails.setCustomerName(getCustomerName(order));
-                    orderDetails.setProfilePic(getCustomerProfilePic(order));
-                    orderDetails.setAmount(order.getTotalAmount());
-                    orderDetails.setDeliveryStatus(order.getDeliveryStatus());
-                    orderDetails.setSubmitStatus(order.getSubmitStatus());
-
-                    orderDetailsResponses.add(orderDetails);
-                }
-            }
-        return orderDetailsResponses;
-    }
-
-     */
-
+    //Todo: Dont delete this method
+    /*
     public List<OrderDetailsResponse> viewAllProcessedOrdersToVendor(TimeFrame timeFrame) {
         Vendor authenticatedVendor = getAuthenticatedVendor();
         List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
@@ -283,7 +267,7 @@ public class VendorServiceImpl implements VendorService {
         for (Order order : ordersByVendor) {
             if (order.getDeliveryStatus() != DeliveryStatus.PENDING) {
                 LocalDateTime orderDate = order.getCreatedAt();
-                boolean isInTimeFrame = false;
+                boolean isInTimeFrame = true;
 
                 switch (timeFrame) {
                     case TODAY:
@@ -300,7 +284,7 @@ public class VendorServiceImpl implements VendorService {
                         isInTimeFrame = orderDate.isAfter(startOfMonth) && orderDate.isBefore(endOfMonth);
                         break;
                     default:
-                        timeFrame = null;
+                        break;
                 }
 
                 if (isInTimeFrame) {
@@ -319,37 +303,20 @@ public class VendorServiceImpl implements VendorService {
         }
         return orderDetailsResponses;
     }
+     */
 
+    @Override
     public List<OrderDetailsResponse> viewAllPendingOrdersToVendor(TimeFrame timeFrame) {
         Vendor authenticatedVendor = getAuthenticatedVendor();
         List<Order> ordersByVendor = orderRepository.findOrdersByVendor(authenticatedVendor);
-        LocalDateTime now = LocalDateTime.now();
+
         List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
 
         for (Order order : ordersByVendor) {
-            if (order.getDeliveryStatus() == DeliveryStatus.PENDING) {
-                LocalDateTime orderDate = order.getCreatedAt();
-                boolean isInTimeFrame = false;
+            LocalDateTime orderDate = order.getCreatedAt();
+            if (timeFrame == null || isOrderInTimeFrame(order, timeFrame)) {
+                if (order.getDeliveryStatus() == DeliveryStatus.PENDING) {
 
-                switch (timeFrame) {
-                    case TODAY:
-                        isInTimeFrame = orderDate.toLocalDate().equals(LocalDate.now());
-                        break;
-                    case THIS_WEEK:
-                        LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-                        LocalDateTime endOfWeek = startOfWeek.plusWeeks(1);
-                        isInTimeFrame = orderDate.isAfter(startOfWeek) && orderDate.isBefore(endOfWeek);
-                        break;
-                    case THIS_MONTH:
-                        LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
-                        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
-                        isInTimeFrame = orderDate.isAfter(startOfMonth) && orderDate.isBefore(endOfMonth);
-                        break;
-                    default:
-                        timeFrame = null;
-                }
-
-                if (isInTimeFrame) {
                     OrderDetailsResponse orderDetails = new OrderDetailsResponse();
                     orderDetails.setOrderId(order.getOrderId());
                     orderDetails.setOrderDate(orderDate);
@@ -391,6 +358,7 @@ public class VendorServiceImpl implements VendorService {
     }
      */
 
+    @Override
     public AdminOrderResponse viewOrderByUser(String orderId) {
 
         Vendor vendor = getAuthenticatedVendor();
@@ -405,34 +373,7 @@ public class VendorServiceImpl implements VendorService {
         }
     }
 
-    /* public AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId) {
-
-        Vendor vendor = getAuthenticatedVendor();
-        User user = userRepository.findById(userIdOrCompanyId).orElse(null);
-        Company company = companyRepository.findById(userIdOrCompanyId).orElse(null);
-
-        Order order = orderRepository.findByOrderIdAndVendorId(orderId, vendor.getId());
-        if (order != null) {
-            // Check if the order belongs to the specified user or company
-            if ((user != null && order.getUser().getId().equals(userIdOrCompanyId)) ||
-                    (company != null && order.getCompany() != null && order.getCompany().getId().equals(userIdOrCompanyId))) {
-                if (user != null) {
-                    return addOrdersToResponse(order, OrderType.INDIVIDUAL, order.getUser().getFirstName() + " " +
-                                    order.getUser().getLastName(), order.getUser().getProfilePictureUrl(),
-                            order.getUser().getPhone(), order.getUser().getEmail());
-                } else {
-                    return addOrdersToResponse(order, OrderType.INDIVIDUAL, order.getCompany().getCompanyName(),
-                            order.getCompany().getImageUrl(), order.getCompany().getPhoneNumber(),
-                            order.getCompany().getCompanyEmail());
-                }
-            } else {
-                throw new CustomException("Order with ID " + orderId + " does not belong to User/Company with ID " + userIdOrCompanyId);
-            }
-        } else {
-            throw new CustomException("Order not found with ID: " + orderId + " for Vendor ID: " + vendor.getId());
-        }
-    }*/
-
+    @Override
     public String changeDeliveryStatus(String orderId, DeliveryStatus deliveryStatus) {
         Order order = orderRepository.findByOrderId(orderId);
 
@@ -444,6 +385,7 @@ public class VendorServiceImpl implements VendorService {
         return "Delivery status changed to " + deliveryStatus;
     }
 
+    @Override
     public String changeStoreStatus(Boolean storeStatus) {
         String vendorId = getAuthenticatedVendor().getId();
         Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new CustomException("Vendor not found!!!"));
@@ -453,8 +395,7 @@ public class VendorServiceImpl implements VendorService {
         return "Store status is changed to " + storeStatus;
     }
 
-
-
+    @Override
     public BusinessRegistrationResponse viewVendorProfile() {
         Vendor existingVendor = getAuthenticatedVendor();
 
@@ -470,12 +411,24 @@ public class VendorServiceImpl implements VendorService {
                 .build();
     }
 
+    @Override
     public VendorDashboardSummaryResponse getVendorSummary(TimeFrame timeFrame) {
         Vendor authenticatedVendor = getAuthenticatedVendor();
 
         LocalDateTime startDate;
         LocalDateTime endDate = LocalDateTime.now();
 
+        if(timeFrame == null){
+            Long totalOrders = orderRepository.totalCountOrdersByVendor(
+                    authenticatedVendor);
+
+            Long totalMenus = itemMenuRepository.countMenusByVendor(authenticatedVendor);
+
+            BigDecimal totalSales = orderRepository.totalSumTotalAmountByVendor(
+                    authenticatedVendor);
+
+            return new VendorDashboardSummaryResponse(totalOrders, totalMenus, totalSales);
+        }
             switch (timeFrame) {
                 case TODAY:
                     startDate = LocalDateTime.now();
@@ -487,13 +440,13 @@ public class VendorServiceImpl implements VendorService {
                     startDate = endDate.minusDays(29);
                     break;
                 default:
-                    throw new IllegalArgumentException("Invalid time frame");
+                    throw new CustomException("Invalid time frame");
             }
 
         Long totalOrders = orderRepository.countOrdersByVendorAndCreatedAtBetween(
                 authenticatedVendor, startDate, endDate);
 
-        Long totalMenus = itemMenuRepository.countMenusByVendor(authenticatedVendor, startDate, endDate);
+        Long totalMenus = itemMenuRepository.countMenusByVendor(authenticatedVendor);
 
         BigDecimal totalSales = orderRepository.sumTotalAmountByVendorAndCreatedAtBetween(
                 authenticatedVendor, startDate, endDate);
@@ -501,14 +454,15 @@ public class VendorServiceImpl implements VendorService {
         return new VendorDashboardSummaryResponse(totalOrders, totalMenus, totalSales);
     }
 
-    public List<SalesReportDTO> generateSalesReport(LocalDate startDate, LocalDate endDate, TimeFrame timeFrame) {
+    @Override
+    public List<GraphReportDTO> generateSalesReport(LocalDate startDate, LocalDate endDate, TimeFrame timeFrame) {
         Vendor authenticatedVendor = getAuthenticatedVendor();
-        List<SalesReportDTO> salesReport = new ArrayList<>();
+        List<GraphReportDTO> salesReport = new ArrayList<>();
 
         if (timeFrame == TimeFrame.DAILY) {
             while (!startDate.isAfter(endDate)) {
                 BigDecimal totalSalesForDay = calculateTotalSalesForDay(authenticatedVendor, startDate);
-                salesReport.add(new SalesReportDTO(
+                salesReport.add(new GraphReportDTO(
                         startDate.format(DateTimeFormatter.ofPattern("MMM dd")),
                         totalSalesForDay
                 ));
@@ -518,7 +472,7 @@ public class VendorServiceImpl implements VendorService {
             startDate = startDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
             while (!startDate.isAfter(endDate)) {
                 BigDecimal totalSalesForWeek = calculateTotalSalesForWeek(authenticatedVendor, startDate);
-                salesReport.add(new SalesReportDTO(
+                salesReport.add(new GraphReportDTO(
                         startDate.format(DateTimeFormatter.ofPattern("MMM dd")),
                         totalSalesForWeek
                 ));
@@ -528,7 +482,7 @@ public class VendorServiceImpl implements VendorService {
             startDate = startDate.with(TemporalAdjusters.firstDayOfMonth());
             while (!startDate.isAfter(endDate)) {
                 BigDecimal totalSalesForMonth = calculateTotalSalesForMonth(authenticatedVendor, startDate);
-                salesReport.add(new SalesReportDTO(
+                salesReport.add(new GraphReportDTO(
                         startDate.format(DateTimeFormatter.ofPattern("MMM dd")),
                         totalSalesForMonth
                 ));

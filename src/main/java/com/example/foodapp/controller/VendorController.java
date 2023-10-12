@@ -3,7 +3,7 @@ package com.example.foodapp.controller;
 import com.example.foodapp.constant.DeliveryStatus;
 import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.payloads.request.ChangePasswordRequest;
-import com.example.foodapp.payloads.request.SalesReportDTO;
+import com.example.foodapp.payloads.request.GraphReportDTO;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.service.VendorService;
 import lombok.RequiredArgsConstructor;
@@ -113,10 +113,10 @@ public class VendorController {
 //    }
 
     @GetMapping("/sales-report")
-    public ResponseEntity<List<SalesReportDTO>> getSalesReport(@RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+    public ResponseEntity<List<GraphReportDTO>> getSalesReport(@RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                                                                @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                                                                @RequestParam("timeFrame") TimeFrame timeFrame) {
-        List<SalesReportDTO> salesReport = vendorService.generateSalesReport(startDate, endDate, timeFrame);
+        List<GraphReportDTO> salesReport = vendorService.generateSalesReport(startDate, endDate, timeFrame);
         return ResponseEntity.ok(salesReport);
     }
 }

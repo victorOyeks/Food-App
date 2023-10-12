@@ -27,7 +27,6 @@ public interface ItemMenuRepository extends JpaRepository <ItemMenu, String> {
     List<ItemMenu> findAllByCategoryIdAndVendorId(String categoryId, String vendorId);
 
     // Total number of menus uploaded by the vendor
-    @Query("SELECT COUNT(DISTINCT i) FROM ItemMenu i JOIN i.itemCategory ic WHERE ic.vendor = :vendor AND ic.createdAt BETWEEN :startDate AND :endDate")
-    Long countMenusByVendor(Vendor vendor, LocalDateTime startDate, LocalDateTime  endDate);
-
+    @Query("SELECT COUNT(DISTINCT i) FROM ItemMenu i JOIN i.itemCategory ic WHERE ic.vendor = :vendor")
+    Long countMenusByVendor(Vendor vendor);
 }

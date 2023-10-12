@@ -1,9 +1,13 @@
 package com.example.foodapp.payloads.response;
 
+import com.example.foodapp.entities.Company;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,5 +19,10 @@ public class UserResponse {
     private String lastName;
     private String email;
     private String phone;
+    private String userCompany;
+    private String position;
+    private LocalDateTime createdAt;
+    private BigDecimal totalSpending;
+    private BigDecimal lastOrder;
     private String profilePictureUrl;
 }

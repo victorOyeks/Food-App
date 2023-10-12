@@ -3,7 +3,7 @@ package com.example.foodapp.service;
 import com.example.foodapp.constant.DeliveryStatus;
 import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.payloads.request.ChangePasswordRequest;
-import com.example.foodapp.payloads.request.SalesReportDTO;
+import com.example.foodapp.payloads.request.GraphReportDTO;
 import com.example.foodapp.payloads.request.VendorRegistrationRequest;
 import com.example.foodapp.payloads.response.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +27,6 @@ public interface VendorService {
     String changeStoreStatus(Boolean storeStatus);
     BusinessRegistrationResponse viewVendorProfile();
     VendorDashboardSummaryResponse getVendorSummary(TimeFrame timeFrame);
-    List<SalesReportDTO> generateSalesReport(LocalDate startDate, LocalDate endDate, TimeFrame timeFrame);
+    List<GraphReportDTO> generateSalesReport(LocalDate startDate, LocalDate endDate, TimeFrame timeFrame);
     //OrderSummary calculateOrderSummary(List<OrderDetailsResponse> orders);
 }

@@ -249,28 +249,10 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    public UserOrderDetailsResponse viewOrderByOrderIdForCompany(String orderId) {
-        String companyId = getAuthenticatedCompany().getId();
-        Optional<Order> orderOptional = orderRepository.findByOrderIdAndCompanyId(orderId, companyId);
-
-        if (orderOptional.isPresent()) {
-            Order order = orderOptional.get();
-            return buildOrderResponse(order);
-        } else {
-            throw new CustomException("Order not found with orderId: " + orderId);
-        }
-    }
 
     public UserOrderViewResponse viewSimplifiedOrdersByUser() {
         String userId = getAuthenticatedUser().getId();
         List<Order> userOrders = orderRepository.findOrdersByUserId(userId);
-        List<SimplifiedOrderResponse> simplifiedOrders = viewSimplifiedOrdersInternal(userOrders);
-        return new UserOrderViewResponse(simplifiedOrders, null);
-    }
-
-    public UserOrderViewResponse viewSimplifiedOrdersByCompany() {
-        String companyId = getAuthenticatedCompany().getId();
-        List<Order> userOrders = orderRepository.findOrdersByCompanyId(companyId);
         List<SimplifiedOrderResponse> simplifiedOrders = viewSimplifiedOrdersInternal(userOrders);
         return new UserOrderViewResponse(simplifiedOrders, null);
     }

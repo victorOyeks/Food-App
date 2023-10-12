@@ -44,8 +44,9 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@RequestParam String firstName,
                                                                    @RequestParam String lastName,
                                                                    @RequestParam String phone,
+                                                                   @RequestParam String position,
                                                                    @RequestParam MultipartFile profilePhoto) throws IOException {
-        ApiResponse<UserResponse> apiResponse = new ApiResponse<>(userService.updateUserProfile(firstName, lastName, phone, profilePhoto));
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>(userService.updateUserProfile(firstName, lastName, phone, position, profilePhoto));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

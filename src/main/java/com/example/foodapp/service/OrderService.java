@@ -13,10 +13,8 @@ public interface OrderService {
     OrderViewResponse addToCart(String vendorId, List<CartItem> cartItems, List<SupplementItem> supplementItems);
     String submitCart (String orderId);
     UserOrderDetailsResponse viewOrderByOrderIdForUser(String orderId);
-    UserOrderDetailsResponse viewOrderByOrderIdForCompany(String orderId);
     //OrderViewResponse viewAllOrdersByUser();
     UserOrderViewResponse viewSimplifiedOrdersByUser();
-    UserOrderViewResponse viewSimplifiedOrdersByCompany();
 //    UserOrderDetailsResponse viewOrderById(String orderId);
     OrderViewResponse viewUserCart();
     OrderViewResponse deleteItem(String orderId, String foodItemId);

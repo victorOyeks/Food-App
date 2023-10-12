@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Data
 @Builder
-public class SalesReportDTO {
+public class GraphReportDTO {
     private String month;
-    private BigDecimal totalSales;
+    private BigDecimal amount;
 }
