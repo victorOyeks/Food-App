@@ -67,7 +67,7 @@ public class CompanyServiceImpl implements CompanyService {
             throw new CustomException("Vendor already exist with the email: " + email);
         }
         if (isExistingAdmin) {
-            throw new CustomException("USer already exist with the email: " + email);
+            throw new CustomException("User already exist with the email: " + email);
         }
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new CustomException("Password does not match");
@@ -170,26 +170,18 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public String addVendor (String vendorId, String note) throws UserAlreadyExistException, IOException {
-
         Company company = getAuthenticatedCompany();
-
         Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new CustomException("Vendor does not exist"));
         String vendorEmail = vendor.getEmail();
-
         company.getVendors().add(vendor);
         companyRepository.save(company);
-
         String subject = "Invitation";
         String messageBody = "Dear Vendor,\n\nYou have been invited to service on our platform. \n\nNote from the admin: " + note;
         EmailDetails emailDetails = new EmailDetails(vendorEmail, subject, messageBody);
-
         emailService.sendEmail(emailDetails);
-
         log.info("Vendor onboarded successfully. Email sent to " + vendor + " to complete registration --------------");
-
         return "Vendor with " + vendor.getId() + " added to the list of vendors. Email sent to vendor";
     }
-
 
     @Override
     public List<DetailsResponse> getAllVendorDetails(){
@@ -224,7 +216,6 @@ public class CompanyServiceImpl implements CompanyService {
         }*/
     }
 
-
     public List<OrderDetailsResponse> viewOrdersByCompanyStaff() {
         Company company = getAuthenticatedCompany();
         List<Order> allOrders = orderRepository.findAll();
@@ -244,7 +235,8 @@ public class CompanyServiceImpl implements CompanyService {
         return orderDetailsResponses;
     }
 
-    public OrderViewResponse viewOrderDetailsByCompany(String orderId) {
+    @Override
+    public OrderViewResponse viewUserOrderDetailsByCompany(String orderId) {
 
         Company company = getAuthenticatedCompany();
         Order order = orderRepository.findById(orderId)
@@ -257,6 +249,74 @@ public class CompanyServiceImpl implements CompanyService {
         return orderResponse;
     }
 
+    public List<OrderResponse> viewStaffLastOrder (String staffId) {
+        Company company = getAuthenticatedCompany();
+
+        User staff = userRepository.findById(staffId).orElseThrow(()-> new CustomException("Staff not found!!!"));
+
+        if(!company.getUserList().contains(staff)){
+            throw new CustomException("Staff does not belong to company!!!");
+        }
+        List<Order> lastThreeOrders = orderRepository.findTop3ByUserAndOrderByCreatedAtDesc(staff);
+
+        if(lastThreeOrders.isEmpty()) {
+            throw new CustomException("Orders not found!!!");
+        }
+
+        List<OrderResponse> orderResponses = new ArrayList<>();
+
+        for(Order order : lastThreeOrders) {
+
+            if (!order.getUser().getCompany().getUserList().contains(staff)) {
+                throw new CustomException("Order does not belong to the company");
+            }
+            OrderResponse orderResponse = OrderResponse.builder()
+                    .orderId(order.getOrderId())
+                    .items(new ArrayList<>())
+                    .totalAmount(order.getTotalAmount())
+                    .build();
+
+            for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
+                String itemId = entry.getKey();
+                int quantity = entry.getValue();
+
+                ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
+                Vendor vendor = itemMenu.getItemCategory().getVendor();
+
+                FoodDataResponse foodDataResponse = FoodDataResponse.builder()
+                        .itemId(itemId)
+                        .itemName(itemMenu.getItemName())
+                        .quantity(quantity)
+                        .price(itemMenu.getItemPrice())
+                        .vendorName(vendor.getBusinessName())
+                        .build();
+
+                orderResponse.getItems().add(foodDataResponse);
+            }
+
+            for (Map.Entry<String, Integer> entry : order.getSupplements().entrySet()) {
+                String supplementId = entry.getKey();
+                int quantity = entry.getValue();
+
+                Supplement supplement = supplementRepository.findBySupplementId(supplementId);
+                Vendor vendor = supplement.getVendor();
+
+                FoodDataResponse foodDataResponse = FoodDataResponse.builder()
+                        .itemId(supplementId)
+                        .itemName(supplement.getSupplementName())
+                        .quantity(quantity)
+                        .vendorName(vendor.getBusinessName())
+                        .price(supplement.getSupplementPrice())
+                        .build();
+
+                orderResponse.getItems().add(foodDataResponse);
+            }
+
+            orderResponses.add(orderResponse);
+
+        }
+        return orderResponses;
+    }
 
     @Override
     public String removeVendor (String vendorId, String note) throws UserAlreadyExistException, IOException {

@@ -51,10 +51,6 @@ public class Company  {
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<User> userList = new ArrayList<>();
 
-    @JsonIgnoreProperties("company")
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<Order> orderList = new ArrayList<>();
-
     /*@JsonIgnoreProperties("vendor")
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vendor> vendors = new ArrayList<>();

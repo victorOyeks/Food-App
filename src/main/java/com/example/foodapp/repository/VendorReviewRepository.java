@@ -13,11 +13,7 @@ import java.util.List;
 @Repository
 public interface VendorReviewRepository extends JpaRepository<VendorReview, String> {
     List<VendorReview> findByVendorAndUser(Vendor vendor, User user);
-    List<VendorReview> findByVendorAndCompany(Vendor vendor, Company company);
-
-
-    @Query("SELECT r FROM VendorReview r WHERE r.vendor = :vendor AND (r.user = :user OR r.company = :company)")
-    List<VendorReview> findByVendorAndUserOrCompany(Vendor vendor, User user, Company company);
-
+    @Query("SELECT r FROM VendorReview r WHERE r.vendor = :vendor AND r.user = :user")
+    List<VendorReview> findByVendorAndUserOrCompany(Vendor vendor, User user);
 }
 

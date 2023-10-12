@@ -16,6 +16,7 @@ public class OrderDetailsResponse {
     private String orderId;
     private LocalDateTime orderDate;
     private String customerName;
+    private String customerCompany;
     private String profilePic;
     private OrderType orderType;
     private BigDecimal amount;

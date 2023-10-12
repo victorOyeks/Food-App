@@ -1,5 +1,6 @@
 package com.example.foodapp.controller;
 
+import com.cloudinary.Api;
 import com.example.foodapp.constant.CompanySize;
 import com.example.foodapp.constant.TimeFrame;
 import com.example.foodapp.payloads.request.GraphReportDTO;
@@ -53,7 +54,13 @@ public class CompanyController {
 
     @GetMapping("orders-details")
     public ResponseEntity<ApiResponse<OrderViewResponse>> viewAnOrder(@RequestParam String orderId) {
-        ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(companyService.viewOrderDetailsByCompany(orderId));
+        ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(companyService.viewUserOrderDetailsByCompany(orderId));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("last-order-details")
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getStaffLastOrderDetails (@RequestParam String staffId){
+        ApiResponse<List<OrderResponse>> apiResponse = new ApiResponse<>(companyService.viewStaffLastOrder(staffId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

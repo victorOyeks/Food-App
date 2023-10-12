@@ -145,7 +145,7 @@ public class AdminController {
 
     @GetMapping("/all-orders")
     public ResponseEntity<ApiResponse<List<OrderDetailsResponse>>> viewOrdersByTimeFrame(
-            @RequestParam("timeFrame") TimeFrame timeFrame) {
+            @RequestParam(required = false) TimeFrame timeFrame) {
         List<OrderDetailsResponse> orderDetailsResponses = adminService.viewOrdersByTimeFrame(timeFrame);
         ApiResponse<List<OrderDetailsResponse>> apiResponse = new ApiResponse<>(orderDetailsResponses);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
@@ -175,8 +175,8 @@ public class AdminController {
 
     @GetMapping("/users/orders")
     public ResponseEntity<ApiResponse<AdminOrderResponse>> viewOrdersByUserOrCompany(@RequestParam String orderId,
-                                                                                  @RequestParam String userIdOrCompanyId) {
-        AdminOrderResponse order = adminService.viewOrderByUserOrCompany(orderId, userIdOrCompanyId);
+                                                                                     @RequestParam String userId) {
+        AdminOrderResponse order = adminService.viewOrderByUser(orderId, userId);
         ApiResponse<AdminOrderResponse> apiResponse = new ApiResponse<>(order);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

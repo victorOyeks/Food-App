@@ -494,83 +494,69 @@ public class AdminServiceImpl implements AdminService {
         LocalDateTime now = LocalDateTime.now();
         List<OrderDetailsResponse> orderDetailsResponses = new ArrayList<>();
 
-        for (Order order : allOrders) {
-            LocalDateTime orderDate = order.getCreatedAt();
-            boolean isInTimeFrame = false;
-
-            switch (timeFrame) {
-                case TODAY:
-                    isInTimeFrame = orderDate.toLocalDate().equals(LocalDate.now());
-                    break;
-                case THIS_WEEK:
-                    LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-                    LocalDateTime endOfWeek = startOfWeek.plusWeeks(1);
-                    isInTimeFrame = orderDate.isAfter(startOfWeek) && orderDate.isBefore(endOfWeek);
-                    break;
-                case THIS_MONTH:
-                    LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
-                    LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
-                    isInTimeFrame = orderDate.isAfter(startOfMonth) && orderDate.isBefore(endOfMonth);
-                    break;
-            }
-
-            if (isInTimeFrame) {
+        if(timeFrame == null){
+            for (Order order : allOrders) {
                 OrderDetailsResponse orderDetails = new OrderDetailsResponse();
                 orderDetails.setOrderId(order.getOrderId());
-                orderDetails.setOrderDate(orderDate);
+                orderDetails.setOrderDate(order.getCreatedAt());
                 orderDetails.setCustomerName(getCustomerName(order));
                 orderDetails.setProfilePic(getCustomerProfilePic(order));
                 orderDetails.setOrderType(getOrderType(order));
+                orderDetails.setCustomerCompany(order.getUser().getCompany().getCompanyName());
                 orderDetails.setAmount(order.getTotalAmount());
                 orderDetails.setDeliveryStatus(order.getDeliveryStatus());
                 orderDetails.setSubmitStatus(order.getSubmitStatus());
                 orderDetailsResponses.add(orderDetails);
             }
+        }else {
+            for (Order order : allOrders) {
+                LocalDateTime orderDate = order.getCreatedAt();
+                boolean isInTimeFrame = false;
+
+                switch (timeFrame) {
+                    case TODAY:
+                        isInTimeFrame = orderDate.toLocalDate().equals(LocalDate.now());
+                        break;
+                    case THIS_WEEK:
+                        LocalDateTime startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                        LocalDateTime endOfWeek = startOfWeek.plusWeeks(1);
+                        isInTimeFrame = orderDate.isAfter(startOfWeek) && orderDate.isBefore(endOfWeek);
+                        break;
+                    case THIS_MONTH:
+                        LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
+                        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+                        isInTimeFrame = orderDate.isAfter(startOfMonth) && orderDate.isBefore(endOfMonth);
+                        break;
+                }
+
+                if (isInTimeFrame) {
+                    OrderDetailsResponse orderDetails = new OrderDetailsResponse();
+                    orderDetails.setOrderId(order.getOrderId());
+                    orderDetails.setOrderDate(orderDate);
+                    orderDetails.setCustomerName(getCustomerName(order));
+                    orderDetails.setProfilePic(getCustomerProfilePic(order));
+                    orderDetails.setOrderType(getOrderType(order));
+                    orderDetails.setAmount(order.getTotalAmount());
+                    orderDetails.setDeliveryStatus(order.getDeliveryStatus());
+                    orderDetails.setSubmitStatus(order.getSubmitStatus());
+                    orderDetailsResponses.add(orderDetails);
+                }
+            }
         }
         return orderDetailsResponses;
     }
 
-    /*
-    public List<AdminOrderResponse> viewAllOrdersByUserOrCompany(String userIdOrCompanyId) {
-        List<Order> orderList;
-        List<AdminOrderResponse> orderResponses = new ArrayList<>();
-
+    public AdminOrderResponse viewOrderByUser(String orderId, String userId) {
         // Check if the provided ID belongs to a User or a Company
-        User user = userRepository.findById(userIdOrCompanyId).orElse(null);
-        Company company = companyRepository.findById(userIdOrCompanyId).orElse(null);
+        User user = userRepository.findById(userId).orElse(null);
 
         if (user != null) {
-            orderList = orderRepository.findOrdersByUserId(userIdOrCompanyId);
-            addOrdersToResponse(orderList, orderResponses, OrderType.INDIVIDUAL, user.getFirstName() + " " + user.getLastName(), user.getProfilePictureUrl(), user.getPhone(), user.getEmail(), user.getActive());
-
-        } else if (company != null) {
-            orderList = orderRepository.findOrdersByCompanyId(userIdOrCompanyId);
-            addOrdersToResponse(orderList, orderResponses, OrderType.COMPANY, company.getCompanyName(), company.getImageUrl(), company.getPhoneNumber(), company.getCompanyEmail(), company.getActive());
-        } else {
-            throw new CustomException("User or Company not found with ID: " + userIdOrCompanyId);
-        }
-
-        return orderResponses;
-    }
-     */
-
-    public AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId) {
-        // Check if the provided ID belongs to a User or a Company
-        User user = userRepository.findById(userIdOrCompanyId).orElse(null);
-        Company company = companyRepository.findById(userIdOrCompanyId).orElse(null);
-
-        if (user != null) {
-            Order order = orderRepository.findOrderByOrderIdAndUserId(orderId, userIdOrCompanyId);
+            Order order = orderRepository.findOrderByOrderIdAndUserId(orderId, userId);
             if (order != null) {
                 return addOrdersToResponse(order, OrderType.INDIVIDUAL, user.getFirstName() + " " + user.getLastName(), user.getProfilePictureUrl(), user.getPhone(), user.getEmail(), user.getActive());
             }
-        } else if (company != null) {
-            Order order = orderRepository.findOrderByOrderIdAndCompanyId(orderId, userIdOrCompanyId);
-            if (order != null) {
-                return addOrdersToResponse(order, OrderType.COMPANY, company.getCompanyName(), company.getImageUrl(), company.getPhoneNumber(), company.getCompanyEmail(), company.getActive());
-            }
         }
-        throw new CustomException("Order not found with ID: " + orderId + " for User or Company ID: " + userIdOrCompanyId);
+        throw new CustomException("Order not found with ID: " + orderId + " for User or Company ID: " + userId);
     }
 
     public String changePassword(ChangePasswordRequest request) {
@@ -647,7 +633,6 @@ public class AdminServiceImpl implements AdminService {
     }
     */
 
-
     /* private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email, Boolean active) {
         Map<String, FoodDataResponse> foodDataResponseMap = new HashMap<>();
 
@@ -695,7 +680,6 @@ public class AdminServiceImpl implements AdminService {
                 .customerStatus(active)
                 .build();
     }
-
      */
 
     private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email, Boolean active) {
@@ -765,6 +749,7 @@ public class AdminServiceImpl implements AdminService {
                 .profilePic(profilePic)
                 .phone(phone)
                 .email(email)
+                .companyName(order.getUser().getCompany().getCompanyName())
                 .totalAmount(order.getTotalAmount())
                 .deliveryStatus(order.getDeliveryStatus())
                 .createdAt(order.getCreatedAt())
@@ -775,8 +760,6 @@ public class AdminServiceImpl implements AdminService {
     private String getCustomerName(Order order) {
         if (order.getUser() != null) {
             return order.getUser().getFirstName() + " " + order.getUser().getLastName();
-        } else if (order.getCompany() != null) {
-            return order.getCompany().getCompanyName();
         } else {
             return "Unknown Customer";
         }
@@ -785,8 +768,6 @@ public class AdminServiceImpl implements AdminService {
     private String getCustomerProfilePic(Order order) {
         if (order.getUser() != null) {
             return order.getUser().getProfilePictureUrl();
-        } else if (order.getCompany() != null) {
-            return order.getCompany().getImageUrl();
         } else {
             return "Unknown Customer";
         }
@@ -795,8 +776,6 @@ public class AdminServiceImpl implements AdminService {
     private OrderType getOrderType(Order order) {
         if (order.getUser() != null) {
             return OrderType.INDIVIDUAL;
-        } else if (order.getCompany() != null) {
-            return OrderType.COMPANY;
         } else {
             return OrderType.UNKNOWN;
         }
@@ -814,7 +793,6 @@ public class AdminServiceImpl implements AdminService {
         }
         return itemMenuOrdersCountMap;
     }
-
      */
 
     private Map<String, Long> getOrderCountByItemMenuName() {

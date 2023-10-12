@@ -582,8 +582,6 @@ public class VendorServiceImpl implements VendorService {
     private String getCustomerName(Order order) {
         if (order.getUser() != null) {
             return order.getUser().getFirstName() + " " + order.getUser().getLastName();
-        } else if (order.getCompany() != null) {
-            return order.getCompany().getCompanyName();
         } else {
             return "Unknown Customer";
         }
@@ -592,8 +590,6 @@ public class VendorServiceImpl implements VendorService {
     private String getCustomerProfilePic(Order order) {
         if (order.getUser() != null) {
             return order.getUser().getProfilePictureUrl();
-        } else if (order.getCompany() != null) {
-            return order.getCompany().getImageUrl();
         } else {
             return "Unknown Customer";
         }

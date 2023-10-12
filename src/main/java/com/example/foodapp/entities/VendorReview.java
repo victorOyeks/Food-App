@@ -28,10 +28,6 @@ public class VendorReview {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "company_id")
-    private Company company;
-
     @CreationTimestamp
     private LocalDateTime createdAt;
 

@@ -17,20 +17,14 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository <Order, String> {
     List<Order> findOrdersByUserId (String userId);
     Order findOrderByOrderIdAndUserId (String orderId, String userId);
-    Order findOrderByOrderIdAndCompanyId (String orderId, String companyId);
     @Query("SELECT o FROM Order o WHERE o.vendor = ?1")
     List<Order> findOrdersByVendor(Vendor vendor);
     Order findByOrderIdAndVendorId(String orderId, String vendorId);
     @Query("SELECT o FROM Order o WHERE o.user.id = :userId AND o.submitStatus = com.example.foodapp.constant.SubmitStatus.PENDING")
     Order findOpenOrderByUser(String userId);
-    @Query("SELECT o FROM Order o WHERE o.company.id = :companyId AND o.submitStatus = com.example.foodapp.constant.SubmitStatus.PENDING")
-    Order findOpenOrderByCompany(String companyId);
     @Query("SELECT o FROM Order o WHERE o.user.id = :userId AND o.submitStatus =com.example.foodapp.constant.SubmitStatus.PENDING")
     List<Order> findPendingOrdersByUserId(String userId);
-    @Query("SELECT o FROM Order o WHERE o.company.id = :companyId AND o.submitStatus =com.example.foodapp.constant.SubmitStatus.PENDING")
-    List<Order> findPendingOrdersByCompanyId(String companyId);
     Optional<Order> findByOrderIdAndUserId(String orderId, String userId);
-    Optional<Order> findByOrderIdAndCompanyId(String orderId, String companyId);
     Order findByOrderId(String orderId);
     // Total orders received by the vendor
     @Query("SELECT COUNT(o) FROM Order o WHERE o.vendor = :vendor")
@@ -55,4 +49,10 @@ public interface OrderRepository extends JpaRepository <Order, String> {
     List<Order> findByUserCompany(Company company);
     @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.user.company = :company AND o.createdAt BETWEEN :startDate AND :endDate")
     BigDecimal sumTotalAmountByUserCompanyAndCreatedAtBetween(Company company, LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query("SELECT o FROM Order o WHERE o.user = :staff ORDER BY o.createdAt DESC LIMIT 3")
+    List<Order> findTop3ByUserAndOrderByCreatedAtDesc(User staff);
+
+//    @Query("SELECT o.itemMenus FROM Order o WHERE o.user = :staff ORDER BY o.createdAt DESC LIMIT 1 ")
+//    Order findTop1ByUserAndOrderByCreatedAtDesc(User staff);
 }

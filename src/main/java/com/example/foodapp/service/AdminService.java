@@ -33,5 +33,5 @@ public interface AdminService {
     List<ItemNamesResponse> getAllItemsInCategory(String vendorId);
     List<OrderDetailsResponse> viewOrdersByTimeFrame(TimeFrame timeFrame);
     //List<AdminOrderResponse> viewOrderByUserOrCompany(String userIdOrCompanyId);
-    AdminOrderResponse viewOrderByUserOrCompany(String orderId, String userIdOrCompanyId);
+    AdminOrderResponse viewOrderByUser(String orderId, String userId);
 }

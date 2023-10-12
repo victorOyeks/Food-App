@@ -20,7 +20,8 @@ public interface CompanyService {
     String addVendor (String vendorId, String note) throws UserAlreadyExistException, IOException;
     List<DetailsResponse> getAllVendorDetails();
     List<OrderDetailsResponse> viewOrdersByCompanyStaff();
-    OrderViewResponse viewOrderDetailsByCompany(String orderId);
+    OrderViewResponse viewUserOrderDetailsByCompany(String orderId);
+    List<OrderResponse> viewStaffLastOrder (String staffId);
     String removeVendor (String vendorId, String note) throws UserAlreadyExistException, IOException;
     String forgotPassword(String email) throws IOException;
     BusinessRegistrationResponse updateCompanyProfile(String companyName, String companyAddress,

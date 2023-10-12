@@ -21,6 +21,7 @@ public class UserResponse {
     private String phone;
     private String userCompany;
     private String position;
+    private Boolean activeStatus;
     private LocalDateTime createdAt;
     private BigDecimal totalSpending;
     private BigDecimal lastOrder;

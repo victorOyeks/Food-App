@@ -24,6 +24,7 @@ public class AdminOrderResponse {
     private String profilePic;
     private String phone;
     private String email;
+    private String companyName;
     private Boolean customerStatus;
     private DeliveryStatus deliveryStatus;
     private LocalDateTime createdAt;

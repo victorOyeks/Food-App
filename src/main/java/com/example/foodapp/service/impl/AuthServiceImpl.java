@@ -102,10 +102,10 @@ public class AuthServiceImpl implements AuthService {
                 if (!vendor.getEnabled()) {
                     throw new CustomException("Vendor with " + email + " is not enabled");
                 }
-               /* if (!vendor.getActive()) {
+                if (!vendor.getActive()) {
                     throw new CustomException("Account has been deactivated! Contact Admin for support!");
                 }
-                */
+
                 if (passwordEncoder.matches(loginRequest.getPassword(), vendor.getPassword())) {
                     return performLogin(loginRequest, ROLE.VENDOR);
                 }
@@ -114,10 +114,10 @@ public class AuthServiceImpl implements AuthService {
                 if (!user.getEnabled()) {
                     throw new CustomException("Your account has not been enabled");
                 }
-                /* if (!user.getActive()) {
+                 if (!user.getActive()) {
                     throw new CustomException("Your account has deactivated. Contact Admin for support!");
                 }
-                 */
+
                 // User authentication logic
                 if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
                     return performLogin(loginRequest, ROLE.COMPANY_STAFF);
@@ -128,10 +128,9 @@ public class AuthServiceImpl implements AuthService {
                 if (!company.getEnabled()) {
                     throw new CustomException("Your account has not been enabled");
                 }
-                /* if (!company.getActive()) {
+                if (!company.getActive()) {
                     throw new CustomException("Your account has been Deactivated. Contact Admin for support!");
                 }
-                 */
                 // User authentication logic
                 if (passwordEncoder.matches(loginRequest.getPassword(), company.getPassword())) {
                     return performLogin(loginRequest, ROLE.COMPANY_ADMIN);
@@ -150,7 +149,6 @@ public class AuthServiceImpl implements AuthService {
         /*} finally {
             logger.removeHandler(customFileHandler);
         }*/
-
     }
 
     private LoginResponse performLogin(LoginRequest loginRequest, ROLE role) {
