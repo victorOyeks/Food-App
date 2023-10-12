@@ -6,6 +6,7 @@ import com.example.foodapp.payloads.request.CompanyInvitation;
 import com.example.foodapp.payloads.request.VendorInvitation;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.exception.UserAlreadyExistException;
+import org.springframework.data.domain.Page;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,12 +20,12 @@ public interface AdminService {
     void reactivateUser(String userId) throws IOException;
     void deactivateVendor (String vendorId) throws IOException;
     void reactivateVendor(String vendorId) throws IOException;
-    List<DetailsResponse> getAllVendorDetails() throws IOException;
+    Page<DetailsResponse> getAllVendorDetails(int page, int size);
     BusinessRegistrationResponse getVendor(String vendorId);
 //    List<CompanyResponse> getAllCompanyDetails();
     List<CompanyResponse> getAllCompanyDetails(boolean active);
-    List<UserResponse> getAllOnboardedUsers();
-    List<CategoryResponse> getAllItemCategory();
+    Page<UserResponse> getAllOnboardedUsers(int page, int size);
+    Page<CategoryResponse> getAllItemCategory(int page, int size);
     List<CustomerResponse> getAllCustomers();
     List<ItemMenuInfoResponse> getAllItemMenus();
     List<ItemMenusInCategoriesResponse> getAllItemMenusInAllCategories(String vendorId);

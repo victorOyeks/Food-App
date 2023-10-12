@@ -15,6 +15,10 @@ import com.example.foodapp.repository.*;
 import com.example.foodapp.service.AdminService;
 import com.example.foodapp.service.EmailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -234,30 +238,32 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<DetailsResponse> getAllVendorDetails(){
-        List<DetailsResponse> detailsResponses = new ArrayList<>();
-        List<Vendor> vendors = vendorRepository.findAll();
+    public Page<DetailsResponse> getAllVendorDetails(int page, int size){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Vendor> vendors = vendorRepository.findAll(pageable);
 
         /*CustomFileHandler customFileHandler = new CustomFileHandler();
         logger.addHandler(customFileHandler);
 
-        try {*/ 
-            for (Vendor vendor : vendors) {
-                DetailsResponse detailsResponse = new DetailsResponse();
-                detailsResponse.setId(vendor.getId());
-                detailsResponse.setVendorEmail(vendor.getEmail());
-                detailsResponse.setBusinessName(vendor.getBusinessName());
-                detailsResponse.setAddress(vendor.getBusinessAddress());
-                detailsResponse.setContactNumber(vendor.getPhone());
-                detailsResponse.setLastAccessed(vendor.getUpdatedAt());
-                detailsResponse.setTotalRatings(vendor.getTotalRatings());
-                detailsResponse.setAverageRating(vendor.getAverageRating());
-                detailsResponse.setActive(vendor.getActive());
-                //detailsResponse.setItemCategories(vendor.getItemCategory());
-                detailsResponses.add(detailsResponse);
+        try {*/
+        Page<DetailsResponse> detailsResponses = vendors.map(vendor -> {
+            DetailsResponse detailsResponse = DetailsResponse.builder()
+                    .id(vendor.getId())
+                    .vendorEmail(vendor.getEmail())
+                    .businessName(vendor.getBusinessName())
+                    .address(vendor.getBusinessAddress())
+                    .contactNumber(vendor.getPhone())
+                    .lastAccessed(vendor.getUpdatedAt())
+                    .totalRatings(vendor.getTotalRatings())
+                    .averageRating(vendor.getAverageRating())
+                    .active(vendor.getActive())
+                    .build();
+
+            return detailsResponse;
+        });
 
                 //logger.info("Added details for vendor " + vendor);
-            }
+
             //logger.info("Vendors details fetched successfully!!! -----------------------------------------\n");
             //logger.removeHandler(customFileHandler);
             return detailsResponses;
@@ -336,36 +342,37 @@ public class AdminServiceImpl implements AdminService {
         return companyResponse;
     }
 
-    public List<UserResponse> getAllOnboardedUsers() {
-        List<UserResponse> userResponses = new ArrayList<>();
-        List<User> users = userRepository.findAll();
+    public Page<UserResponse> getAllOnboardedUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<User> userPage = userRepository.findAll(pageable);
 
-        for (User user : users) {
-            if (user.getRole() != ROLE.SUPER_ADMIN) {
-                UserResponse userResponse = new UserResponse();
-                userResponse.setUserId(user.getId());
-                userResponse.setFirstName(user.getFirstName());
-                userResponse.setLastName(user.getLastName());
-                userResponse.setEmail(user.getEmail());
-                userResponse.setTotalSpending(orderRepository.totalSpendingByUser(user));
-                userResponse.setLastOrder(orderRepository.lastOrderByUser(user));
+        return userPage.map(user -> {
+            UserResponse userResponse = new UserResponse();
+            userResponse.setUserId(user.getId());
+            userResponse.setFirstName(user.getFirstName());
+            userResponse.setLastName(user.getLastName());
+            userResponse.setEmail(user.getEmail());
+            userResponse.setTotalSpending(orderRepository.totalSpendingByUser(user));
+            userResponse.setLastOrder(orderRepository.lastOrderByUser(user));
 
-                userResponses.add(userResponse);
-            }
-        }
-        return userResponses;
+            return userResponse;
+        });
     }
 
-    public List<CategoryResponse> getAllItemCategory() {
-        List<ItemCategory> foodCategories = itemCategoryRepository.findAll();
 
-        return foodCategories.stream()
-                .map(foodCategory -> CategoryResponse.builder()
-                        .categoryId(foodCategory.getCategoryId())
-                        .categoryName(foodCategory.getCategoryName())
-                        .itemMenus(foodCategory.getItemMenus())
-                        .build())
-                .collect(Collectors.toList());
+    public Page<CategoryResponse> getAllItemCategory(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<ItemCategory> foodCategories = itemCategoryRepository.findAll(pageable);
+
+        return foodCategories.map(category -> {
+            CategoryResponse categoryResponse = CategoryResponse.builder()
+                    .categoryId(category.getCategoryId())
+                    .categoryName(category.getCategoryName())
+                    .itemMenus(category.getItemMenus())
+                    .build();
+
+            return categoryResponse;
+        });
     }
 
     public List<CustomerResponse> getAllCustomers() {

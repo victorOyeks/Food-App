@@ -9,6 +9,7 @@ import com.example.foodapp.exception.CustomException;
 import com.example.foodapp.exception.UserAlreadyExistException;
 import com.example.foodapp.service.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -77,9 +78,10 @@ public class AdminController {
     }
 
     @GetMapping("/all-vendors")
-    public ResponseEntity<ApiResponse<List<DetailsResponse>>> viewAllVendors() throws IOException {
-        List<DetailsResponse> vendorDetails = adminService.getAllVendorDetails();
-        ApiResponse<List<DetailsResponse>> apiResponse = new ApiResponse<>(vendorDetails);
+    public ResponseEntity<ApiResponse<Page<DetailsResponse>>> viewAllVendors(@RequestParam (defaultValue = "0") int page,
+                                                                             @RequestParam (defaultValue = "10") int size) throws IOException {
+        Page<DetailsResponse> vendorDetails = adminService.getAllVendorDetails(page, size);
+        ApiResponse<Page<DetailsResponse>> apiResponse = new ApiResponse<>(vendorDetails);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -108,16 +110,27 @@ public class AdminController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping("/all-users")
+   /* @GetMapping("/all-users")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getAllOnboardedUsers() {
         List<UserResponse> users = adminService.getAllOnboardedUsers();
         ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>(users);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+    */
+
+    @GetMapping("/all-users")
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> getAllOnboardedUsers(@RequestParam(defaultValue = "0") int page,
+                                                                                @RequestParam(defaultValue = "10") int size) {
+
+        Page<UserResponse> userPage = adminService.getAllOnboardedUsers(page, size);
+        ApiResponse<Page<UserResponse>> apiResponse = new ApiResponse<>(userPage);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
 
     @GetMapping("/all-categories")
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
-        ApiResponse<List<CategoryResponse>> apiResponse = new ApiResponse<>(adminService.getAllItemCategory());
+    public ResponseEntity<ApiResponse<Page<CategoryResponse>>> getAllCategories(@RequestParam(defaultValue = "0") int page,
+                                                                                @RequestParam(defaultValue = "10") int size) {
+        ApiResponse<Page<CategoryResponse>> apiResponse = new ApiResponse<>(adminService.getAllItemCategory(page, size));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
