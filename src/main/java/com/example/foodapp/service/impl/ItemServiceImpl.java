@@ -277,7 +277,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private Map<String, Long> getOrderCountByItemMenuName() {
-
         Vendor vendor = getAuthenticatedVendor();
 
         List<Order> allOrders = orderRepository.findOrdersByVendor(vendor);
@@ -285,19 +284,20 @@ public class ItemServiceImpl implements ItemService {
         Map<String, Long> itemMenuOrdersCountMap = new HashMap<>();
 
         for (Order order : allOrders) {
-            // Iterate through the cartItems map
-            for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
-                String itemId = entry.getKey();
-                int quantity = entry.getValue();
-
-                // Retrieve the ItemMenu object from your data source using itemId
-                ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
+            for (OrderItem orderItem : order.getOrderItems()) {
+                // Retrieve the ItemMenu object from the order item
+                ItemMenu itemMenu = orderItem.getItemMenu();
                 String itemName = itemMenu.getItemName();
+
+                // Get the quantity from the order item
+                int quantity = orderItem.getQuantity();
 
                 // Increment the count by the quantity
                 itemMenuOrdersCountMap.put(itemName, itemMenuOrdersCountMap.getOrDefault(itemName, 0L) + quantity);
             }
         }
+
         return itemMenuOrdersCountMap;
     }
+
 }

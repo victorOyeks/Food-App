@@ -24,6 +24,7 @@ public class Supplement {
     private String supplementName;
     private BigDecimal supplementPrice;
     private SupplementCategory supplementCategory;
+
     @JsonIgnore
     @JsonIgnoreProperties("supplement")
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)

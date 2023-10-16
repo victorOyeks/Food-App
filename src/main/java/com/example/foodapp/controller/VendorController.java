@@ -74,8 +74,8 @@ public class VendorController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PutMapping("/{orderId}/delivery")
-    public ResponseEntity<ApiResponse<String>> changeDeliveryStatus(@PathVariable String orderId, @RequestParam DeliveryStatus newStatus) {
+    @PutMapping("change-delivery")
+    public ResponseEntity<ApiResponse<String>> changeDeliveryStatus(@RequestParam String orderId, @RequestParam DeliveryStatus newStatus) {
         ApiResponse<String> apiResponse = new ApiResponse<>(vendorService.changeDeliveryStatus(orderId, newStatus));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

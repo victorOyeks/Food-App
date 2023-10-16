@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -249,72 +250,61 @@ public class CompanyServiceImpl implements CompanyService {
         return orderResponse;
     }
 
-    public List<OrderResponse> viewStaffLastOrder (String staffId) {
+    public List<OrderResponse> viewStaffLastOrder(String staffId) {
         Company company = getAuthenticatedCompany();
+        User staff = userRepository.findById(staffId).orElseThrow(() -> new CustomException("Staff not found!!!"));
 
-        User staff = userRepository.findById(staffId).orElseThrow(()-> new CustomException("Staff not found!!!"));
-
-        if(!company.getUserList().contains(staff)){
-            throw new CustomException("Staff does not belong to company!!!");
+        if (!company.getUserList().contains(staff)) {
+            throw new CustomException("Staff does not belong to the company!!!");
         }
+
         List<Order> lastThreeOrders = orderRepository.findTop3ByUserAndOrderByCreatedAtDesc(staff);
 
-        if(lastThreeOrders.isEmpty()) {
+        if (lastThreeOrders.isEmpty()) {
             throw new CustomException("Orders not found!!!");
         }
 
         List<OrderResponse> orderResponses = new ArrayList<>();
 
-        for(Order order : lastThreeOrders) {
+        for (Order order : lastThreeOrders) {
+            OrderResponse orderResponse = new OrderResponse();
+            orderResponse.setOrderId(order.getOrderId());
+            orderResponse.setTotalAmount(order.getTotalAmount());
+            List<FoodDataResponse> foodDataResponses = new ArrayList<>();
 
-            if (!order.getUser().getCompany().getUserList().contains(staff)) {
-                throw new CustomException("Order does not belong to the company");
-            }
-            OrderResponse orderResponse = OrderResponse.builder()
-                    .orderId(order.getOrderId())
-                    .items(new ArrayList<>())
-                    .totalAmount(order.getTotalAmount())
-                    .build();
-
-            for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
-                String itemId = entry.getKey();
-                int quantity = entry.getValue();
-
-                ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
+            for (OrderItem orderItem : order.getOrderItems()) {
+                ItemMenu itemMenu = orderItem.getItemMenu();
                 Vendor vendor = itemMenu.getItemCategory().getVendor();
 
-                FoodDataResponse foodDataResponse = FoodDataResponse.builder()
-                        .itemId(itemId)
-                        .itemName(itemMenu.getItemName())
-                        .quantity(quantity)
-                        .price(itemMenu.getItemPrice())
-                        .vendorName(vendor.getBusinessName())
-                        .build();
+                FoodDataResponse mainItemResponse = new FoodDataResponse();
+                mainItemResponse.setItemId(itemMenu.getItemId());
+                mainItemResponse.setItemName(itemMenu.getItemName());
+                mainItemResponse.setPrice(itemMenu.getItemPrice());
+                mainItemResponse.setVendorName(vendor.getBusinessName());
+                mainItemResponse.setQuantity(orderItem.getQuantity());
+                mainItemResponse.setTotalAmount(orderItem.getItemTotalAmount());
+                mainItemResponse.setImageUri(itemMenu.getImageUrl());
+                mainItemResponse.setSupplementResponses(new ArrayList<>());
 
-                orderResponse.getItems().add(foodDataResponse);
+                for (OrderItemSupplement orderItemSupplement : orderItem.getOrderItemSupplements()) {
+                    Supplement supplement = orderItemSupplement.getSupplement();
+                    SupplementResponse supplementResponse = new SupplementResponse();
+                    supplementResponse.setSupplementId(supplement.getSupplementId());
+                    supplementResponse.setSupplementName(supplement.getSupplementName());
+                    supplementResponse.setSupplementPrice(supplement.getSupplementPrice());
+                    supplementResponse.setSupplementQuantity(orderItemSupplement.getQuantity());
+                    supplementResponse.setSupplementCategory(supplement.getSupplementCategory());
+
+                    mainItemResponse.getSupplementResponses().add(supplementResponse);
+                }
+
+                foodDataResponses.add(mainItemResponse);
             }
 
-            for (Map.Entry<String, Integer> entry : order.getSupplements().entrySet()) {
-                String supplementId = entry.getKey();
-                int quantity = entry.getValue();
-
-                Supplement supplement = supplementRepository.findBySupplementId(supplementId);
-                Vendor vendor = supplement.getVendor();
-
-                FoodDataResponse foodDataResponse = FoodDataResponse.builder()
-                        .itemId(supplementId)
-                        .itemName(supplement.getSupplementName())
-                        .quantity(quantity)
-                        .vendorName(vendor.getBusinessName())
-                        .price(supplement.getSupplementPrice())
-                        .build();
-
-                orderResponse.getItems().add(foodDataResponse);
-            }
-
+            orderResponse.setItems(foodDataResponses);
             orderResponses.add(orderResponse);
-
         }
+
         return orderResponses;
     }
 
@@ -594,51 +584,50 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     private OrderViewResponse viewAllOrdersInternal(List<Order> orderList) {
-        List<OrderResponse> orderResponses = new ArrayList<>();
+        List<OrderResponse> orderResponses = new ArrayList();
         int totalItems = 0;
         BigDecimal totalSum = BigDecimal.ZERO;
 
         for (Order order : orderList) {
-            List<FoodDataResponse> foodDataResponses = new ArrayList<>();
+            List<FoodDataResponse> foodDataResponses = new ArrayList();
 
-            // Iterate through the cart items
-            for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
-                String itemId = entry.getKey();
-                int quantity = entry.getValue();
-
-                // Retrieve the ItemMenu object from your data source using itemId
-                ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
-
+            for (OrderItem orderItem : order.getOrderItems()) {
+                ItemMenu itemMenu = orderItem.getItemMenu();
+                int quantity = orderItem.getQuantity();
                 totalItems += quantity;
 
                 Vendor vendor = itemMenu.getItemCategory().getVendor();
-                foodDataResponses.add(FoodDataResponse.builder()
-                        .itemId(itemId)
-                        .itemName(itemMenu.getItemName())
-                        .price(itemMenu.getItemPrice())
-                        .imageUri(itemMenu.getImageUrl())
-                        .quantity(quantity)
-                        .vendorName(vendor.getBusinessName())
-                        .build());
-            }
 
-            // Iterate through the cart supplements
-            for (Map.Entry<String, Integer> entry : order.getSupplements().entrySet()) {
-                String supplementId = entry.getKey();
-                int quantity = entry.getValue();
+                List<SupplementResponse> supplementResponses = orderItem.getOrderItemSupplements()
+                        .stream()
+                        .map(orderItemSupplement -> {
+                            Supplement supplement = orderItemSupplement.getSupplement();
+                            int supplementQuantity = orderItemSupplement.getQuantity();
 
-                // Retrieve the Supplement object from your data source using supplementId
-                Supplement supplement = supplementRepository.findById(supplementId)
-                        .orElseThrow(() -> new CustomException("Supplement not found!!!"));
+                            return new SupplementResponse(
+                                    supplement.getSupplementId(),
+                                    supplement.getSupplementName(),
+                                    supplement.getSupplementPrice(),
+                                    supplementQuantity,
+                                    supplement.getSupplementCategory()
+                            );
+                        })
+                        .collect(Collectors.toList());
 
-                totalItems += quantity;
+                BigDecimal itemTotalAmount = orderItem.getItemTotalAmount();
 
-                foodDataResponses.add(FoodDataResponse.builder()
-                        .itemId(supplementId)
-                        .itemName(supplement.getSupplementName())
-                        .price(supplement.getSupplementPrice())
-                        .quantity(quantity)
-                        .build());
+                FoodDataResponse foodDataResponse = new FoodDataResponse(
+                        itemMenu.getItemId(),
+                        itemMenu.getItemName(),
+                        itemMenu.getItemPrice(),
+                        itemMenu.getImageUrl(),
+                        quantity,
+                        supplementResponses,
+                        itemTotalAmount,
+                        vendor.getBusinessName()
+                );
+
+                foodDataResponses.add(foodDataResponse);
             }
 
             orderResponses.add(OrderResponse.builder()
@@ -657,4 +646,5 @@ public class CompanyServiceImpl implements CompanyService {
 
         return new OrderViewResponse(orderResponses, orderSummary);
     }
+
 }

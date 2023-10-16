@@ -10,6 +10,5 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class CartRequest {
-    private List<CartItem> cartItems;
-    private List<SupplementItem> supplementItems;
+    private List<CartItemWithSupplements> cartItemWithSupplements;
 }

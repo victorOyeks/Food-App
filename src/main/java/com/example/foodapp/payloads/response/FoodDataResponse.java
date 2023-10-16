@@ -20,5 +20,7 @@ public class FoodDataResponse {
     private BigDecimal price;
     private String imageUri;
     private int quantity;
+    private List<SupplementResponse> supplementResponses;
+    private BigDecimal totalAmount;
     private String vendorName;
 }

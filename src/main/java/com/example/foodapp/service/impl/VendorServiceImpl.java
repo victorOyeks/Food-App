@@ -431,7 +431,7 @@ public class VendorServiceImpl implements VendorService {
         }
             switch (timeFrame) {
                 case TODAY:
-                    startDate = LocalDateTime.now();
+                    startDate = LocalDate.now().atStartOfDay();
                     break;
                 case LAST_7_DAYS:
                     startDate = endDate.minusDays(6);
@@ -598,54 +598,35 @@ public class VendorServiceImpl implements VendorService {
     private AdminOrderResponse addOrdersToResponse(Order order, OrderType orderType, String customerName, String profilePic, String phone, String email) {
         List<FoodDataResponse> foodDataResponses = new ArrayList<>();
 
-        // Accumulate quantities for each item menu
-        Map<String, Integer> accumulatedQuantities = new HashMap<>();
-
-        // Iterate through the itemMenus map
-        for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
-            String itemId = entry.getKey();
-            int quantity = entry.getValue();
-
-            // Accumulate quantities for each item menu
-            accumulatedQuantities.put(itemId, accumulatedQuantities.getOrDefault(itemId, 0) + quantity);
-        }
-
-        // Iterate through the accumulated quantities map
-        for (Map.Entry<String, Integer> entry : accumulatedQuantities.entrySet()) {
-            String itemId = entry.getKey();
-            int quantity = entry.getValue();
-
-            ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
+        for (OrderItem orderItem : order.getOrderItems()) {
+            ItemMenu itemMenu = orderItem.getItemMenu();
             Vendor vendor = itemMenu.getItemCategory().getVendor();
 
-            for (int i = 0; i < quantity; i++) {
-                foodDataResponses.add(FoodDataResponse.builder()
-                        .itemId(itemId)
-                        .itemName(itemMenu.getItemName())
-                        .price(itemMenu.getItemPrice())
-                        .vendorName(vendor.getBusinessName())
-                        .build());
+            FoodDataResponse mainItemResponse = FoodDataResponse.builder()
+                    .itemId(itemMenu.getItemId())
+                    .itemName(itemMenu.getItemName())
+                    .price(itemMenu.getItemPrice())
+                    .vendorName(vendor.getBusinessName())
+                    .quantity(orderItem.getQuantity())
+                    .totalAmount(orderItem.getItemTotalAmount())
+                    .imageUri(itemMenu.getImageUrl())
+                    .supplementResponses(new ArrayList<>())
+                    .build();
+
+            for (OrderItemSupplement orderItemSupplement : orderItem.getOrderItemSupplements()) {
+                Supplement supplement = orderItemSupplement.getSupplement();
+                SupplementResponse supplementResponse = SupplementResponse.builder()
+                        .supplementId(supplement.getSupplementId())
+                        .supplementName(supplement.getSupplementName())
+                        .supplementPrice(supplement.getSupplementPrice())
+                        .supplementQuantity(orderItemSupplement.getQuantity())
+                        .supplementCategory(supplement.getSupplementCategory())
+                        .build();
+
+                mainItemResponse.getSupplementResponses().add(supplementResponse);
             }
-        }
 
-        // Iterate through the supplements map
-        for (Map.Entry<String, Integer> entry : order.getSupplements().entrySet()) {
-            String supplementId = entry.getKey();
-            int quantity = entry.getValue();
-
-            Supplement supplement = supplementRepository.findBySupplementId(supplementId);
-
-            // If the supplement was found, create FoodDataResponse objects for it
-            if (supplement != null) {
-                for (int i = 0; i < quantity; i++) {
-                    foodDataResponses.add(FoodDataResponse.builder()
-                            .itemId(supplement.getSupplementId())
-                            .itemName(supplement.getSupplementName())
-                            .price(supplement.getSupplementPrice())
-                            .vendorName(supplement.getVendor().getBusinessName())
-                            .build());
-                }
-            }
+            foodDataResponses.add(mainItemResponse);
         }
 
         return AdminOrderResponse.builder()
@@ -661,5 +642,4 @@ public class VendorServiceImpl implements VendorService {
                 .createdAt(order.getCreatedAt())
                 .build();
     }
-
 }

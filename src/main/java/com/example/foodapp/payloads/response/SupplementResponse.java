@@ -17,5 +17,6 @@ public class SupplementResponse {
     private String supplementId;
     private String supplementName;
     private BigDecimal supplementPrice;
+    private int supplementQuantity;
     private SupplementCategory supplementCategory;
 }

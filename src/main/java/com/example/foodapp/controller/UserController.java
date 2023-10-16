@@ -34,8 +34,8 @@ public class UserController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping("vendors/{vendorId}")
-    public ResponseEntity<ApiResponse<DetailsResponse>> vendorDetails(@PathVariable String vendorId) {
+    @GetMapping("vendors")
+    public ResponseEntity<ApiResponse<DetailsResponse>> vendorDetails(@RequestParam String vendorId) {
         ApiResponse<DetailsResponse> apiResponse = new ApiResponse<>(userService.getVendorDetails(vendorId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
@@ -56,8 +56,8 @@ public class UserController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PostMapping("vendors/{vendorId}/user-reviews")
-    public ResponseEntity<ApiResponse<VendorReviewResponse>> addVendorReview(@PathVariable String vendorId,
+    @PostMapping("vendors/user-reviews")
+    public ResponseEntity<ApiResponse<VendorReviewResponse>> addVendorReview(@RequestParam String vendorId,
                                                                        @RequestBody ReviewRequest reviewRequest, VendorReview vendorReview) {
         ApiResponse<VendorReviewResponse> apiResponse = new ApiResponse<>(userService.addRatingAndReviewByUser(vendorReview, vendorId, reviewRequest));
         return  new ResponseEntity<>(apiResponse, HttpStatus.OK);

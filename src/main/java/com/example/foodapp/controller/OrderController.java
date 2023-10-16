@@ -1,5 +1,6 @@
 package com.example.foodapp.controller;
 
+import com.example.foodapp.payloads.request.CartItemWithSupplements;
 import com.example.foodapp.payloads.request.CartRequest;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.exception.CustomException;
@@ -34,8 +35,8 @@ public class OrderController {
     }
 
     @PostMapping("/add-to-cart")
-    public ResponseEntity<ApiResponse<OrderViewResponse>> addToCart(@RequestParam String vendorId, @RequestBody CartRequest cartRequest) {
-        OrderViewResponse message = orderService.addToCart(vendorId, cartRequest.getCartItems(), cartRequest.getSupplementItems());
+    public ResponseEntity<ApiResponse<OrderViewResponse>> addToCart(@RequestParam String vendorId, @RequestBody List<CartItemWithSupplements> cartItemWithSupplements) {
+        OrderViewResponse message = orderService.addToCart(vendorId, cartItemWithSupplements);
         ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(message);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
@@ -47,12 +48,12 @@ public class OrderController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping("carts")
-    public ResponseEntity<ApiResponse<OrderViewResponse>> viewAllOrders() {
-        OrderViewResponse orders = orderService.viewUserCart();
-        ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(orders);
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
+//    @GetMapping("carts")
+//    public ResponseEntity<ApiResponse<OrderViewResponse>> viewAllOrders() {
+//        OrderViewResponse orders = orderService.viewUserCart();
+//        ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(orders);
+//        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+//    }
 
     @GetMapping()
     public ResponseEntity<ApiResponse<UserOrderViewResponse>> viewSimplifiedOrdersByUser() {
@@ -61,17 +62,17 @@ public class OrderController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @DeleteMapping("{orderId}/itemMenu")
-    public ResponseEntity<ApiResponse<OrderViewResponse>> deleteItem(@PathVariable("orderId") String orderId, @RequestParam String itemId) {
-        OrderViewResponse message;
-        try {
-            message = orderService.deleteItem(orderId, itemId);
-        }catch (CustomException customException){
-            message = orderService.deleteSupplement(orderId, itemId);
-        }
-        ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(message);
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
+//    @DeleteMapping("{orderId}/itemMenu")
+//    public ResponseEntity<ApiResponse<OrderViewResponse>> deleteItem(@PathVariable("orderId") String orderId, @RequestParam String itemId) {
+//        OrderViewResponse message;
+//        try {
+//            message = orderService.deleteItem(orderId, itemId);
+//        }catch (CustomException customException){
+//            message = orderService.deleteSupplement(orderId, itemId);
+//        }
+//        ApiResponse<OrderViewResponse> apiResponse = new ApiResponse<>(message);
+//        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+//    }
 
     @GetMapping("order-details")
     public ResponseEntity<ApiResponse<UserOrderDetailsResponse>> viewOrderDetails(@RequestParam String orderId) {

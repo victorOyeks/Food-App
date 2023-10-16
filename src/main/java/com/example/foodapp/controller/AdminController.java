@@ -85,8 +85,8 @@ public class AdminController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping("vendors/{vendorId}")
-    public ResponseEntity<ApiResponse<BusinessRegistrationResponse>> viewVendor(@PathVariable String vendorId) {
+    @GetMapping("vendors")
+    public ResponseEntity<ApiResponse<BusinessRegistrationResponse>> viewVendor(@RequestParam String vendorId) {
         BusinessRegistrationResponse vendorDetails = adminService.getVendor(vendorId);
         ApiResponse<BusinessRegistrationResponse> apiResponse = new ApiResponse<>(vendorDetails);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);

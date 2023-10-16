@@ -60,14 +60,14 @@ public class FoodController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PutMapping("/item-category/{categoryId}")
-    public ResponseEntity<ApiResponse<CategoryResponse>> editItemCategory(@PathVariable String categoryId, @RequestBody CategoryRequest request) {
+    @PutMapping("/edit-category")
+    public ResponseEntity<ApiResponse<CategoryResponse>> editItemCategory(@RequestParam String categoryId, @RequestBody CategoryRequest request) {
         ApiResponse<CategoryResponse> apiResponse = new ApiResponse<>(itemService.editItemCategory(categoryId, request));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<ApiResponse<CategoryResponse>> getItemCategory(@PathVariable String categoryId) {
+    @GetMapping("/category")
+    public ResponseEntity<ApiResponse<CategoryResponse>> getItemCategory(@RequestParam String categoryId) {
         ApiResponse<CategoryResponse> apiResponse = new ApiResponse<>(itemService.getItemCategory(categoryId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }

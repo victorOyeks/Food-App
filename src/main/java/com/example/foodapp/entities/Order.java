@@ -2,14 +2,20 @@ package com.example.foodapp.entities;
 
 import com.example.foodapp.constant.DeliveryStatus;
 import com.example.foodapp.constant.SubmitStatus;
+import com.example.foodapp.entities.User;
+import com.example.foodapp.entities.Vendor;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,17 +36,8 @@ public class Order {
     @JoinColumn(name = "vendor_id")
     private Vendor vendor;
 
-    @ElementCollection
-    @CollectionTable(name = "order_item_menus", joinColumns = @JoinColumn(name = "order_id"))
-    @MapKeyJoinColumn(name = "item_menu_id") // Map key column for itemMenu IDs
-    @Column(name = "quantity")
-    private Map<String, Integer> itemMenus;
-
-    @ElementCollection
-    @CollectionTable(name = "order_supplements", joinColumns = @JoinColumn(name = "order_id"))
-    @MapKeyJoinColumn(name = "supplement_id")
-    @Column(name = "quantity")
-    private Map<String, Integer> supplements;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> orderItems = new ArrayList<>();
 
     private BigDecimal totalAmount;
 

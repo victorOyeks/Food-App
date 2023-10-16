@@ -2,7 +2,7 @@ package com.example.foodapp.service.impl;
 
 import com.example.foodapp.constant.DeliveryStatus;
 import com.example.foodapp.constant.SubmitStatus;
-import com.example.foodapp.payloads.request.CartItem;
+import com.example.foodapp.payloads.request.CartItemWithSupplements;
 import com.example.foodapp.payloads.request.SupplementItem;
 import com.example.foodapp.payloads.response.*;
 import com.example.foodapp.entities.*;
@@ -29,6 +29,8 @@ public class OrderServiceImpl implements OrderService {
     private final CompanyRepository companyRepository;
     private final SupplementRepository supplementRepository;
     private final ItemMenuRepository itemMenuRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final OrderItemSupplementRepository orderItemSupplementRepository;
 
    /* public List<FoodDataResponse> viewAllItemMenus() {
 
@@ -81,6 +83,7 @@ public class OrderServiceImpl implements OrderService {
         return foodDataResponses;
     }
 
+    @Override
     public List<SupplementResponse> viewAllSupplements(String vendorId) {
 
         User user = getAuthenticatedUser();
@@ -106,7 +109,477 @@ public class OrderServiceImpl implements OrderService {
         return supplementResponses;
     }
 
-    public OrderViewResponse addToCart(String vendorId, List<CartItem> cartItems, List<SupplementItem> supplementItems) {
+    @Override
+    public OrderViewResponse addToCart(String vendorId, List<CartItemWithSupplements> cartItemsWithSupplements) {
+        User user = getAuthenticatedUser();
+        Company userCompany = user.getCompany();
+
+        if (userCompany == null) {
+            throw new CustomException("User is not associated with this company");
+        }
+
+        // Fetch the vendor's supplements
+        Vendor vendor = vendorRepository.findById(vendorId)
+                .orElseThrow(() -> new CustomException("Vendor not found"));
+        List<Supplement> vendorSupplements = vendor.getSupplements();
+
+        if (!userCompany.getVendors().contains(vendor)) {
+            throw new CustomException("Vendor is not associated with the user's company");
+        }
+
+//        Order existingOpenOrder = orderRepository.findOpenOrderByUser(user.getId());
+
+//        if (existingOpenOrder != null) {
+//            for (CartItemWithSupplements cartItemWithSupplements : cartItemsWithSupplements) {
+//                String itemId = cartItemWithSupplements.getItemId();
+//                int quantity = cartItemWithSupplements.getQuantity();
+//                ItemMenu selectedItemMenu = findFoodMenuById(vendor.getId(), itemId);
+//
+//                if (selectedItemMenu != null) {
+//                    // Create an OrderItem for the current item and add it to the existing order
+//                    OrderItem orderItem = new OrderItem();
+//                    orderItem.setItemMenu(selectedItemMenu);
+//                    orderItem.setQuantity(quantity);
+//
+//                    // Fetch supplement items from the cart
+//                    List<OrderItemSupplement> orderItemSupplements = cartItemWithSupplements.getSupplementItems()
+//                            .stream()
+//                            .map(supplementItem -> {
+//                                String supplementId = supplementItem.getSupplementId();
+//                                int supplementQuantity = supplementItem.getQuantity();
+//
+//                                // Find the corresponding supplement in the vendor's supplements
+//                                Supplement selectedSupplement = vendorSupplements.stream()
+//                                        .filter(supplement -> supplement.getSupplementId().equals(supplementId))
+//                                        .findFirst()
+//                                        .orElseThrow(() -> new CustomException("Supplement not found"));
+//
+//                                OrderItemSupplement itemSupplement = new OrderItemSupplement();
+//                                itemSupplement.setSupplement(selectedSupplement);
+//                                itemSupplement.setQuantity(supplementQuantity);
+//
+//                                // Save the OrderItemSupplement
+//                                orderItemSupplementRepository.save(itemSupplement);
+//
+//                                return itemSupplement;
+//                            })
+//                            .collect(Collectors.toList());
+//
+//                    // Add the supplements to the order item
+//                    orderItem.setOrderItemSupplements(orderItemSupplements);
+//
+//                    // Calculate the total amount for the order item, including supplements
+//                    BigDecimal itemTotalAmount = selectedItemMenu.getItemPrice().multiply(BigDecimal.valueOf(quantity));
+//
+//                    BigDecimal supplementsTotalPrice = orderItemSupplements.stream()
+//                            .map(itemSupplement -> itemSupplement.getSupplement().getSupplementPrice()
+//                                    .multiply(BigDecimal.valueOf(itemSupplement.getQuantity())))
+//                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+//
+//                    itemTotalAmount = itemTotalAmount.add(supplementsTotalPrice);
+//
+//                    orderItem.setItemTotalAmount(itemTotalAmount);
+//
+//                    // Save the OrderItem
+//                    orderItemRepository.save(orderItem);
+//
+//                    // Add the saved order item to the existing order
+//                    existingOpenOrder.getOrderItems().add(orderItem);
+//                } else {
+//                    throw new CustomException("Item menu not found!!!");
+//                }
+//            }
+//
+//            // Update total amount based on order items
+//            BigDecimal totalAmount = calculateTotalAmount(existingOpenOrder);
+//            existingOpenOrder.setTotalAmount(totalAmount);
+//            orderRepository.save(existingOpenOrder);
+//
+//            // Prepare the OrderViewResponse
+//            List<OrderResponse> orderResponses = new ArrayList<>();
+//            OrderResponse orderResponse = new OrderResponse();
+//            orderResponse.setOrderId(existingOpenOrder.getOrderId());
+//            List<FoodDataResponse> items = existingOpenOrder.getOrderItems().stream()
+//                    .map(orderItem -> {
+//                        ItemMenu selectedItemMenu = orderItem.getItemMenu();
+//                        List<SupplementResponse> itemSupplements = orderItem.getOrderItemSupplements()
+//                                .stream()
+//                                .map(orderItemSupplement -> {
+//                                    Supplement selectedSupplement = orderItemSupplement.getSupplement();
+//                                    int supplementQuantity = orderItemSupplement.getQuantity();
+//                                    return new SupplementResponse(
+//                                            selectedSupplement.getSupplementId(),
+//                                            selectedSupplement.getSupplementName(),
+//                                            selectedSupplement.getSupplementPrice(),
+//                                            supplementQuantity,
+//                                            selectedSupplement.getSupplementCategory()
+//                                    );
+//                                })
+//                                .collect(Collectors.toList());
+//
+//                        FoodDataResponse foodDataResponse = new FoodDataResponse(
+//                                selectedItemMenu.getItemId(),
+//                                selectedItemMenu.getItemName(),
+//                                selectedItemMenu.getItemPrice(),
+//                                selectedItemMenu.getImageUrl(),
+//                                orderItem.getQuantity(),
+//                                itemSupplements,
+//                                orderItem.getItemTotalAmount(),
+//                                vendor.getBusinessName()
+//                        );
+//                        return foodDataResponse;
+//                    })
+//                    .collect(Collectors.toList());
+//
+//            BigDecimal orderTotalAmount = calculateTotalAmount(existingOpenOrder);
+//            orderResponse.setItems(items);
+//            orderResponse.setTotalAmount(orderTotalAmount);
+//            orderResponses.add(orderResponse);
+//
+//            OrderSummary orderSummary = new OrderSummary();
+//            orderSummary.setTotalItems(items.size());
+//            orderSummary.setTotalSum(totalAmount);
+//
+//            OrderViewResponse orderViewResponse = new OrderViewResponse();
+//            orderViewResponse.setOrderResponses(orderResponses);
+//            orderViewResponse.setOrderSummary(orderSummary);
+//
+//            return orderViewResponse;
+//        } else {
+            // Create a new order with cart items and supplements
+
+        Order newOrder = new Order();
+        newOrder.setUser(user);
+        newOrder.setVendor(vendor);
+
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        for (CartItemWithSupplements cartItemWithSupplements : cartItemsWithSupplements) {
+            String itemId = cartItemWithSupplements.getItemId();
+            int quantity = cartItemWithSupplements.getQuantity();
+            ItemMenu selectedItemMenu = findFoodMenuById(vendor.getId(), itemId);
+
+            if (selectedItemMenu != null) {
+                OrderItem orderItem = new OrderItem();
+                orderItem.setItemMenu(selectedItemMenu);
+                orderItem.setQuantity(quantity);
+
+                List<OrderItemSupplement> orderItemSupplements = cartItemWithSupplements.getSupplementItems()
+                        .stream()
+                        .map(supplementItem -> {
+                            String supplementId = supplementItem.getSupplementId();
+                            int supplementQuantity = supplementItem.getQuantity();
+
+                            Supplement selectedSupplement = vendorSupplements.stream()
+                                    .filter(supplement -> supplement.getSupplementId().equals(supplementId))
+                                    .findFirst()
+                                    .orElse(null);
+
+                            if (selectedSupplement != null) {
+                                OrderItemSupplement itemSupplement = new OrderItemSupplement();
+                                itemSupplement.setSupplement(selectedSupplement);
+                                itemSupplement.setQuantity(supplementQuantity);
+                                itemSupplement.setOrderItem(orderItem);
+
+                                return itemSupplement;
+                            } else {
+                                return null;
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+
+                orderItem.setOrderItemSupplements(orderItemSupplements);
+
+                BigDecimal itemTotalAmount = selectedItemMenu.getItemPrice().multiply(BigDecimal.valueOf(quantity));
+
+                BigDecimal supplementsTotalPrice = orderItemSupplements.stream()
+                        .map(itemSupplement -> itemSupplement.getSupplement().getSupplementPrice()
+                                .multiply(BigDecimal.valueOf(itemSupplement.getQuantity())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                itemTotalAmount = itemTotalAmount.add(supplementsTotalPrice);
+
+                orderItem.setItemTotalAmount(itemTotalAmount);
+                orderItem.setOrder(newOrder);
+
+                orderItems.add(orderItem);
+            } else {
+                throw new CustomException("Item menu not found!!!");
+            }
+        }
+            newOrder.setOrderItems(orderItems);
+
+            // Set total amount based on order items
+            BigDecimal totalAmount = calculateTotalAmount(newOrder);
+            newOrder.setTotalAmount(totalAmount);
+            newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
+            newOrder.setSubmitStatus(SubmitStatus.SUBMITTED);
+
+            if (userCompany.getPriceLimit() == null) {
+                throw new CustomException("Your company has not set a price limit. You cannot make an order!!!");
+            }
+
+            if (totalAmount.compareTo(userCompany.getPriceLimit()) > 0) {
+                throw new CustomException("You cannot add items worth more than " + userCompany.getPriceLimit() + " to the cart");
+            }
+
+            orderRepository.save(newOrder);
+
+            // Prepare the OrderViewResponse for the new order
+            List<OrderResponse> orderResponses = new ArrayList<>();
+            OrderResponse orderResponse = new OrderResponse();
+            orderResponse.setOrderId(newOrder.getOrderId());
+            List<FoodDataResponse> items = newOrder.getOrderItems().stream()
+                    .map(orderItem -> {
+                        ItemMenu selectedItemMenu = orderItem.getItemMenu();
+                        List<SupplementResponse> itemSupplements = orderItem.getOrderItemSupplements()
+                                .stream()
+                                .map(orderItemSupplement -> {
+                                    Supplement selectedSupplement = orderItemSupplement.getSupplement();
+                                    int supplementQuantity = orderItemSupplement.getQuantity();
+                                    return new SupplementResponse(
+                                            selectedSupplement.getSupplementId(),
+                                            selectedSupplement.getSupplementName(),
+                                            selectedSupplement.getSupplementPrice(),
+                                            supplementQuantity,
+                                            selectedSupplement.getSupplementCategory()
+                                    );
+                                })
+                                .collect(Collectors.toList());
+
+                        FoodDataResponse foodDataResponse = new FoodDataResponse(
+                                selectedItemMenu.getItemId(),
+                                selectedItemMenu.getItemName(),
+                                selectedItemMenu.getItemPrice(),
+                                selectedItemMenu.getImageUrl(),
+                                orderItem.getQuantity(),
+                                itemSupplements,
+                                orderItem.getItemTotalAmount(),
+                                vendor.getBusinessName()
+                        );
+                        return foodDataResponse;
+                    })
+                    .collect(Collectors.toList());
+
+            BigDecimal orderTotalAmount = calculateTotalAmount(newOrder);
+            orderResponse.setItems(items);
+            orderResponse.setTotalAmount(orderTotalAmount);
+            orderResponses.add(orderResponse);
+
+            OrderSummary orderSummary = new OrderSummary();
+            orderSummary.setTotalItems(items.size());
+            orderSummary.setTotalSum(totalAmount);
+
+            OrderViewResponse orderViewResponse = new OrderViewResponse();
+            orderViewResponse.setOrderResponses(orderResponses);
+            orderViewResponse.setOrderSummary(orderSummary);
+
+            return orderViewResponse;
+        }
+
+
+    private OrderViewResponse createOrderViewResponse(Order order, List<Supplement> vendorSupplements) {
+        List<OrderResponse> orderResponses = new ArrayList<>();
+        OrderResponse orderResponse = new OrderResponse();
+        orderResponse.setOrderId(order.getOrderId());
+        List<FoodDataResponse> items = new ArrayList<>();
+
+        for (OrderItem orderItem : order.getOrderItems()) {
+            ItemMenu selectedItemMenu = orderItem.getItemMenu();
+            int quantity = orderItem.getQuantity();
+            List<SupplementResponse> itemSupplements = new ArrayList<>();
+
+            for (OrderItemSupplement orderItemSupplement : orderItem.getOrderItemSupplements()) {
+                Supplement selectedSupplement = orderItemSupplement.getSupplement();
+                int supplementQuantity = orderItemSupplement.getQuantity();
+
+                // Create and add a SupplementResponse
+                SupplementResponse supplementResponse = new SupplementResponse(
+                        selectedSupplement.getSupplementId(),
+                        selectedSupplement.getSupplementName(),
+                        selectedSupplement.getSupplementPrice(),
+                        supplementQuantity,
+                        selectedSupplement.getSupplementCategory()
+                );
+                itemSupplements.add(supplementResponse);
+            }
+
+            BigDecimal itemTotalAmount = selectedItemMenu.getItemPrice().multiply(BigDecimal.valueOf(quantity));
+
+            // Add the total price of supplements to itemTotalAmount
+            BigDecimal supplementsTotalPrice = itemSupplements.stream()
+                    .map(supplementResponse -> supplementResponse.getSupplementPrice()
+                            .multiply(BigDecimal.valueOf(supplementResponse.getSupplementQuantity())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            itemTotalAmount = itemTotalAmount.add(supplementsTotalPrice);
+
+            FoodDataResponse foodDataResponse = new FoodDataResponse(
+                    selectedItemMenu.getItemId(),
+                    selectedItemMenu.getItemName(),
+                    selectedItemMenu.getItemPrice(),
+                    selectedItemMenu.getImageUrl(),
+                    quantity,
+                    itemSupplements,
+                    itemTotalAmount,
+                    order.getVendor().getBusinessName()
+            );
+
+            items.add(foodDataResponse);
+        }
+
+        BigDecimal orderTotalAmount = calculateTotalAmount(order);
+        orderResponse.setItems(items);
+        orderResponse.setTotalAmount(orderTotalAmount);
+        orderResponses.add(orderResponse);
+
+        OrderSummary orderSummary = new OrderSummary();
+        orderSummary.setTotalItems(items.size());
+        orderSummary.setTotalSum(orderTotalAmount);
+
+        OrderViewResponse orderViewResponse = new OrderViewResponse();
+        orderViewResponse.setOrderResponses(orderResponses);
+        orderViewResponse.setOrderSummary(orderSummary);
+
+        return orderViewResponse;
+    }
+
+
+
+//    @Override
+//    public OrderViewResponse addToCart(String vendorId, List<CartItemWithSupplements> cartItemsWithSupplements) {
+//        User user = getAuthenticatedUser();
+//        Company userCompany = user.getCompany();
+//
+//        if (userCompany == null) {
+//            throw new CustomException("User is not associated with this company");
+//        }
+//
+//        // Fetch the vendor's supplements
+//        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new CustomException("Vendor not found"));
+//        List<Supplement> vendorSupplements = vendor.getSupplements();
+//
+//        if (!userCompany.getVendors().contains(vendor)) {
+//            throw new CustomException("Vendor is not associated with the user's company");
+//        }
+//
+//        Order existingOpenOrder = orderRepository.findOpenOrderByUser(user.getId());
+//
+//        if (existingOpenOrder != null) {
+//            // Update existing open order with cart items and supplements
+//            Map<String, Integer> orderItems = existingOpenOrder.getItemMenus();
+//            Map<String, Integer> orderSupplements = existingOpenOrder.getSupplements();
+//
+//            for (CartItemWithSupplements cartItemWithSupplements : cartItemsWithSupplements) {
+//                String itemId = cartItemWithSupplements.getItemId();
+//                int quantity = cartItemWithSupplements.getQuantity();
+//                ItemMenu selectedItemMenu = findFoodMenuById(vendor.getId(), itemId);
+//
+//                if (selectedItemMenu != null) {
+//                    // Check if the item is already in the cart
+//                    if (orderItems.containsKey(itemId)) {
+//                        int existingQuantity = orderItems.get(itemId);
+//                        orderItems.put(itemId, existingQuantity + quantity);
+//                    } else {
+//                        orderItems.put(itemId, quantity);
+//                    }
+//
+//                    // Fetch supplement items from the vendor's supplements
+//                    List<SupplementItem> supplementItems = cartItemWithSupplements.getSupplementItems();
+//                    for (SupplementItem supplementItem : supplementItems) {
+//                        String supplementId = supplementItem.getSupplementId();
+//                        int supplementQuantity = supplementItem.getQuantity();
+//
+//                        // Find the corresponding supplement in the vendor's supplements
+//                        Supplement selectedSupplement = vendorSupplements.stream()
+//                                .filter(supplement -> supplement.getSupplementId().equals(supplementId))
+//                                .findFirst()
+//                                .orElseThrow(() -> new CustomException("Supplement not found"));
+//
+//                        // Check if the supplement is already in the cart
+//                        if (orderSupplements.containsKey(selectedSupplement)) {
+//                            int existingSupplementQuantity = orderSupplements.get(supplementId);
+//                            orderSupplements.put(supplementId, existingSupplementQuantity + supplementQuantity);
+//                        } else {
+//                            orderSupplements.put(supplementId, supplementQuantity);
+//                        }
+//                    }
+//                } else {
+//                    throw new CustomException("Item menu not found!!!");
+//                }
+//            }
+//
+//            // Update total amount based on cart items and supplements
+//            BigDecimal totalAmount = calculateTotalAmount(existingOpenOrder);
+//            existingOpenOrder.setTotalAmount(totalAmount);
+//            orderRepository.save(existingOpenOrder);
+//        } else {
+//            // Create a new order with cart items and supplements
+//            Order newOrder = new Order();
+//            newOrder.setUser(user);
+//
+//            Map<String, Integer> orderItems = new HashMap<>();
+//            Map<String, Integer> orderSupplements = new HashMap<>();
+//
+//            for (CartItemWithSupplements cartItemWithSupplements : cartItemsWithSupplements) {
+//                String itemId = cartItemWithSupplements.getItemId();
+//                int quantity = cartItemWithSupplements.getQuantity();
+//                ItemMenu selectedItemMenu = findFoodMenuById(vendor.getId(), itemId);
+//
+//                if (selectedItemMenu != null) {
+//                    orderItems.put(itemId, quantity);
+//
+//                    // Fetch supplement items from the vendor's supplements
+//                    List<SupplementItem> supplementItems = cartItemWithSupplements.getSupplementItems();
+//                    for (SupplementItem supplementItem : supplementItems) {
+//                        String supplementId = supplementItem.getSupplementId();
+//                        int supplementQuantity = supplementItem.getQuantity();
+//
+//                        // Find the corresponding supplement in the vendor's supplements
+//                        Supplement selectedSupplement = vendorSupplements.stream()
+//                                .filter(supplement -> supplement.getSupplementId().equals(supplementId))
+//                                .findFirst()
+//                                .orElseThrow(() -> new CustomException("Supplement not found"));
+//
+//                        orderSupplements.put(selectedSupplement.getSupplementId(), supplementQuantity);
+//                    }
+//                } else {
+//                    throw new CustomException("Item menu not found!!!");
+//                }
+//            }
+//
+//            newOrder.setItemMenus(orderItems);
+//            newOrder.setSupplements(orderSupplements);
+//
+//            // Set total amount based on cart items and supplements
+//            BigDecimal totalAmount = calculateTotalAmount(newOrder);
+//            newOrder.setTotalAmount(totalAmount);
+//            newOrder.setDeliveryStatus(DeliveryStatus.PENDING);
+//            newOrder.setSubmitStatus(SubmitStatus.PENDING);
+//            newOrder.setVendor(vendor);
+//
+//            if (userCompany.getPriceLimit() == null) {
+//                throw new CustomException("Your company has not set a price limit. You cannot make an order!!!");
+//            }
+//
+//            if (totalAmount.compareTo(userCompany.getPriceLimit()) > 0) {
+//                throw new CustomException("You cannot add items worth more than " + userCompany.getPriceLimit() + " to the cart");
+//            }
+//
+//            orderRepository.save(newOrder);
+//        }
+//
+//        if (user.getOrderList() == null) {
+//            user.setOrderList(new ArrayList<>());
+//        }
+//
+//        return viewUserCart();
+//    }
+
+
+
+    /* public OrderViewResponse addToCart(String vendorId, List<CartItem> cartItems, List<SupplementItem> supplementItems) {
         User user = getAuthenticatedUser();
         Company userCompany = user.getCompany();
         if (userCompany == null) {
@@ -211,7 +684,9 @@ public class OrderServiceImpl implements OrderService {
         }
         return viewUserCart();
     }
+     */
 
+    @Override
     public String submitCart (String orderId){
         User user = getAuthenticatedUser();
         Order order = orderRepository.findOrderByOrderIdAndUserId(orderId, user.getId());
@@ -249,7 +724,6 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-
     public UserOrderViewResponse viewSimplifiedOrdersByUser() {
         String userId = getAuthenticatedUser().getId();
         List<Order> userOrders = orderRepository.findOrdersByUserId(userId);
@@ -257,57 +731,32 @@ public class OrderServiceImpl implements OrderService {
         return new UserOrderViewResponse(simplifiedOrders, null);
     }
 
-    public OrderViewResponse viewUserCart() {
-        String userId = getAuthenticatedUser().getId();
-        List<Order> pendingOrders = orderRepository.findPendingOrdersByUserId(userId);
-        return viewAllOrdersInternal(pendingOrders);
-    }
+//    public OrderViewResponse deleteItem(String orderId, String foodItemId) {
+//        Order order = orderRepository.findById(orderId)
+//                .orElseThrow(() -> new CustomException("Order not found!!!"));
+//
+//        List<OrderItem> orderItems = order.getOrderItems();
+//        Optional<OrderItem> orderItemOptional = orderItems.stream()
+//                .filter(orderItem -> orderItem.getItemMenu().getItemId().equals(foodItemId))
+//                .findFirst();
+//
+//        if (orderItemOptional.isPresent()) {
+//            OrderItem orderItem = orderItemOptional.get();
+//
+//            if (orderItem.getQuantity() > 1) {
+//                orderItem.setQuantity(orderItem.getQuantity() - 1);
+//            } else {
+//                orderItems.remove(orderItem);
+//            }
+//            order.setTotalAmount(calculateTotalAmount(order));
+//            orderRepository.save(order);
+//
+//            return viewUserCart();
+//        } else {
+//            throw new CustomException("Food item not found in the cart!!!");
+//        }
+//    }
 
-    public OrderViewResponse deleteItem(String orderId, String foodItemId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new CustomException("Order not found!!!"));
-
-        Map<String, Integer> cartItems = order.getItemMenus();
-
-        if (cartItems.containsKey(foodItemId)) {
-            int quantity = cartItems.get(foodItemId);
-
-            if (quantity > 1) {
-                cartItems.put(foodItemId, quantity - 1);
-            } else {
-                cartItems.remove(foodItemId);
-            }
-            order.setTotalAmount(calculateTotalAmount(order));
-            orderRepository.save(order);
-
-            return viewUserCart();
-        } else {
-            throw new CustomException("Food item not found in the cart!!!");
-        }
-    }
-
-    public OrderViewResponse deleteSupplement (String orderId, String supplementId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new CustomException("Order not found!!!"));
-
-        Map<String, Integer> supplements = order.getSupplements();
-
-        if (supplements.containsKey(supplementId)) {
-            int quantity = supplements.get(supplementId);
-
-            if (quantity > 1) {
-                supplements.put(supplementId, quantity - 1);
-            } else {
-                supplements.remove(supplementId);
-            }
-            order.setTotalAmount(calculateTotalAmount(order));
-            orderRepository.save(order);
-
-            return viewUserCart();
-        } else {
-            throw new CustomException("Food item not found in the cart!!!");
-        }
-    }
 
     public String deleteOrder(String orderId) {
         Order order = orderRepository.findById(orderId)
@@ -321,31 +770,13 @@ public class OrderServiceImpl implements OrderService {
     private BigDecimal calculateTotalAmount(Order order) {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
-        Map<String, Integer> cartItems = order.getItemMenus();
-        for (Map.Entry<String, Integer> entry : cartItems.entrySet()) {
-            String itemId = entry.getKey();
-            int quantity = entry.getValue();
+        List<OrderItem> orderItems = order.getOrderItems();
 
-            ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
-
-            BigDecimal itemTotal = itemMenu.getItemPrice().multiply(BigDecimal.valueOf(quantity));
+        for (OrderItem orderItem : orderItems) {
+            // Calculate the total amount for the item including supplements
+            BigDecimal itemTotal = orderItem.getItemTotalAmount();
             totalAmount = totalAmount.add(itemTotal);
         }
-
-        Map<String, Integer> supplements = order.getSupplements();
-        for (Map.Entry<String, Integer> entry : supplements.entrySet()) {
-            String supplementId = entry.getKey();
-            int quantity = entry.getValue();
-
-            // Retrieve the Supplement object from your data source using supplementId
-            Supplement supplement = supplementRepository.findById(supplementId)
-                    .orElseThrow(() -> new CustomException("Supplement not found!!!"));
-
-            // Calculate the total amount for this supplement based on its price and quantity
-            BigDecimal supplementTotal = supplement.getSupplementPrice().multiply(BigDecimal.valueOf(quantity));
-            totalAmount = totalAmount.add(supplementTotal);
-        }
-
         return totalAmount;
     }
 
@@ -369,70 +800,79 @@ public class OrderServiceImpl implements OrderService {
         return company;
     }
 
-    private OrderViewResponse viewAllOrdersInternal(List<Order> orderList) {
-        List<OrderResponse> orderResponses = new ArrayList<>();
-        int totalItems = 0;
-        BigDecimal totalSum = BigDecimal.ZERO;
+//    public OrderViewResponse viewUserCart() {
+//        String userId = getAuthenticatedUser().getId();
+//        List<Order> pendingOrders = orderRepository.findPendingOrdersByUserId(userId);
+//        return viewAllOrdersInternal(pendingOrders);
+//    }
+//
+//    private OrderViewResponse viewAllOrdersInternal(List<Order> orderList) {
+//        List<OrderResponse> orderResponses = new ArrayList<>();
+//        int totalItems = 0;
+//        BigDecimal totalSum = BigDecimal.ZERO;
+//
+//        for (Order order : orderList) {
+//            List<FoodDataResponse> foodDataResponses = new ArrayList();
+//
+//            for (OrderItem orderItem : order.getOrderItems()) {
+//                ItemMenu itemMenu = orderItem.getItemMenu();
+//                Vendor vendor = itemMenu.getItemCategory().getVendor();
+//                List<SupplementResponse> supplementResponses = new ArrayList<>();
+//
+//                // Fetch and iterate through the supplements associated with the order item
+//                for (OrderItemSupplement orderItemSupplement : orderItem.getOrderItemSupplements()) {
+//                    Supplement supplement = orderItemSupplement.getSupplement();
+//                    int supplementQuantity = orderItemSupplement.getQuantity();
+//
+//                    supplementResponses.add(new SupplementResponse(
+//                            supplement.getSupplementId(),
+//                            supplement.getSupplementName(),
+//                            supplement.getSupplementPrice(),
+//                            supplementQuantity,
+//                            supplement.getSupplementCategory()
+//                    ));
+//                }
+//
+//                BigDecimal itemTotalAmount = orderItem.getItemTotalAmount();
+//
+//                // Construct the FoodDataResponse for the item
+//                FoodDataResponse foodDataResponse = new FoodDataResponse(
+//                        itemMenu.getItemId(),
+//                        itemMenu.getItemName(),
+//                        itemMenu.getItemPrice(),
+//                        itemMenu.getImageUrl(),
+//                        orderItem.getQuantity(),
+//                        supplementResponses,
+//                        itemTotalAmount,
+//                        vendor.getBusinessName()
+//                );
+//
+//                foodDataResponses.add(foodDataResponse);
+//            }
+//
+//            BigDecimal orderTotalAmount = order.getTotalAmount();
+//
+//            // Add the constructed order response to the list
+//            orderResponses.add(new OrderResponse(
+//                    order.getOrderId(),
+//                    foodDataResponses,
+//                    orderTotalAmount
+//            ));
+//
+//            // Update the total items and total sum
+//            totalItems += foodDataResponses.size();
+//            totalSum = totalSum.add(orderTotalAmount);
+//        }
+//
+//        // Prepare the OrderSummary for the response
+//        OrderSummary orderSummary = new OrderSummary(totalItems, totalSum);
+//
+//        // Create the OrderViewResponse
+//        OrderViewResponse orderViewResponse = new OrderViewResponse(orderResponses, orderSummary);
+//
+//        return orderViewResponse;
+//    }
 
-        for (Order order : orderList) {
-            List<FoodDataResponse> foodDataResponses = new ArrayList<>();
-
-            // Iterate through the cart items
-            for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
-                String itemId = entry.getKey();
-                int quantity = entry.getValue();
-
-                // Retrieve the ItemMenu object from your data source using itemId
-                ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
-
-                totalItems += quantity;
-
-                Vendor vendor = itemMenu.getItemCategory().getVendor();
-                foodDataResponses.add(FoodDataResponse.builder()
-                        .itemId(itemId)
-                        .itemName(itemMenu.getItemName())
-                        .price(itemMenu.getItemPrice())
-                        .imageUri(itemMenu.getImageUrl())
-                        .quantity(quantity)
-                        .vendorName(vendor.getBusinessName())
-                        .build());
-            }
-
-            // Iterate through the cart supplements
-            for (Map.Entry<String, Integer> entry : order.getSupplements().entrySet()) {
-                String supplementId = entry.getKey();
-                int quantity = entry.getValue();
-
-                // Retrieve the Supplement object from your data source using supplementId
-                Supplement supplement = supplementRepository.findById(supplementId)
-                        .orElseThrow(() -> new CustomException("Supplement not found!!!"));
-
-                totalItems += quantity;
-
-                foodDataResponses.add(FoodDataResponse.builder()
-                        .itemId(supplementId)
-                        .itemName(supplement.getSupplementName())
-                        .price(supplement.getSupplementPrice())
-                        .quantity(quantity)
-                        .build());
-            }
-
-            orderResponses.add(OrderResponse.builder()
-                    .orderId(order.getOrderId())
-                    .items(foodDataResponses)
-                    .totalAmount(order.getTotalAmount())
-                    .build());
-
-            totalSum = totalSum.add(order.getTotalAmount());
-        }
-
-        OrderSummary orderSummary = OrderSummary.builder()
-                .totalItems(totalItems)
-                .totalSum(totalSum)
-                .build();
-
-        return new OrderViewResponse(orderResponses, orderSummary);
-    }
 
     private List<SimplifiedOrderResponse> viewSimplifiedOrdersInternal(List<Order> orderList) {
         List<SimplifiedOrderResponse> simplifiedOrderResponses = new ArrayList<>();
@@ -449,57 +889,43 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private UserOrderDetailsResponse buildOrderResponse(Order order) {
-        List<FoodDataResponse> foodDataResponses = new ArrayList<>();
+        List<FoodDataResponse> foodDataResponses = new ArrayList();
 
-        // Accumulate quantities for each item menu
-        Map<String, Integer> accumulatedQuantities = new HashMap<>();
-
-        // Iterate through the itemMenus map
-        for (Map.Entry<String, Integer> entry : order.getItemMenus().entrySet()) {
-            String itemId = entry.getKey();
-            int quantity = entry.getValue();
-
-            // Accumulate quantities for each item menu
-            accumulatedQuantities.put(itemId, accumulatedQuantities.getOrDefault(itemId, 0) + quantity);
-        }
-
-        // Iterate through the accumulated quantities map
-        for (Map.Entry<String, Integer> entry : accumulatedQuantities.entrySet()) {
-            String itemId = entry.getKey();
-            int quantity = entry.getValue();
-
-            // Retrieve the ItemMenu object from your data source using itemId
-            ItemMenu itemMenu = itemMenuRepository.findByItemId(itemId);
+        for (OrderItem orderItem : order.getOrderItems()) {
+            ItemMenu itemMenu = orderItem.getItemMenu();
             Vendor vendor = itemMenu.getItemCategory().getVendor();
+            String itemId = itemMenu.getItemId();
+            int quantity = orderItem.getQuantity();
 
-            // Create a FoodDataResponse object for each item menu
-            foodDataResponses.add(FoodDataResponse.builder()
-                    .itemId(itemId)
-                    .itemName(itemMenu.getItemName())
-                    .price(itemMenu.getItemPrice())
-                    .quantity(quantity)
-                    .imageUri(itemMenu.getImageUrl())
-                    .vendorName(vendor.getBusinessName())
-                    .build());
-        }
+            // Create a FoodDataResponse for each item menu
+            FoodDataResponse itemMenuResponse = new FoodDataResponse();
+            itemMenuResponse.setItemId(itemId);
+            itemMenuResponse.setItemName(itemMenu.getItemName());
+            itemMenuResponse.setPrice(itemMenu.getItemPrice());
+            itemMenuResponse.setQuantity(quantity);
+            itemMenuResponse.setImageUri(itemMenu.getImageUrl());
+            itemMenuResponse.setVendorName(vendor.getBusinessName());
 
-        // Iterate through the supplements map
-        for (Map.Entry<String, Integer> entry : order.getSupplements().entrySet()) {
-            String supplementId = entry.getKey();
-            int quantity = entry.getValue();
+            // Create a list of supplement responses for this item menu
+            List<SupplementResponse> supplementResponses = new ArrayList();
+            for (OrderItemSupplement orderItemSupplement : orderItem.getOrderItemSupplements()) {
+                Supplement supplement = orderItemSupplement.getSupplement();
+                String supplementId = supplement.getSupplementId();
+                int supplementQuantity = orderItemSupplement.getQuantity();
 
-            // Retrieve the Supplement object from your data source using supplementId
-            Supplement supplement = supplementRepository.findBySupplementId(supplementId);
+                // Create a SupplementResponse for each supplement
+                SupplementResponse supplementResponse = new SupplementResponse();
+                supplementResponse.setSupplementId(supplementId);
+                supplementResponse.setSupplementName(supplement.getSupplementName());
+                supplementResponse.setSupplementPrice(supplement.getSupplementPrice());
+                supplementResponse.setSupplementQuantity(supplementQuantity);
+                supplementResponse.setSupplementCategory(supplement.getSupplementCategory());
 
-            // Create a FoodDataResponse object for each supplement
-            foodDataResponses.add(FoodDataResponse.builder()
-                    .itemId(supplement.getSupplementId())
-                    .itemName(supplement.getSupplementName())
-                    .price(supplement.getSupplementPrice())
-                    .quantity(quantity)
-                    .imageUri(null)
-                    .vendorName(supplement.getVendor().getBusinessName())
-                    .build());
+                supplementResponses.add(supplementResponse);
+            }
+            itemMenuResponse.setSupplementResponses(supplementResponses);
+
+            foodDataResponses.add(itemMenuResponse);
         }
 
         return UserOrderDetailsResponse.builder()
